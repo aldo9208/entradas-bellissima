@@ -1,928 +1,2427 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Pagos y Notas de Crédito · Bellíssima</title>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Entradas · Bellissima</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
-  :root{--bg:#faf7fb;--surface:#fff;--surface2:#f6f1f8;--muted:#7a7285;--line:#ece6f0;--brand:#6b21a8;
-        --ok:#16a34a;--ok-bg:#f0fdf4;--warn:#d97706;--warn-bg:#fffbeb;--danger:#dc2626;--danger-bg:#fef2f2;--r:12px}
-  *{box-sizing:border-box}
-  body{margin:0;background:var(--bg);color:#1e1b24;font-family:'Segoe UI',system-ui,-apple-system,sans-serif;font-size:14px;line-height:1.45}
-  .wrap{max-width:1240px;margin:0 auto;padding:18px 16px 60px}
-  h1{margin:0;font-size:22px;font-weight:700;letter-spacing:-.3px}
-  .sub{color:var(--muted);font-size:12.5px;margin:4px 0 0}
-  .bar{height:4px;width:56px;background:var(--brand);border-radius:99px;margin:10px 0 16px}
-  .btn{background:var(--brand);color:#fff;border:none;border-radius:9px;padding:9px 16px;font-size:14px;font-weight:600;cursor:pointer}
-  .btn:disabled{opacity:.5;cursor:default}
-  .btn-s{background:#fff;color:var(--brand);border:1px solid var(--line)}
-  .btn-sm{padding:5px 10px;font-size:12.5px;border-radius:8px}
-  .btn-ok{background:var(--ok)}
-  .tabs{display:flex;gap:4px;border-bottom:1px solid var(--line);margin:6px 0 16px;flex-wrap:wrap}
-  .tab{padding:9px 16px;border:none;background:none;font-size:14px;font-weight:600;color:var(--muted);cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-1px}
-  .tab.on{color:var(--brand);border-bottom-color:var(--brand)}
-  .stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:8px;margin-bottom:16px}
-  .stat{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:11px 13px}
-  .stat .n{font-size:18px;font-weight:700}
-  .stat .l{font-size:11px;color:var(--muted);margin-top:2px}
-  .stat.acc .n{color:var(--brand)} .stat.warn .n{color:var(--warn)} .stat.ok .n{color:var(--ok)} .stat.dgr .n{color:var(--danger)}
-  table{width:100%;border-collapse:collapse;font-size:13px;background:var(--surface)}
-  th{position:sticky;top:0;background:var(--surface2);text-align:right;font-size:10.5px;text-transform:uppercase;letter-spacing:.3px;color:var(--muted);padding:9px 10px;border-bottom:1px solid var(--line);white-space:nowrap}
-  th.l{text-align:left}
-  td{padding:9px 10px;border-bottom:1px solid var(--line);text-align:right;white-space:nowrap;font-variant-numeric:tabular-nums;vertical-align:top}
-  td.l{text-align:left;white-space:normal}
-  tbody tr:hover{background:#faf6fc}
-  .tablewrap{overflow:auto;border:1px solid var(--line);border-radius:var(--r)}
-  .folio{font-weight:700}
-  .prov{color:var(--muted);font-size:12px;display:block}
-  .badge{display:inline-block;padding:2px 8px;border-radius:99px;font-size:11px;font-weight:600;margin-right:3px}
-  .b-ok{background:var(--ok-bg);color:var(--ok)}
-  .b-warn{background:var(--warn-bg);color:var(--warn)}
-  .b-dgr{background:var(--danger-bg);color:var(--danger)}
-  .b-acc{background:#f3e8ff;color:var(--brand)}
-  .alert{display:block;font-size:11px;margin-top:3px;padding:3px 8px;border-radius:6px}
-  .a-nc{background:var(--danger-bg);color:var(--danger)}
-  .a-pp{background:var(--ok-bg);color:var(--ok)}
-  .muted{color:var(--muted);font-size:12px}
-  .filters{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:10px}
-  input,select{padding:8px 10px;border:1px solid var(--line);border-radius:8px;font-size:14px;background:#fff;font-family:inherit}
-  input[type=search]{flex:1;min-width:160px}
-  .chips{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px}
-  .chip{padding:5px 11px;border:1px solid var(--line);background:#fff;border-radius:99px;font-size:12px;cursor:pointer;color:var(--muted)}
-  .chip.on{background:var(--brand);border-color:var(--brand);color:#fff;font-weight:600}
-  .modal{position:fixed;inset:0;background:rgba(20,10,30,.45);display:none;align-items:center;justify-content:center;padding:16px;z-index:50}
-  .modal.on{display:flex}
-  .card{background:#fff;border-radius:16px;padding:20px;max-width:440px;width:100%;max-height:90vh;overflow:auto}
-  .card h3{margin:0 0 4px;font-size:17px}
-  .fld{margin:12px 0}
-  .fld label{display:block;font-size:12px;font-weight:600;color:var(--muted);margin-bottom:4px}
-  .fld input,.fld select,.fld textarea{width:100%}
-  .fld textarea{border:1px solid var(--line);border-radius:8px;padding:8px 10px;font-size:14px;font-family:inherit;min-height:52px}
-  .row2{display:flex;gap:8px}.row2>*{flex:1}
-  .status{font-size:13px;color:var(--brand);min-height:18px;margin-top:8px}
-  .sug{background:var(--warn-bg);border:1px solid #f4e2c0;color:#92620a;border-radius:8px;padding:8px 10px;font-size:12px;margin-top:8px}
-  .empty{padding:34px;text-align:center;color:var(--muted)}
-  .drop{border:1px dashed var(--line);border-radius:10px;padding:12px;background:var(--surface2);text-align:center}
-  .drop input[type=file]{font-size:12.5px;width:100%}
-  .drop .hint{font-size:11.5px;color:var(--muted);margin-top:4px}
-  .clip{background:none;border:none;cursor:pointer;font-size:15px;padding:2px 4px}
-  .leyendo{font-size:12px;color:var(--brand);margin-top:6px}
-  .lineitem{display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--line);font-size:12.5px}
-  @media(max-width:860px){
-    thead{display:none} table,tbody,tr,td{display:block;width:100%}
-    tbody tr{border-bottom:2px solid var(--line);padding:6px 0}
-    td{border:none;text-align:right;padding:4px 12px;display:flex;justify-content:space-between;gap:10px}
-    td.l{text-align:left;display:block}
-    td::before{content:attr(data-l);color:var(--muted);font-size:11px;text-transform:uppercase}
-    td.l::before{content:none}
-  }
+:root{--bg:#F7F6F2;--surface:#FFFFFF;--surface2:#F0EFE9;--border:#E2E0D8;--text:#1C1B18;--muted:#8A8880;--ok-bg:#E8F5EC;--ok:#1A6B32;--warn-bg:#FFF3DC;--warn:#8A5B00;--danger-bg:#FDECEA;--danger:#B52020;--info-bg:#E8EFFE;--info:#1A3DA8;--r:10px;--r-lg:14px;}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);font-size:15px;line-height:1.5;min-height:100vh}
+.app{max-width:520px;margin:0 auto;padding:1.25rem 1rem 4rem}
+.screen{display:none}.screen.active{display:block}
+h1{font-size:24px;font-weight:600;letter-spacing:-0.5px}
+h2{font-size:18px;font-weight:600;letter-spacing:-0.3px}
+.mono{font-family:'DM Mono',monospace;font-size:12px}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-lg);padding:1rem 1.25rem;margin-bottom:10px}
+.card-flat{background:var(--surface2);border-radius:var(--r);padding:10px 14px;margin-bottom:8px}
+.badge{display:inline-flex;align-items:center;padding:3px 10px;border-radius:20px;font-size:12px;font-weight:500}
+.b-ok{background:var(--ok-bg);color:var(--ok)}.b-falt{background:var(--danger-bg);color:var(--danger)}.b-sobr{background:var(--warn-bg);color:var(--warn)}.b-pend{background:var(--warn-bg);color:var(--warn)}
+.stat-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(72px,1fr));gap:8px;margin-bottom:1rem}
+.stat{background:var(--surface2);border-radius:var(--r);padding:12px 10px;text-align:center}
+.stat-n{font-size:26px;font-weight:600;letter-spacing:-1px}.stat-l{font-size:11px;color:var(--muted);margin-top:1px;font-weight:500}
+label.lbl{font-size:12px;font-weight:500;color:var(--muted);display:block;margin-bottom:4px;text-transform:uppercase;letter-spacing:0.3px}
+input,select{width:100%;padding:9px 12px;border:1px solid var(--border);border-radius:var(--r);font-size:14px;font-family:'DM Sans',sans-serif;background:var(--surface);color:var(--text)}
+input:focus,select:focus{outline:none;border-color:var(--text)}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px}
+.btn{display:block;width:100%;padding:11px 16px;border-radius:var(--r);cursor:pointer;font-size:14px;font-weight:500;font-family:'DM Sans',sans-serif;text-align:center;border:none;margin-bottom:8px}
+.btn-p{background:var(--text);color:#fff}.btn-s{background:var(--surface);color:var(--text);border:1px solid var(--border)}
+.btn-danger{background:var(--danger-bg);color:var(--danger);border:1px solid #f5c6c6}
+.btn-sm{padding:6px 14px;font-size:13px;width:auto;display:inline-block;margin-bottom:0}
+.btn-ico{background:none;border:none;cursor:pointer;font-size:16px;color:var(--muted);padding:4px;line-height:1}
+.topbar{display:flex;align-items:center;gap:10px;margin-bottom:1.5rem}.topbar h2{flex:1}
+.tabs{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:1rem}
+.tab{padding:6px 14px;border-radius:20px;font-size:13px;cursor:pointer;border:1px solid var(--border);background:var(--surface);color:var(--muted);font-family:'DM Sans',sans-serif;font-weight:500}
+.tab.active{background:var(--text);color:#fff;border-color:var(--text)}
+.tr-row{display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--border)}.tr-row:last-child{border-bottom:none}
+.tr-info{flex:1;min-width:0}.tr-clave{font-family:'DM Mono',monospace;font-size:11px;color:var(--muted)}
+.tr-desc{font-size:13px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tr-input{width:68px;text-align:center;padding:6px 8px;font-size:15px;font-weight:600}
+.alert{border-radius:var(--r);padding:10px 14px;font-size:13px;font-weight:500;margin-bottom:12px;display:flex;align-items:center;gap:8px}
+.alert-danger{background:var(--danger-bg);color:var(--danger)}.alert-ok{background:var(--ok-bg);color:var(--ok)}.alert-info{background:var(--info-bg);color:var(--info)}
+.upload-zone{border:2px dashed var(--border);border-radius:var(--r-lg);padding:1.5rem 1rem;text-align:center;cursor:pointer;display:block;background:var(--surface)}
+.upload-zone input[type=file]{display:none}
+.folio{font-family:'DM Mono',monospace;font-size:12px;background:var(--surface2);border:1px solid var(--border);border-radius:6px;padding:2px 8px;color:var(--muted);display:inline-block}
+.divider{height:1px;background:var(--border);margin:14px 0}
+.empty{text-align:center;padding:2.5rem 1rem;color:var(--muted)}.empty-icon{font-size:32px;margin-bottom:10px}
+.falt-table{width:100%;border-collapse:collapse;font-size:13px}
+.falt-table th{font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:0.5px;padding:6px 8px;text-align:left;border-bottom:2px solid var(--border)}
+.falt-table td{padding:8px;border-bottom:1px solid var(--border);vertical-align:top}.falt-table tr:last-child td{border-bottom:none}
+.falt-table .numart{font-family:'DM Mono',monospace;font-size:11px;color:var(--muted)}
+.loading{text-align:center;padding:2rem;color:var(--muted);font-size:14px}
 </style>
 </head>
 <body>
-<div class="wrap">
-  <h1>Pagos y Notas de Crédito</h1>
-  <p class="sub">Bellíssima · cuentas por pagar a proveedores · notas de crédito · pronto pago</p>
-  <div class="bar"></div>
+<div class="app">
 
-  <div id="loading" class="status">Cargando datos…</div>
-
-  <div id="app" style="display:none">
-    <div class="tabs">
-      <button id="t-fact" class="tab on" onclick="verTab('fact')">Facturas por pagar</button>
-      <button id="t-nc" class="tab" onclick="verTab('nc')">Notas de crédito</button>
-      <button id="t-pag" class="tab" onclick="verTab('pag')">Pagos</button>
-      <button id="t-prov" class="tab" onclick="verTab('prov')">Proveedores</button>
+<!-- HOME -->
+<div id="s-home" class="screen active">
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem">
+    <div>
+      <p style="font-size:11px;font-weight:600;letter-spacing:1.5px;color:var(--muted);text-transform:uppercase;margin-bottom:2px">Distribución</p>
+      <h1>Bellissima</h1>
     </div>
-
-    <!-- FACTURAS -->
-    <div id="p-fact">
-      <div class="stats" id="f-stats"></div>
-      <div class="filters">
-        <input id="f-q" type="search" placeholder="Buscar folio o proveedor…" autocomplete="off">
-      </div>
-      <div class="chips" id="f-chips">
-        <span class="chip on" data-f="pend">Pendientes</span>
-        <span class="chip" data-f="pp">Ventana pronto pago</span>
-        <span class="chip" data-f="ncf">Faltante sin NC</span>
-        <span class="chip" data-f="pag">Pagadas</span>
-        <span class="chip" data-f="all">Todas</span>
-      </div>
-      <div class="muted" id="f-count" style="margin-bottom:6px"></div>
-      <div class="tablewrap">
-        <table><thead><tr>
-          <th class="l">Factura</th><th class="l">Fecha</th><th>Total</th><th>NC</th><th>Pagado</th><th>Saldo</th><th class="l">Estado</th><th></th>
-        </tr></thead><tbody id="f-tb"></tbody></table>
-      </div>
-    </div>
-
-    <!-- NOTAS DE CREDITO -->
-    <div id="p-nc" style="display:none">
-      <div class="stats" id="n-stats"></div>
-      <button class="btn" onclick="abrirNC(null)">+ Registrar nota de crédito</button>
-      <div class="muted" id="n-count" style="margin:12px 0 6px"></div>
-      <div class="tablewrap">
-        <table><thead><tr>
-          <th class="l">Folio NC</th><th class="l">Proveedor</th><th class="l">Factura</th><th class="l">Tipo</th><th class="l">Fecha</th><th>Monto</th><th class="l">Estado</th><th>PDF</th><th></th>
-        </tr></thead><tbody id="n-tb"></tbody></table>
-      </div>
-    </div>
-
-    <!-- PAGOS -->
-    <div id="p-pag" style="display:none">
-      <div class="stats" id="g-stats"></div>
-      <button class="btn" onclick="abrirPago(null)">+ Registrar pago</button>
-      <div class="muted" id="g-count" style="margin:12px 0 6px"></div>
-      <div class="tablewrap">
-        <table><thead><tr>
-          <th class="l">Fecha</th><th class="l">Proveedor</th><th class="l">Factura</th><th class="l">Referencia</th><th>Monto</th><th>PDF</th><th></th>
-        </tr></thead><tbody id="g-tb"></tbody></table>
-      </div>
-    </div>
-
-    <!-- PROVEEDORES -->
-    <div id="p-prov" style="display:none">
-      <p class="muted">Configura los días de crédito y el descuento por pronto pago de cada proveedor. Con esto la app calcula el vencimiento y te avisa cuándo conviene pagar antes.</p>
-      <div class="tablewrap">
-        <table><thead><tr>
-          <th class="l">Proveedor</th><th>Días crédito</th><th>Pronto pago %</th><th>Días p/ pronto pago</th><th>Facturas</th><th></th>
-        </tr></thead><tbody id="v-tb"></tbody></table>
-      </div>
+    <div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px">
+      <button class="btn btn-sm btn-s" onclick="show('s-admin');renderAdminLista()">⚙ Admin</button>
+      <span id="conn-status" style="font-size:11px;color:var(--muted)">● Conectando...</span>
     </div>
   </div>
+  <div class="card" style="margin-bottom:1rem">
+    <label class="lbl">Mi sucursal</label>
+    <select id="sel-mi-suc" onchange="guardarMiSuc();renderHome()">
+      <option value="">— selecciona tu sucursal —</option>
+    </select>
+  </div>
+  <div id="home-contenido"><div class="loading">Cargando datos...</div></div>
 </div>
 
-<!-- MODAL PAGO -->
-<div class="modal" id="m-pago"><div class="card">
-  <h3>Registrar pago</h3>
-  <p class="muted" id="mp-info"></p>
-  <div class="fld"><label>Factura</label><select id="mp-folio"></select></div>
-  <div class="row2">
-    <div class="fld"><label>Fecha del pago</label><input id="mp-fecha" type="date"></div>
-    <div class="fld"><label>Monto</label><input id="mp-monto" type="number" step="0.01" placeholder="0.00"></div>
+<!-- ADMIN -->
+<div id="s-admin" class="screen">
+  <div class="topbar">
+    <button class="btn-ico" onclick="show('s-home');renderHome()">←</button>
+    <h2>Administración</h2>
   </div>
-  <div class="fld"><label>Referencia / folio de transferencia</label><input id="mp-ref" type="text" placeholder="ej. SPEI 1234567"></div>
-  <div class="fld"><label>Comprobante de la transferencia (PDF)</label>
-    <div class="drop"><input id="mp-file" type="file" accept="application/pdf">
-      <div class="hint">Lo leo y lleno monto, fecha y referencia solos.</div></div>
-    <div id="mp-leyendo" class="leyendo"></div>
-  </div>
-  <div class="fld"><label>Notas (opcional)</label><textarea id="mp-nota"></textarea></div>
-  <div id="mp-sug"></div>
-  <div class="status" id="mp-status"></div>
-  <div class="row2" style="margin-top:12px">
-    <button class="btn btn-s" onclick="cerrarModal('m-pago')">Cancelar</button>
-    <button class="btn" id="mp-save" onclick="guardarPago()">Guardar pago</button>
-  </div>
-</div></div>
 
-<!-- MODAL NC -->
-<div class="modal" id="m-nc"><div class="card">
-  <h3>Registrar nota de crédito</h3>
-  <p class="muted" id="mn-info"></p>
-  <div class="fld"><label>Factura</label><select id="mn-folio"></select></div>
-  <div class="fld"><label>Tipo de nota de crédito</label><select id="mn-tipo">
-    <option value="faltante">Faltante (mercancía facturada que no llegó)</option>
-    <option value="prontopago">Pronto pago (descuento financiero)</option>
-    <option value="devolucion">Devolución</option>
-    <option value="bonificacion">Bonificación / rebate</option>
-    <option value="otro">Otro</option>
-  </select></div>
-  <div class="row2">
-    <div class="fld"><label>Folio de la NC</label><input id="mn-folionc" type="text" placeholder="ej. NC-1234"></div>
-    <div class="fld"><label>Monto</label><input id="mn-monto" type="number" step="0.01" placeholder="0.00"></div>
+  <!-- OPCIÓN 1: Excel de distribución de Cowork -->
+  <p style="font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:10px">Cargar distribución de compra</p>
+  <div class="card" style="border:1.5px solid var(--info-bg)">
+    <p style="font-size:13px;color:var(--info);font-weight:500;margin-bottom:10px">📊 Desde Excel de Cowork — crea traspasos para todas las sucursales automáticamente</p>
+    <label class="upload-zone">
+      <input type="file" id="file-xlsx" accept=".xlsx,.xls" onchange="leerExcelDistribucion()">
+      <div style="font-size:28px;margin-bottom:8px">📊</div>
+      <p style="font-weight:500;font-size:14px">Seleccionar Excel de distribución</p>
+      <p style="font-size:12px;color:var(--muted);margin-top:4px">Generado por Cowork (Distribucion_*.xlsx)</p>
+    </label>
+    <div id="preview-xlsx" style="margin-top:10px"></div>
   </div>
-  <div class="row2">
-    <div class="fld"><label>Fecha</label><input id="mn-fecha" type="date"></div>
-    <div class="fld"><label>Estado</label><select id="mn-estado">
-      <option value="esperada">Esperada (aún no la mandan)</option>
-      <option value="recibida">Recibida</option>
-    </select></div>
-  </div>
-  <div class="fld"><label>Nota de crédito (PDF del CFDI)</label>
-    <div class="drop"><input id="mn-file" type="file" accept="application/pdf">
-      <div class="hint">La leo y lleno folio, monto, fecha y tipo solos.</div></div>
-    <div id="mn-leyendo" class="leyendo"></div>
-  </div>
-  <div class="fld"><label>Notas (opcional)</label><textarea id="mn-nota"></textarea></div>
-  <div id="mn-sug"></div>
-  <div class="status" id="mn-status"></div>
-  <div class="row2" style="margin-top:12px">
-    <button class="btn btn-s" onclick="cerrarModal('m-nc')">Cancelar</button>
-    <button class="btn" id="mn-save" onclick="guardarNC()">Guardar NC</button>
-  </div>
-</div></div>
 
-<!-- MODAL PROVEEDOR -->
-<div class="modal" id="m-prov"><div class="card">
-  <h3 id="mv-title">Configurar proveedor</h3>
-  <div class="row2">
-    <div class="fld"><label>Días de crédito</label><input id="mv-cred" type="number" step="1" placeholder="ej. 30"></div>
-    <div class="fld"><label>Pronto pago %</label><input id="mv-pct" type="number" step="0.01" placeholder="ej. 3"></div>
-  </div>
-  <div class="fld"><label>Días para alcanzar el pronto pago</label><input id="mv-dpp" type="number" step="1" placeholder="ej. 10">
-    <span class="muted">Si pagas dentro de estos días desde la factura, ganas el descuento.</span></div>
-  <div class="status" id="mv-status"></div>
-  <div class="row2" style="margin-top:12px">
-    <button class="btn btn-s" onclick="cerrarModal('m-prov')">Cancelar</button>
-    <button class="btn" onclick="guardarProv()">Guardar</button>
-  </div>
-</div></div>
+  <div class="divider"></div>
 
-<!-- MODAL TOTAL FACTURA -->
-<div class="modal" id="m-total"><div class="card">
-  <h3>Total de la factura</h3>
-  <p class="muted" id="mt-info"></p>
-  <div class="fld"><label>Total con IVA (lo que se paga)</label><input id="mt-monto" type="number" step="0.01" placeholder="0.00"></div>
-  <div id="mt-sug"></div>
-  <div class="status" id="mt-status"></div>
-  <div class="row2" style="margin-top:12px">
-    <button class="btn btn-s" onclick="cerrarModal('m-total')">Cancelar</button>
-    <button class="btn" onclick="guardarTotal()">Guardar</button>
+  <!-- OPCIÓN 2: CSV individual de SAIT -->
+  <p style="font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:10px">Cargar traspaso individual (CSV SAIT)</p>
+  <div class="card">
+    <div class="grid2">
+      <div>
+        <label class="lbl">Sale de</label>
+        <select id="admin-suc-orig"><option value="">— selecciona —</option></select>
+      </div>
+      <div>
+        <label class="lbl">Llega a</label>
+        <select id="admin-suc-dest"><option value="">— selecciona —</option></select>
+      </div>
+    </div>
+    <label class="upload-zone">
+      <input type="file" id="file-csv" accept=".csv" onchange="leerCSV()">
+      <div style="font-size:28px;margin-bottom:8px">📄</div>
+      <p style="font-weight:500;font-size:14px">Seleccionar CSV de traspaso</p>
+      <p style="font-size:12px;color:var(--muted);margin-top:4px">Exportado desde SAIT</p>
+    </label>
+    <div id="preview-csv" style="margin-top:10px"></div>
   </div>
-</div></div>
-<script>
-/* ===== Pagos y Notas de Crédito — Bellíssima ===== */
-(function(){
-  var FB={apiKey:'AIzaSyCpFCqO25oDdBne1mOiJarY-ZEBBX0jOVk',authDomain:'bellissima-entradas.firebaseapp.com',projectId:'bellissima-entradas'};
-  var db=null, fs=null;
-  var FACT=[], NC=[], PAGOS=[], PROV={}, tab='fact', filtro='pend', q='';
-  var editProv=null, editTotalFolio=null;
 
-  function nk(s){ s=String(s==null?'':s).trim().toUpperCase(); return s.replace(/^0+/,'')||'0'; }
-  function money(n){ return '$'+(Number(n)||0).toLocaleString('es-MX',{minimumFractionDigits:2,maximumFractionDigits:2}); }
-  function money0(n){ return '$'+(Number(n)||0).toLocaleString('es-MX',{maximumFractionDigits:0}); }
-  function hoy(){ var d=new Date(); return new Date(d.getFullYear(),d.getMonth(),d.getDate()); }
-  function parseFecha(s){
-    if(!s) return null;
-    if(s instanceof Date) return s;
-    var m=String(s).match(/^(\d{4})-(\d{2})-(\d{2})/);
-    if(m) return new Date(+m[1], +m[2]-1, +m[3]);
-    var d=new Date(s); return isNaN(d)?null:d;
+  <p style="font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:10px;margin-top:18px">Cargar surtido multi-sucursal (XLSX)</p>
+  <div class="card">
+    <label style="display:block;border:2px dashed #cbd5e1;border-radius:12px;padding:28px;text-align:center;cursor:pointer;background:#f8fafc">
+      <input type="file" id="file-xlsx-surtido" accept=".xlsx" style="display:none" />
+      <div style="font-weight:600">Seleccionar XLSX de surtido multi-sucursal</div>
+      <p style="font-size:12px;color:var(--muted);margin-top:4px">Surtido_MultiSucursal_YYYY-MM-DD.xlsx</p>
+    </label>
+    <div id="preview-xlsx-surtido" style="margin-top:10px"></div>
+    <button id="btn-cargar-surtido" class="btn btn-primary" style="margin-top:10px;width:100%;display:none">Cargar todos los traspasos</button>
+  </div>
+
+  <p style="font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:10px;margin-top:18px">Ordenes de compra</p>
+  <div class="card">
+    <button id="btn-nueva-orden" class="btn btn-primary" style="width:100%;margin-bottom:10px">+ Nueva orden</button>
+    <label id="pdf-dropzone-orden" style="display:block;border:2px dashed #cbd5e1;border-radius:10px;padding:16px;text-align:center;cursor:pointer;background:#f8fafc;margin-bottom:10px">
+      <input type="file" id="file-pdf-ordenes" accept=".pdf" multiple style="display:none" />
+      <div style="font-size:14px;font-weight:600;color:#1e293b">📄 Subir PDF de orden (SAIT)</div>
+      <p style="font-size:11px;color:var(--muted);margin:4px 0 0 0">Puedes seleccionar varios PDFs a la vez</p>
+    </label>
+    <div id="lista-ordenes-admin" style="display:flex;flex-direction:column;gap:8px"></div>
+  </div>
+
+  <div id="form-orden-modal" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);z-index:1000;align-items:center;justify-content:center">
+    <div style="background:#fff;border-radius:12px;padding:20px;max-width:420px;width:92%;max-height:90vh;overflow-y:auto">
+      <h3 id="form-orden-titulo" style="margin:0 0 14px 0;font-size:18px">Nueva orden de compra</h3>
+      <div style="display:flex;flex-direction:column;gap:10px">
+        <div>
+          <label class="lbl">Folio interno</label>
+          <input id="inp-orden-folio" type="text" placeholder="OC-2026-001" style="width:100%;padding:8px;border:1px solid #cbd5e1;border-radius:6px;box-sizing:border-box" />
+        </div>
+        <div>
+          <label class="lbl">Proveedor</label>
+          <input id="inp-orden-proveedor" type="text" placeholder="BISSU, PINK UP, OFARREY..." style="width:100%;padding:8px;border:1px solid #cbd5e1;border-radius:6px;box-sizing:border-box" />
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+          <div>
+            <label class="lbl">Fecha pedido</label>
+            <input id="inp-orden-fecha-pedido" type="date" style="width:100%;padding:8px;border:1px solid #cbd5e1;border-radius:6px;box-sizing:border-box" />
+          </div>
+          <div>
+            <label class="lbl">Fecha estimada</label>
+            <input id="inp-orden-fecha-est" type="date" style="width:100%;padding:8px;border:1px solid #cbd5e1;border-radius:6px;box-sizing:border-box" />
+          </div>
+        </div>
+        <div>
+          <label class="lbl">Importe total ($)</label>
+          <input id="inp-orden-importe" type="number" step="0.01" placeholder="0.00" style="width:100%;padding:8px;border:1px solid #cbd5e1;border-radius:6px;box-sizing:border-box" />
+        </div>
+        <div>
+          <label class="lbl">Notas (opcional)</label>
+          <textarea id="inp-orden-notas" rows="2" style="width:100%;padding:8px;border:1px solid #cbd5e1;border-radius:6px;box-sizing:border-box;resize:vertical"></textarea>
+        </div>
+        <div style="display:flex;gap:8px;margin-top:6px">
+          <button id="btn-orden-cancelar" class="btn" style="flex:1">Cancelar</button>
+          <button id="btn-orden-guardar" class="btn btn-primary" style="flex:1">Guardar</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="divider"></div>
+  <button class="btn btn-danger" onclick="show('s-faltantes');renderFaltantes()" style="margin-bottom:8px">⚠ Ver faltantes · todas las sucursales</button>
+  <button class="btn btn-s" onclick="exportarReporteFaltantes()" style="margin-bottom:8px">↓ Reporte Excel faltantes</button>
+  <button class="btn btn-danger" onclick="confirmarLimpiarBD()" style="margin-bottom:14px;opacity:0.7">🗑 Limpiar base de datos</button>
+  <p style="font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:10px">Traspasos cargados</p>
+  <div id="admin-lista"></div>
+</div>
+
+<!-- RECIBIR -->
+<div id="s-recibir" class="screen">
+  <div class="topbar">
+    <button class="btn-ico" onclick="show('s-home');renderHome()">←</button>
+    <h2 id="rec-titulo">Recibir</h2>
+  </div>
+  <div id="rec-meta" class="card-flat" style="margin-bottom:1rem"></div>
+  <div class="card" style="margin-bottom:1rem">
+    <label class="lbl">Esta mercancía llega a</label>
+    <select id="rec-suc-dest"><option value="">— selecciona tu sucursal —</option></select>
+  </div>
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+    <p style="font-size:13px;font-weight:500">Productos <span id="rec-count" style="color:var(--muted)"></span></p>
+    <button class="btn btn-sm btn-s" onclick="recibirTodo()">Marcar todo recibido</button>
+  </div>
+  <div id="rec-lista"></div>
+  <button class="btn btn-p" onclick="confirmarRecepcion()" style="margin-top:1rem" id="btn-confirmar">Confirmar recepción</button>
+</div>
+
+<!-- HISTORIAL -->
+<div id="s-historial" class="screen">
+  <div class="topbar">
+    <button class="btn-ico" onclick="show('s-home');renderHome()">←</button>
+    <h2>Historial</h2>
+  </div>
+  <div class="tabs" id="tabs-hist"></div>
+  <div id="hist-lista"></div>
+</div>
+
+<!-- FALTANTES -->
+<div id="s-faltantes" class="screen">
+  <div class="topbar">
+    <button class="btn-ico" onclick="show('s-admin');renderAdminLista()">←</button>
+    <h2>Faltantes · Todas las sucursales</h2>
+  </div>
+  <div id="falt-stats" class="stat-grid"></div>
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+    <div class="tabs" id="falt-tabs" style="margin-bottom:0;flex:1"></div>
+    <button class="btn btn-sm btn-s" onclick="exportarFaltantes()" style="flex-shrink:0;margin-left:8px">↓ CSV</button>
+  </div>
+  <div id="falt-lista"></div>
+</div>
+
+<!-- CORREGIR RECEPCIÓN -->
+<div id="s-corregir" class="screen">
+  <div class="topbar">
+    <button class="btn-ico" onclick="show('s-historial');renderHistorial()">←</button>
+    <h2 id="cor-titulo">Corregir recepción</h2>
+  </div>
+  <div id="cor-meta" class="card-flat" style="margin-bottom:1rem"></div>
+  <p style="font-size:13px;color:var(--muted);margin-bottom:10px">Corrige las cantidades recibidas y anota la solución para cada faltante.</p>
+  <div id="cor-lista"></div>
+  <div style="margin-top:1rem">
+    <label class="lbl">Nota de solución (opcional)</label>
+    <input type="text" id="cor-nota" placeholder="Ej. Se completó en traspaso E3700, se devolvió a almacén...">
+  </div>
+  <button class="btn btn-p" onclick="guardarCorreccion()" style="margin-top:1rem" id="btn-guardar-cor">Guardar corrección</button>
+</div>
+
+<!-- DETALLE -->
+<div id="s-detalle" class="screen">
+  <div class="topbar">
+    <button class="btn-ico" onclick="show('s-historial');renderHistorial()">←</button>
+    <h2 id="det-titulo">Detalle</h2>
+  </div>
+  <div class="stat-grid" id="det-stats"></div>
+  <div class="card" id="det-productos"></div>
+  <button class="btn btn-s" onclick="exportar()" style="margin-top:4px">↓ Exportar CSV</button>
+  <button class="btn btn-danger" id="btn-corregir" style="margin-top:4px">✏ Corregir cantidades</button>
+</div>
+
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+<script type="module">
+import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
+import { getFirestore, collection, onSnapshot, addDoc, updateDoc, setDoc, getDoc, getDocs, doc, query, orderBy, deleteDoc, writeBatch, where } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
+
+const firebaseConfig = {
+  apiKey: "AIzaSyCpFCqO25oDdBne1mOiJarY-ZEBBX0jOVk",
+  authDomain: "bellissima-entradas.firebaseapp.com",
+  projectId: "bellissima-entradas",
+  storageBucket: "bellissima-entradas.firebasestorage.app",
+  messagingSenderId: "719891767858",
+  appId: "1:719891767858:web:06fcbb2ad149a75b07122b"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+
+// ── ESTADO GLOBAL ──
+const SUCS = ['1-Matriz (Mtz de la Torre)','2-Morelos (Mtz de la Torre)','3-Hidalgo CEDIS (Teziutlán)','4-Allende (Teziutlán)','5-Oficina (Administrativo)','6-Tlapacoyan','7-Papantla','9-Perote','10-Independencia (Mtz de la Torre)','11-Ávila Camacho (Mtz de la Torre)','12-Misantla'];
+let traspasos = [];
+let recepciones = [];
+let tabHist = 0;
+let tabFalt = 0;
+let detalleId = null;
+window.detalleId = null;
+let csvParsed = null;
+let recibiendoId = null;
+
+// ── CONEXIÓN STATUS ──
+function setStatus(ok){
+  const el = document.getElementById('conn-status');
+  if(el){ el.textContent = ok ? '● En línea' : '● Sin conexión'; el.style.color = ok ? 'var(--ok)' : 'var(--danger)'; }
+}
+
+// ── FIREBASE LISTENERS ──
+onSnapshot(query(collection(db,'traspasos'), orderBy('ts','desc')), snap=>{
+  traspasos = snap.docs.map(d=>({...d.data(), _docId: d.id}));
+  setStatus(true);
+  renderHome();
+  if(document.getElementById('s-admin').classList.contains('active')) renderAdminLista();
+}, err=>{ setStatus(false); console.error('traspasos error:', err); });
+
+onSnapshot(query(collection(db,'recepciones'), orderBy('ts','desc')), snap=>{
+  recepciones = snap.docs.map(d=>({...d.data(), _docId: d.id}));
+  renderHome();
+  if(document.getElementById('s-historial').classList.contains('active')) renderHistorial();
+  if(document.getElementById('s-faltantes').classList.contains('active')) renderFaltantes();
+}, err=>{ console.error('recepciones error:', err); });
+
+// ── UTILS ──
+function show(id){ document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active')); document.getElementById(id).classList.add('active'); }
+
+function poblarSelects(){
+  ['admin-suc-orig','admin-suc-dest','rec-suc-dest','sel-mi-suc'].forEach(sid=>{
+    const el = document.getElementById(sid);
+    if(!el) return;
+    const cur = el.value;
+    el.innerHTML = '<option value="">— selecciona —</option>';
+    SUCS.forEach(s=>{ const o = document.createElement('option'); o.value = o.textContent = s; el.appendChild(o); });
+    if(cur) el.value = cur;
+  });
+  // Restaurar mi sucursal guardada
+  const saved = localStorage.getItem('be_mi_suc');
+  if(saved) { const el=document.getElementById('sel-mi-suc'); if(el) el.value=saved; }
+}
+
+window.guardarMiSuc = function(){
+  const val = document.getElementById('sel-mi-suc').value;
+  if(val) localStorage.setItem('be_mi_suc', val);
+  else localStorage.removeItem('be_mi_suc');
+};
+poblarSelects();
+
+// ── HOME ──
+function renderHome(){
+  const cont = document.getElementById('home-contenido');
+  if(!cont) return;
+  const miSuc = document.getElementById('sel-mi-suc')?.value || '';
+  const pendientes = miSuc
+    ? traspasos.filter(t=>t.status==='pendiente' && t.sucDest===miSuc)
+    : traspasos.filter(t=>t.status==='pendiente');
+  const totalFalt = recepciones
+    .filter(r => r.sucDest === miSuc)
+    .reduce((a,r)=>a+r.items.filter(i=>i.faltante>0).length, 0);
+  let html = '';
+  if(!miSuc){
+    cont.innerHTML = '<div class="empty"><div class="empty-icon">📦</div><p style="font-size:14px">Selecciona tu sucursal arriba<br>para ver tus traspasos.</p></div>';
+    return;
   }
-  function fmtFecha(s){ var d=parseFecha(s); if(!d) return '—';
-    return d.toLocaleDateString('es-MX',{day:'2-digit',month:'short',year:'numeric'}); }
-  function diasEntre(a,b){ return Math.round((b-a)/86400000); }
-  function addDias(d,n){ var x=new Date(d.getTime()); x.setDate(x.getDate()+n); return x; }
-  function esc(s){ return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
-
-  async function conectar(){
-    var appMod=await import('https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js');
-    var fsMod=await import('https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js');
-    var apps=appMod.getApps();
-    var app=apps.length?apps[0]:appMod.initializeApp(FB);
-    db=fsMod.getFirestore(app); fs=fsMod;
+  if(totalFalt>0){
+    html += `<div class="alert alert-danger" style="cursor:pointer" onclick="show('s-faltantes');renderFaltantes()">⚠ ${totalFalt} pieza${totalFalt>1?'s':''} faltante${totalFalt>1?'s':''} — ver concentrado</div>`;
   }
-
-  async function cargar(){
-    var lo=document.getElementById('loading');
-    lo.textContent='Cargando facturas…';
-    // 1) órdenes de compra -> facturas (E####) + mapa de costos
-    var ordSnap=await fs.getDocs(fs.collection(db,'ordenesCompra'));
-    var costos={}, facturas=[];
-    ordSnap.forEach(function(d){
-      var o=d.data();
-      var compras=o.compras||[];
-      if(!compras.length && o.folioCompra){
-        compras=[{folio:o.folioCompra, fechaCompra:o.fechaCompra, importeCompra:o.importeCompra, productosRecibidos:o.productosRecibidos||[]}];
-      }
-      compras.forEach(function(c){
-        if(!c.folio) return;
-        var mercancia=0;
-        (c.productosRecibidos||[]).forEach(function(p){
-          mercancia += (p.importeTotal||0);
-          if(p.costoPromedio>0) costos[nk(p.clave)]=p.costoPromedio;
-        });
-        facturas.push({
-          folio:String(c.folio), proveedor:o.proveedor||'(sin proveedor)',
-          fecha:c.fechaCompra||o.fechaCompra||null, orden:o.folio||'',
-          totalPDF:Number(c.importeCompra)||0,
-          mercancia:Math.round(mercancia*100)/100
-        });
-      });
+  if(pendientes.length){
+    html += `<p style="font-size:13px;font-weight:600;margin-bottom:10px">En tránsito para ${miSuc} (${pendientes.length})</p>`;
+    pendientes.forEach(t=>{
+      html += `<div class="card"><div style="display:flex;justify-content:space-between;align-items:center">
+        <div>
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px">
+            <span class="folio">${t.folio}</span><span class="badge b-pend">En tránsito</span>${(()=>{const oc=__ordenesCompra?.find(o=>o.folioTraspaso===t.folio);return oc?'<div style="font-size:11px;color:#6b21a8;margin-top:2px;font-weight:600">📦 De '+(oc.folio||'')+' '+(oc.proveedor||'')+'</div>':'';})()}
+          </div>
+          <p style="font-size:12px;color:var(--muted)">Sale de: ${t.sucOrig||'—'}</p>
+          <p style="font-size:12px;color:var(--muted)">${t.fecha} · ${t.items.length} productos</p>
+        </div>
+        <button class="btn btn-sm btn-p" onclick="iniciarRecepcion('${t.id}')">Recibir</button>
+      </div></div>`;
     });
-
-    // 2) faltantes NETOS por factura.
-    // Una compra se reparte entre sucursales: un faltante en una y un sobrante en otra
-    // = error de distribucion interna, NO es responsabilidad del proveedor.
-    // Por eso neteamos esperado vs recibido por producto a traves de TODAS las sucursales.
-    lo.textContent='Calculando faltantes…';
-    var recSnap=await fs.getDocs(fs.collection(db,'recepciones'));
-    var acum={}; // folio -> clave -> {esp, rec, desc}
-    recSnap.forEach(function(d){
-      var r=d.data(); var fol=String(r.folio||'');
-      if(!/^E/i.test(fol)) return; // solo compras a proveedor (no traspasos)
-      (r.items||[]).forEach(function(i){
-        var cl = String(i.numart || i.clave || '').trim();
-        if(!cl) return;
-        var esp = (i.esperado!=null)?i.esperado:(i.cant||0);
-        var rec = i.recibido||0;
-        if(!acum[fol]) acum[fol]={};
-        if(!acum[fol][cl]) acum[fol][cl]={esp:0, rec:0, desc:(i.desc||i.descripcion||'')};
-        acum[fol][cl].esp += esp;
-        acum[fol][cl].rec += rec;
-      });
-    });
-    var faltPorFolio={};
-    Object.keys(acum).forEach(function(fol){
-      var pz=0, monto=0, det=[], internos=0;
-      Object.keys(acum[fol]).forEach(function(cl){
-        var a=acum[fol][cl];
-        var neto=a.esp-a.rec;
-        if(neto>0){
-          var c = costos[nk(cl)] || 0;
-          pz+=neto; monto+=neto*c;
-          det.push({clave:cl, desc:a.desc, falta:neto, costo:c});
-        } else if(neto<0){ internos++; }
-      });
-      det.sort(function(x,y){ return (y.falta*y.costo)-(x.falta*x.costo); });
-      if(pz>0) faltPorFolio[fol]={pz:pz, monto:monto, det:det};
-    });
-    facturas.forEach(function(f){
-      var x=faltPorFolio[f.folio];
-      f.faltPz = x?x.pz:0;
-      f.faltMonto = x?Math.round(x.monto*100)/100:0;
-      f.faltDet = x?x.det:[];
-    });
-
-    // 3) totales capturados a mano, NC, pagos, proveedores
-    lo.textContent='Cargando pagos y notas de crédito…';
-    var totSnap=await fs.getDocs(fs.collection(db,'facturasTotal'));
-    var totMan={}; totSnap.forEach(function(d){ totMan[d.id]=d.data().total||0; });
-    facturas.forEach(function(f){ f.totalManual=totMan[f.folio]||0; f.total=f.totalManual>0?f.totalManual:f.totalPDF; });
-
-    NC=[]; var ncSnap=await fs.getDocs(fs.collection(db,'notasCredito'));
-    ncSnap.forEach(function(d){ var o=d.data(); o._id=d.id; NC.push(o); });
-    PAGOS=[]; var pgSnap=await fs.getDocs(fs.collection(db,'pagos'));
-    pgSnap.forEach(function(d){ var o=d.data(); o._id=d.id; PAGOS.push(o); });
-    PROV={}; var pvSnap=await fs.getDocs(fs.collection(db,'proveedoresCfg'));
-    pvSnap.forEach(function(d){ PROV[d.id]=d.data(); });
-
-    FACT=facturas.sort(function(a,b){ return String(b.fecha||'').localeCompare(String(a.fecha||'')); });
-    lo.style.display='none';
-    document.getElementById('app').style.display='block';
-    render();
+  } else {
+    html += '<div class="card-flat" style="text-align:center;padding:1rem;margin-bottom:10px"><p style="font-size:13px;color:var(--muted)">Sin traspasos pendientes ✓</p></div>';
   }
+  const misRecepciones = recepciones.filter(r=>r.sucDest===miSuc);
+  if(misRecepciones.length){
+    html += `<button class="btn btn-s" style="margin-top:6px" onclick="show('s-historial');renderHistorial()">Ver historial (${misRecepciones.length} recepciones)</button>`;
+  }
+  cont.innerHTML = html;
+}
+window.renderHome = renderHome;
+window.show = show;
 
-  // ---- PDF: lectura y extracción ----
-  var pendPago={data:null, nombre:null}, pendNC={data:null, nombre:null};
-
-  async function textoPDF(file){
-    var buf=await file.arrayBuffer();
-    if(window.pdfjsLib && pdfjsLib.GlobalWorkerOptions)
-      pdfjsLib.GlobalWorkerOptions.workerSrc='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
-    var pdf=await pdfjsLib.getDocument({data:new Uint8Array(buf.slice(0))}).promise;
-    var txt='', p, pg, c, i;
-    for(p=1;p<=pdf.numPages;p++){
-      pg=await pdf.getPage(p);
-      c=await pg.getTextContent();
-      for(i=0;i<c.items.length;i++) txt += c.items[i].str + ' ';
-      txt += '\n';
-    }
-    return txt;
-  }
-  function b64(file){
-    return new Promise(function(res,rej){
-      var fr=new FileReader();
-      fr.onload=function(){ var s=String(fr.result); var k=s.indexOf(','); res(s.slice(k+1)); };
-      fr.onerror=function(){ rej(new Error('No se pudo leer el archivo')); };
-      fr.readAsDataURL(file);
-    });
-  }
-  var CH=700000;
-  async function guardarAdjunto(data, nombre){
-    if(!data) return null;
-    var n=Math.ceil(data.length/CH), i;
-    var ref=await fs.addDoc(fs.collection(db,'adjuntos'), {nombre:nombre||'documento.pdf', nChunks:n, ts:Date.now()});
-    for(i=0;i<n;i++){
-      await fs.setDoc(fs.doc(db,'adjuntos',ref.id,'chunks',String(i)), {d:data.slice(i*CH,(i+1)*CH)});
-    }
-    return ref.id;
-  }
-  window.verAdjunto=async function(id){
+// ── LEER EXCEL DISTRIBUCIÓN COWORK ──
+window.leerExcelDistribucion = function(){
+  const file = document.getElementById('file-xlsx').files[0];
+  if(!file) return;
+  const reader = new FileReader();
+  reader.onload = e=>{
     try{
-      var meta=await fs.getDoc(fs.doc(db,'adjuntos',id));
-      if(!meta.exists()){ alert('No encontré el documento.'); return; }
-      var m=meta.data(), s='', i, d;
-      for(i=0;i<m.nChunks;i++){
-        d=await fs.getDoc(fs.doc(db,'adjuntos',id,'chunks',String(i)));
-        if(d.exists()) s+=d.data().d;
-      }
-      var bin=atob(s), arr=new Uint8Array(bin.length), k;
-      for(k=0;k<bin.length;k++) arr[k]=bin.charCodeAt(k);
-      var url=URL.createObjectURL(new Blob([arr],{type:'application/pdf'}));
-      window.open(url,'_blank');
-      setTimeout(function(){ URL.revokeObjectURL(url); }, 60000);
-    }catch(e){ alert('Error al abrir: '+e.message); }
-  };
-  function num(s){ return parseFloat(String(s).replace(/,/g,'')); }
-  function isoDe(d,m,a){ return a+'-'+String(d.length===2?m:m).padStart(2,'0')+'-'+String(d).padStart(2,'0'); }
+      const wb = XLSX.read(e.target.result, {type:'array'});
+      const ws = wb.Sheets['Distribución'] || wb.Sheets[wb.SheetNames[0]];
+      const data = XLSX.utils.sheet_to_json(ws, {header:1, defval:''});
 
-  // Comprobante BBVA de transferencia / pago de servicios
-  function leerComprobante(t){
-    var r={};
-    var m=t.match(/empresa a pagar\s*:?\s*([A-ZÁÉÍÓÚÑ0-9 .,&-]+?)\s{2,}/i) || t.match(/empresa a pagar\s*:?\s*(.+?)\s+N[úu]mero/i);
-    if(m) r.empresa=m[1].trim();
-    // El monto: en el comprobante BBVA la etiqueta y el valor suelen ir SEPARADOS
-    // en el orden interno del PDF, asi que no se puede confiar en la adyacencia.
-    m=t.match(/Importe\s*M\.?\s*N\.?\s*:?\s*\$\s*([\d,]+\.\d{2})/i);
-    if(m) r.monto=num(m[1]);
-    else {
-      // Fallback: tomar los montos precedidos por $ (en estos comprobantes el importe
-      // es el unico con signo de pesos). Si hubiera varios, se toma el mayor.
-      var todos=t.match(/\$\s*[\d,]+\.\d{2}/g);
-      if(todos && todos.length){
-        var mx=0, i2;
-        for(i2=0;i2<todos.length;i2++){
-          var v=num(todos[i2].replace(/[$\s]/g,''));
-          if(v>mx) mx=v;
+      // Extraer folio
+      let folio = '';
+      for(let i=0;i<5;i++){
+        const row = data[i]||[];
+        for(const cell of row){
+          const m = String(cell).match(/Folio[:\s]+([A-Z0-9]+)/i);
+          if(m){folio=m[1];break;}
         }
-        if(mx>0) r.monto=mx;
+        if(folio) break;
       }
-    }
-    m=t.match(/Fecha de operaci[oó]n\s*:?\s*(\d{2})\/(\d{2})\/(\d{4})/i);
-    if(m) r.fecha=m[3]+'-'+m[2]+'-'+m[1];
-    m=t.match(/Referencia\s*:?\s*([A-Za-z0-9-]+)/i);
-    if(m) r.ref=m[1].trim();
-    m=t.match(/Folio de Internet\s*:?\s*(\d+)/i);
-    if(m) r.folioInt=m[1];
-    return r;
-  }
-  // Nota de crédito (CFDI de proveedor)
-  function leerNC(t){
-    // OJO: en estos CFDI el valor suele ir ANTES de su etiqueta ("03.07.2026F. Factura :"),
-    // asi que cada dato se busca en los dos ordenes posibles.
-    var r={};
-    // Folio de la NC: "NC 9601399988" (evitar confundirlo con el lugar de expedicion)
-    var m=t.match(/\bNC\s*[-]?\s*(\d{6,})\b/i);
-    if(m) r.folioNC='NC'+m[1];
-    else {
-      m=t.match(/Nota de cr[eé]dito\s+([A-Z]{2,4}[\d-]{4,})/i);
-      if(m) r.folioNC=m[1].trim();
-    }
-    // Fecha de la factura (NO la de vencimiento).
-    // Se busca PRIMERO el valor-antes-de-etiqueta: en estos CFDI el texto queda
-    // "03.07.2026F. Factura : 02.08.2026F. Vto." — si se lee al reves se toma el vencimiento.
-    m=t.match(/(\d{2})[.\/-](\d{2})[.\/-](\d{4})\s*F\.\s*Factura/i);
-    if(!m){
-      var mf=t.match(/F\.\s*Factura\s*:?\s*(\d{2})[.\/-](\d{2})[.\/-](\d{4})/i);
-      var mv=t.match(/F\.\s*Vto\.?\s*:?\s*(\d{2})[.\/-](\d{2})[.\/-](\d{4})/i);
-      // si lo que sigue a "F. Factura" es en realidad el vencimiento, se descarta
-      if(mf && !(mv && mf[1]===mv[1] && mf[2]===mv[2] && mf[3]===mv[3])) m=mf;
-    }
-    if(m) r.fecha=m[3]+'-'+m[2]+'-'+m[1];
-    // Total
-    m=t.match(/TOTAL\s*\(MXN\)\s*\$?\s*([\d,]+\.\d{2})/i)
-      || t.match(/([\d,]+\.\d{2})\s*TOTAL\s*\(MXN\)/i);
-    if(m) r.total=num(m[1]);
-    if(/PRONTO\s*PAGO/i.test(t)) r.tipo='prontopago';
-    else if(/DEVOLUCI[OÓ]N/i.test(t)) r.tipo='devolucion';
-    else if(/BONIFICACI[OÓ]N/i.test(t)) r.tipo='bonificacion';
-    m=t.match(/COND\.?\s*PAGO\s*:?\s*([\d.]+)\s*%/i);
-    if(m) r.pctCond=parseFloat(m[1]);
-    m=t.match(/UUID\s*:?\s*([A-F0-9-]{30,})/i);
-    if(m) r.uuid=m[1];
-    return r;
-  }
+      if(!folio) folio='DIST-'+Date.now();
 
-  // ---- cálculos por factura ----
-  function ncDe(folio, soloRecibidas){
-    var t=0, x;
-    for(x=0;x<NC.length;x++){
-      if(String(NC[x].folio)!==String(folio)) continue;
-      if(soloRecibidas && NC[x].estado!=='recibida') continue;
-      t+=Number(NC[x].monto)||0;
-    }
-    return Math.round(t*100)/100;
-  }
-  function pagadoDe(folio){
-    var t=0,x; for(x=0;x<PAGOS.length;x++){ if(String(PAGOS[x].folio)===String(folio)) t+=Number(PAGOS[x].monto)||0; }
-    return Math.round(t*100)/100;
-  }
-  function tieneNCFaltante(folio){
-    var x; for(x=0;x<NC.length;x++){ if(String(NC[x].folio)===String(folio) && NC[x].tipo==='faltante') return true; }
-    return false;
-  }
-  function cfg(prov){ var c=PROV[prov]||{}; return {cred:Number(c.diasCredito)||0, pct:Number(c.pctProntoPago)||0, dpp:Number(c.diasProntoPago)||0}; }
-  function estadoDe(f){
-    var c=cfg(f.proveedor), h=hoy(), fe=parseFecha(f.fecha);
-    var ncR=ncDe(f.folio,true), pg=pagadoDe(f.folio);
-    var saldo=Math.round(((f.total||0)-ncR-pg)*100)/100;
-    var pagada = f.total>0 && saldo<=0.5;
-    // ventana de pronto pago
-    var pp=null;
-    if(!pagada && c.pct>0 && c.dpp>0 && fe){
-      var limite=addDias(fe,c.dpp);
-      var dias=diasEntre(h,limite);
-      if(dias>=0) pp={dias:dias, limite:limite, monto:Math.round((f.total||0)*c.pct/100*100)/100, pct:c.pct};
-    }
-    // vencimiento
-    var venc=null, diasVenc=null;
-    if(fe && c.cred>0){ venc=addDias(fe,c.cred); diasVenc=diasEntre(h,venc); }
-    var faltanteSinNC = f.faltMonto>0 && !tieneNCFaltante(f.folio);
-    return {ncR:ncR, pagado:pg, saldo:saldo, pagada:pagada, pp:pp, venc:venc, diasVenc:diasVenc, faltanteSinNC:faltanteSinNC, sinTotal:!(f.total>0)};
-  }
-
-  // ---- render facturas ----
-  function render(){
-    if(tab==='fact') renderFact();
-    else if(tab==='nc') renderNC();
-    else if(tab==='pag') renderPagos();
-    else renderProv();
-  }
-  function renderFact(){
-    var h=hoy(), porPagar=0, ncPend=0, ppDisp=0, nFalt=0, nSinTotal=0, vencidas=0;
-    var rows=[], x;
-    for(x=0;x<FACT.length;x++){
-      var f=FACT[x], e=estadoDe(f);
-      if(!e.pagada && f.total>0) porPagar+=e.saldo;
-      if(e.faltanteSinNC){ ncPend+=f.faltMonto; nFalt++; }
-      if(e.pp) ppDisp+=e.pp.monto;
-      if(e.sinTotal) nSinTotal++;
-      if(!e.pagada && e.diasVenc!=null && e.diasVenc<0) vencidas++;
-      rows.push({f:f,e:e});
-    }
-    var cards=[
-      ['acc',money0(porPagar),'Saldo por pagar'],
-      ['dgr',money0(ncPend),'NC por reclamar (faltantes)'],
-      ['ok',money0(ppDisp),'Pronto pago disponible'],
-      ['warn',String(vencidas),'Facturas vencidas'],
-      ['',String(nSinTotal),'Sin total capturado']
-    ];
-    var s='',c;
-    for(c=0;c<cards.length;c++) s+='<div class="stat '+cards[c][0]+'"><div class="n">'+cards[c][1]+'</div><div class="l">'+cards[c][2]+'</div></div>';
-    document.getElementById('f-stats').innerHTML=s;
-
-    var list=rows.filter(function(r){
-      var f=r.f, e=r.e;
-      if(q){ if((f.folio+' '+f.proveedor).toLowerCase().indexOf(q)<0) return false; }
-      if(filtro==='pend') return !e.pagada;
-      if(filtro==='pp') return !!e.pp;
-      if(filtro==='ncf') return e.faltanteSinNC;
-      if(filtro==='pag') return e.pagada;
-      return true;
-    });
-    document.getElementById('f-count').textContent=list.length+' facturas';
-    var b='',i;
-    for(i=0;i<list.length;i++){
-      var f=list[i].f, e=list[i].e;
-      var badges='';
-      if(e.pagada) badges+='<span class="badge b-ok">Pagada</span>';
-      else if(e.pagado>0) badges+='<span class="badge b-acc">Parcial</span>';
-      else badges+='<span class="badge b-warn">Pendiente</span>';
-      if(e.diasVenc!=null && !e.pagada){
-        if(e.diasVenc<0) badges+='<span class="badge b-dgr">Vencida '+Math.abs(e.diasVenc)+'d</span>';
-        else if(e.diasVenc<=7) badges+='<span class="badge b-warn">Vence en '+e.diasVenc+'d</span>';
-      }
-      var alerts='';
-      if(e.faltanteSinNC) alerts+='<span class="alert a-nc">⚠ Faltaron '+f.faltPz+' pzas ('+money(f.faltMonto)+'). Pide la NC antes de pagar.</span>';
-      if(e.pp) alerts+='<span class="alert a-pp">💰 Paga antes del '+e.pp.limite.toLocaleDateString('es-MX',{day:'2-digit',month:'short'})+' y ganas '+money(e.pp.monto)+' ('+e.pp.pct+'%)</span>';
-      if(e.sinTotal) alerts+='<span class="alert a-nc">Falta capturar el total de la factura.</span>';
-      var totalCell = e.sinTotal
-        ? '<button class="btn btn-s btn-sm" onclick="abrirTotal(\''+f.folio+'\')">Capturar</button>'
-        : money(f.total)+'<span class="prov" onclick="abrirTotal(\''+f.folio+'\')" style="cursor:pointer;text-decoration:underline">editar</span>';
-      b+='<tr>'+
-        '<td class="l"><span class="folio">'+esc(f.folio)+'</span><span class="prov">'+esc(f.proveedor)+'</span></td>'+
-        '<td class="l">'+fmtFecha(f.fecha)+(e.venc?'<span class="prov">vence '+e.venc.toLocaleDateString('es-MX',{day:'2-digit',month:'short'})+'</span>':'')+'</td>'+
-        '<td data-l="Total">'+totalCell+'</td>'+
-        '<td data-l="NC">'+(e.ncR?money(e.ncR):'—')+'</td>'+
-        '<td data-l="Pagado">'+(e.pagado?money(e.pagado):'—')+'</td>'+
-        '<td data-l="Saldo"><b>'+(f.total>0?money(e.saldo):'—')+'</b></td>'+
-        '<td class="l">'+badges+alerts+'</td>'+
-        '<td><button class="btn btn-sm btn-s" onclick="abrirPago(\''+f.folio+'\')">Pago</button> '+
-            '<button class="btn btn-sm btn-s" onclick="abrirNC(\''+f.folio+'\')">NC</button></td>'+
-      '</tr>';
-    }
-    document.getElementById('f-tb').innerHTML = b || '<tr><td class="l" colspan="8"><div class="empty">Sin facturas para este filtro.</div></td></tr>';
-  }
-
-  function renderNC(){
-    var rec=0, esp=0, x;
-    for(x=0;x<NC.length;x++){ var m=Number(NC[x].monto)||0; if(NC[x].estado==='recibida') rec+=m; else esp+=m; }
-    document.getElementById('n-stats').innerHTML=
-      '<div class="stat ok"><div class="n">'+money0(rec)+'</div><div class="l">NC recibidas</div></div>'+
-      '<div class="stat warn"><div class="n">'+money0(esp)+'</div><div class="l">NC esperadas</div></div>'+
-      '<div class="stat"><div class="n">'+NC.length+'</div><div class="l">Total registradas</div></div>';
-    var TIPO={faltante:'Faltante',prontopago:'Pronto pago',devolucion:'Devolución',bonificacion:'Bonificación',otro:'Otro'};
-    var ord=NC.slice().sort(function(a,b){ return String(b.fecha||'').localeCompare(String(a.fecha||'')); });
-    var b='',i;
-    for(i=0;i<ord.length;i++){ var n=ord[i];
-      b+='<tr>'+
-        '<td class="l"><b>'+esc(n.folioNC||'—')+'</b></td>'+
-        '<td class="l">'+esc(n.proveedor||'')+'</td>'+
-        '<td class="l">'+esc(n.folio||'')+'</td>'+
-        '<td class="l"><span class="badge b-acc">'+(TIPO[n.tipo]||n.tipo)+'</span></td>'+
-        '<td class="l">'+fmtFecha(n.fecha)+'</td>'+
-        '<td data-l="Monto">'+money(n.monto)+'</td>'+
-        '<td class="l">'+(n.estado==='recibida'?'<span class="badge b-ok">Recibida</span>':'<span class="badge b-warn">Esperada</span>')+'</td>'+
-        '<td>'+(n.adjunto?'<button class="clip" title="Ver PDF" onclick="verAdjunto(\''+n.adjunto+'\')">📎</button>':'—')+'</td>'+
-        '<td><button class="btn btn-sm btn-s" onclick="borrarNC(\''+n._id+'\')">Borrar</button></td>'+
-      '</tr>';
-    }
-    document.getElementById('n-count').textContent=NC.length+' notas de crédito';
-    document.getElementById('n-tb').innerHTML = b || '<tr><td class="l" colspan="8"><div class="empty">Aún no hay notas de crédito registradas.</div></td></tr>';
-  }
-
-  function renderPagos(){
-    var t=0,x; for(x=0;x<PAGOS.length;x++) t+=Number(PAGOS[x].monto)||0;
-    document.getElementById('g-stats').innerHTML=
-      '<div class="stat acc"><div class="n">'+money0(t)+'</div><div class="l">Total pagado</div></div>'+
-      '<div class="stat"><div class="n">'+PAGOS.length+'</div><div class="l">Pagos registrados</div></div>';
-    var ord=PAGOS.slice().sort(function(a,b){ return String(b.fecha||'').localeCompare(String(a.fecha||'')); });
-    var b='',i;
-    for(i=0;i<ord.length;i++){ var p=ord[i];
-      b+='<tr>'+
-        '<td class="l">'+fmtFecha(p.fecha)+'</td>'+
-        '<td class="l">'+esc(p.proveedor||'')+'</td>'+
-        '<td class="l"><b>'+esc(p.folio||'')+'</b></td>'+
-        '<td class="l">'+esc(p.referencia||'—')+'</td>'+
-        '<td data-l="Monto">'+money(p.monto)+'</td>'+
-        '<td>'+(p.adjunto?'<button class="clip" title="Ver comprobante" onclick="verAdjunto(\''+p.adjunto+'\')">📎</button>':'—')+'</td>'+
-        '<td><button class="btn btn-sm btn-s" onclick="borrarPago(\''+p._id+'\')">Borrar</button></td>'+
-      '</tr>';
-    }
-    document.getElementById('g-count').textContent=PAGOS.length+' pagos';
-    document.getElementById('g-tb').innerHTML = b || '<tr><td class="l" colspan="6"><div class="empty">Aún no hay pagos registrados.</div></td></tr>';
-  }
-
-  function renderProv(){
-    var provs={}, x;
-    for(x=0;x<FACT.length;x++){ var p=FACT[x].proveedor; if(!provs[p]) provs[p]=0; provs[p]++; }
-    var keys=Object.keys(provs).sort();
-    var b='',i;
-    for(i=0;i<keys.length;i++){ var p=keys[i], c=cfg(p);
-      b+='<tr>'+
-        '<td class="l"><b>'+esc(p)+'</b></td>'+
-        '<td data-l="Días crédito">'+(c.cred||'—')+'</td>'+
-        '<td data-l="Pronto pago %">'+(c.pct?c.pct+'%':'—')+'</td>'+
-        '<td data-l="Días p/PP">'+(c.dpp||'—')+'</td>'+
-        '<td data-l="Facturas">'+provs[p]+'</td>'+
-        '<td><button class="btn btn-sm btn-s" onclick="abrirProv(\''+p.replace(/'/g,"\\'")+'\')">Configurar</button></td>'+
-      '</tr>';
-    }
-    document.getElementById('v-tb').innerHTML=b||'<tr><td class="l" colspan="6"><div class="empty">Sin proveedores.</div></td></tr>';
-  }
-
-  // ---- modales ----
-  function opts(sel){
-    var s='', i;
-    for(i=0;i<FACT.length;i++){ var f=FACT[i];
-      s+='<option value="'+esc(f.folio)+'"'+(String(sel)===String(f.folio)?' selected':'')+'>'+esc(f.folio)+' · '+esc(f.proveedor.slice(0,28))+' · '+fmtFecha(f.fecha)+'</option>';
-    }
-    return s;
-  }
-  function factDe(folio){ var i; for(i=0;i<FACT.length;i++){ if(String(FACT[i].folio)===String(folio)) return FACT[i]; } return null; }
-  function hoyISO(){ var d=new Date(); return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); }
-
-  window.verTab=function(t){
-    tab=t;
-    ['fact','nc','pag','prov'].forEach(function(k){
-      document.getElementById('t-'+k).className='tab'+(k===t?' on':'');
-      document.getElementById('p-'+k).style.display=(k===t)?'block':'none';
-    });
-    render();
-  };
-  window.cerrarModal=function(id){ document.getElementById(id).classList.remove('on'); };
-
-  window.abrirPago=function(folio){
-    document.getElementById('mp-folio').innerHTML=opts(folio);
-    document.getElementById('mp-fecha').value=hoyISO();
-    document.getElementById('mp-ref').value=''; document.getElementById('mp-nota').value='';
-    document.getElementById('mp-status').textContent='';
-    document.getElementById('mp-leyendo').textContent='';
-    var fi=document.getElementById('mp-file'); fi.value='';
-    pendPago={data:null, nombre:null};
-    sugPago();
-    document.getElementById('mp-folio').onchange=sugPago;
-    fi.onchange=async function(){
-      var f=fi.files[0]; if(!f) return;
-      var av=document.getElementById('mp-leyendo');
-      av.textContent='Leyendo el comprobante…';
-      try{
-        var t=await textoPDF(f);
-        var d=leerComprobante(t);
-        pendPago={data:await b64(f), nombre:f.name};
-        if(d.monto>0) document.getElementById('mp-monto').value=d.monto.toFixed(2);
-        if(d.fecha) document.getElementById('mp-fecha').value=d.fecha;
-        if(d.ref) document.getElementById('mp-ref').value=d.ref + (d.folioInt?(' · folio '+d.folioInt):'');
-        var partes=[];
-        if(d.empresa) partes.push(d.empresa);
-        if(d.monto>0) partes.push(money(d.monto));
-        if(d.fecha) partes.push(fmtFecha(d.fecha));
-        av.textContent = partes.length ? ('✓ Leí: '+partes.join(' · ')) : '✓ PDF adjuntado (no pude leer los datos, captúralos a mano).';
-        // aviso si el proveedor del comprobante no coincide con el de la factura
-        var f2=factDe(document.getElementById('mp-folio').value);
-        if(d.empresa && f2){
-          var a=d.empresa.toUpperCase().slice(0,6), b=String(f2.proveedor).toUpperCase().slice(0,6);
-          if(a!==b) av.textContent += ' — ⚠ Ojo: el comprobante dice "'+d.empresa+'" y la factura es de "'+f2.proveedor+'".';
+      // Encontrar fila encabezado
+      let headerRow=-1, colClave=-1, colDesc=-1;
+      const colSuc={};
+      for(let i=0;i<10;i++){
+        const row=data[i]||[];
+        for(let j=0;j<row.length;j++){
+          const v=String(row[j]).trim().toUpperCase();
+          if(v==='CLAVE'||v==='NUMART') colClave=j;
+          if(v.includes('DESCRIP')) colDesc=j;
+          const mSuc=v.match(/^SUC\s*(\d+)$/)||v.match(/^(\d+)$/);
+          if(mSuc) colSuc[mSuc[1]]=j;
         }
-      }catch(e){ av.textContent='No pude leer el PDF: '+e.message; }
+        if(colClave>=0&&Object.keys(colSuc).length>0){headerRow=i;break;}
+      }
+
+      if(headerRow<0){
+        document.getElementById('preview-xlsx').innerHTML='<div class="alert alert-danger">No se reconoció el formato. Usa el Excel generado por Cowork (hoja Distribución).</div>';
+        return;
+      }
+
+      const mapaNames={
+        '1':'1-Matriz (Mtz de la Torre)','2':'2-Morelos (Mtz de la Torre)',
+        '3':'3-Hidalgo CEDIS (Teziutlán)','4':'4-Allende (Teziutlán)',
+        '6':'6-Tlapacoyan','7':'7-Papantla','9':'9-Perote',
+        '10':'10-Independencia (Mtz de la Torre)',
+        '11':'11-Ávila Camacho (Mtz de la Torre)','12':'12-Misantla',
+      };
+
+      const porSucursal={};
+      Object.keys(colSuc).forEach(s=>{if(s!=='3') porSucursal[s]=[];});
+
+      for(let i=headerRow+1;i<data.length;i++){
+        const row=data[i]||[];
+        const clave=String(row[colClave]||'').trim();
+        const desc=String(row[colDesc>=0?colDesc:colClave+1]||'').trim();
+        if(!clave||clave.toUpperCase()==='TOTALES') continue;
+        Object.keys(porSucursal).forEach(s=>{
+          const cant=parseInt(row[colSuc[s]])||0;
+          if(cant>0) porSucursal[s].push({numart:clave,desc,cant});
+        });
+      }
+
+      const sucCon=Object.keys(porSucursal).filter(s=>porSucursal[s].length>0);
+      let html=`<div class="divider"></div>
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">
+          <span class="folio">${folio}</span>
+          <span style="font-size:13px;color:var(--muted)">${sucCon.length} sucursales</span>
+        </div>`;
+      sucCon.slice(0,4).forEach(s=>{
+        html+=`<div class="card-flat" style="display:flex;justify-content:space-between">
+          <span style="font-size:13px">${mapaNames[s]||'Suc '+s}</span>
+          <strong>${porSucursal[s].length} productos</strong>
+        </div>`;
+      });
+      if(sucCon.length>4) html+=`<p style="font-size:12px;color:var(--muted);text-align:center;margin:6px 0">… y ${sucCon.length-4} más</p>`;
+      html+=`<button class="btn btn-p" onclick="subirDistribucion()" style="margin-top:10px">Publicar traspasos para todas las sucursales →</button>`;
+      document.getElementById('preview-xlsx').innerHTML=html;
+      window._distParsed={folio,porSucursal,mapaNames};
+    } catch(err){
+      document.getElementById('preview-xlsx').innerHTML=`<div class="alert alert-danger">Error: ${err.message}</div>`;
+    }
+  };
+  reader.readAsArrayBuffer(file);
+};
+
+window.subirDistribucion = async function(){
+  const d=window._distParsed;
+  if(!d){alert('Primero carga el Excel');return;}
+  const btn=document.querySelector('#preview-xlsx .btn-p');
+  if(btn){btn.textContent='Publicando...';btn.disabled=true;}
+  const fecha=new Date().toLocaleDateString('es-MX');
+  const ts=Date.now();
+  let ok=0,errCount=0;
+  const sucActivas=Object.keys(d.porSucursal).filter(s=>d.porSucursal[s].length>0);
+  for(const s of sucActivas){
+    const traspaso={
+      id:`${d.folio}_${s}_${ts}`,
+      folio:d.folio,
+      sucOrig:'3-Hidalgo CEDIS (Teziutlán)',
+      sucDest:d.mapaNames[s]||`Sucursal ${s}`,
+      fecha,
+      items:d.porSucursal[s],
+      status:'pendiente',
+      ts,
+      fuente:'distribucion_compra',
     };
-    document.getElementById('m-pago').classList.add('on');
-  };
-  function sugPago(){
-    var folio=document.getElementById('mp-folio').value, f=factDe(folio);
-    var box=document.getElementById('mp-sug'), inp=document.getElementById('mp-monto');
-    if(!f){ box.innerHTML=''; return; }
-    var e=estadoDe(f), s='';
-    if(e.sinTotal){ s+='<div class="sug">Esta factura no tiene total capturado. Captúralo primero para calcular el saldo.</div>'; inp.value=''; }
-    else {
-      inp.value=e.saldo.toFixed(2);
-      s+='<div class="lineitem"><span>Total factura</span><b>'+money(f.total)+'</b></div>';
-      if(e.ncR>0) s+='<div class="lineitem"><span>− NC recibidas</span><b>'+money(e.ncR)+'</b></div>';
-      if(e.pagado>0) s+='<div class="lineitem"><span>− Ya pagado</span><b>'+money(e.pagado)+'</b></div>';
-      s+='<div class="lineitem"><span><b>Saldo</b></span><b>'+money(e.saldo)+'</b></div>';
-      if(e.faltanteSinNC) s+='<div class="sug">⚠ Faltaron '+f.faltPz+' pzas ('+money(f.faltMonto)+') y no hay NC registrada. Considera pedir la nota de crédito antes de pagar completo.</div>';
-      if(e.pp) s+='<div class="sug">💰 Si pagas antes del '+e.pp.limite.toLocaleDateString('es-MX',{day:'2-digit',month:'short'})+' ganas '+money(e.pp.monto)+' ('+e.pp.pct+'% de pronto pago).</div>';
-    }
-    box.innerHTML=s;
-  }
-  window.guardarPago=async function(){
-    var folio=document.getElementById('mp-folio').value;
-    var f=factDe(folio); if(!f) return;
-    var monto=parseFloat(document.getElementById('mp-monto').value);
-    var fecha=document.getElementById('mp-fecha').value;
-    var st=document.getElementById('mp-status');
-    if(!(monto>0)){ st.textContent='Captura un monto válido.'; return; }
-    if(!fecha){ st.textContent='Captura la fecha del pago.'; return; }
-    st.textContent='Guardando…';
     try{
-      var adj=null;
-      if(pendPago.data){ st.textContent='Subiendo comprobante…'; adj=await guardarAdjunto(pendPago.data, pendPago.nombre); }
-      st.textContent='Guardando…';
-      var reg={ folio:folio, proveedor:f.proveedor, monto:Math.round(monto*100)/100, fecha:fecha,
-        referencia:document.getElementById('mp-ref').value.trim(),
-        nota:document.getElementById('mp-nota').value.trim(), adjunto:adj, ts:Date.now() };
-      var ref=await fs.addDoc(fs.collection(db,'pagos'), reg);
-      reg._id=ref.id; PAGOS.push(reg);
-      pendPago={data:null,nombre:null};
-      cerrarModal('m-pago'); render();
-    }catch(e){ st.textContent='Error: '+e.message; }
-  };
-  window.borrarPago=async function(id){
-    if(!confirm('¿Borrar este pago?')) return;
-    try{ await fs.deleteDoc(fs.doc(db,'pagos',id)); PAGOS=PAGOS.filter(function(p){return p._id!==id;}); render(); }
-    catch(e){ alert('Error: '+e.message); }
-  };
+      await addDoc(collection(db,'traspasos'),traspaso);
+      ok++;
+    } catch(e){errCount++;console.error(e);}
+  }
+  window._distParsed=null;
+  document.getElementById('file-xlsx').value='';
+  document.getElementById('preview-xlsx').innerHTML=
+    `<div class="alert ${errCount===0?'alert-ok':'alert-danger'}">
+      ${errCount===0?'✓':'⚠'} ${ok} traspasos publicados${errCount>0?`, ${errCount} errores`:''} — folio ${d.folio}
+    </div>`;
+  renderAdminLista();
+};
 
-  window.abrirNC=function(folio){
-    document.getElementById('mn-folio').innerHTML=opts(folio);
-    document.getElementById('mn-fecha').value=hoyISO();
-    document.getElementById('mn-folionc').value=''; document.getElementById('mn-nota').value='';
-    document.getElementById('mn-status').textContent='';
-    document.getElementById('mn-leyendo').textContent='';
-    var fi=document.getElementById('mn-file'); fi.value='';
-    pendNC={data:null, nombre:null};
-    sugNC();
-    document.getElementById('mn-folio').onchange=sugNC;
-    document.getElementById('mn-tipo').onchange=sugNC;
-    fi.onchange=async function(){
-      var f=fi.files[0]; if(!f) return;
-      var av=document.getElementById('mn-leyendo');
-      av.textContent='Leyendo la nota de crédito…';
-      try{
-        var t=await textoPDF(f);
-        var d=leerNC(t);
-        pendNC={data:await b64(f), nombre:f.name};
-        if(d.folioNC) document.getElementById('mn-folionc').value=d.folioNC;
-        if(d.fecha) document.getElementById('mn-fecha').value=d.fecha;
-        if(d.total>0) document.getElementById('mn-monto').value=d.total.toFixed(2);
-        if(d.tipo) document.getElementById('mn-tipo').value=d.tipo;
-        document.getElementById('mn-estado').value='recibida';
-        var partes=[];
-        if(d.folioNC) partes.push(d.folioNC);
-        if(d.total>0) partes.push(money(d.total));
-        if(d.tipo) partes.push(d.tipo==='prontopago'?'pronto pago':d.tipo);
-        av.textContent = partes.length ? ('✓ Leí: '+partes.join(' · ')) : '✓ PDF adjuntado (captura los datos a mano).';
-        if(d.pctCond>0){
-          var fa=factDe(document.getElementById('mn-folio').value);
-          if(fa){
-            var c=cfg(fa.proveedor);
-            if(!c.pct) av.textContent += ' — 💡 La NC dice ' + d.pctCond + '% de pronto pago. Configúralo en Proveedores para que te avise a futuro.';
+// ── ADMIN CSV ──
+window.leerCSV = function(){
+  const file = document.getElementById('file-csv').files[0];
+  if(!file) return;
+  const reader = new FileReader();
+  reader.onload = e=>{
+    const text = e.target.result;
+    const lines = text.split('\n').map(l=>l.trim()).filter(l=>l);
+    let folio = '';
+    for(let i=0;i<Math.min(4,lines.length);i++){
+      const m = lines[i].match(/\b([A-Z]\d{3,})\b/);
+      if(m){ folio=m[1]; break; }
+    }
+    let dataStart = -1;
+    for(let i=0;i<lines.length;i++){
+      const low = lines[i].toLowerCase();
+      if(low.includes('numart')||low.includes('clave')){ dataStart=i+1; break; }
+    }
+    if(dataStart<0){ showPreview(null,'No se reconoció el formato del CSV'); return; }
+    const items = [];
+    for(let i=dataStart;i<lines.length;i++){
+      const cols = lines[i].split(',');
+      if(cols.length<3) continue;
+      const numart=cols[0].trim(), desc=cols[1].trim(), cant=parseInt(cols[2])||0;
+      if(numart&&desc&&cant>0) items.push({numart,desc,cant});
+    }
+    if(!items.length){ showPreview(null,'No se encontraron productos en el CSV'); return; }
+    csvParsed = {folio, items};
+    showPreview(csvParsed, null);
+  };
+  reader.readAsText(file,'latin1');
+};
+
+function showPreview(data, err){
+  const el = document.getElementById('preview-csv');
+  if(err){ el.innerHTML=`<div class="alert alert-danger">${err}</div>`; return; }
+  let html = `<div class="divider"></div>
+    <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">
+      <span class="folio">${data.folio}</span>
+      <span style="font-size:13px;color:var(--muted)">${data.items.length} productos</span>
+    </div>`;
+  data.items.slice(0,3).forEach(i=>{
+    html += `<div class="card-flat" style="display:flex;justify-content:space-between;align-items:center;gap:8px">
+      <span class="mono" style="flex-shrink:0">${i.numart}</span>
+      <span style="font-size:13px;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${i.desc}</span>
+      <strong style="flex-shrink:0">${i.cant}</strong>
+    </div>`;
+  });
+  if(data.items.length>3) html += `<p style="font-size:12px;color:var(--muted);text-align:center;margin:6px 0">… y ${data.items.length-3} más</p>`;
+  html += `<button class="btn btn-p" onclick="subirTraspaso()" style="margin-top:10px">Subir traspaso →</button>`;
+  el.innerHTML = html;
+}
+
+window.subirTraspaso = async function(){
+  const sucOrig = document.getElementById('admin-suc-orig').value;
+  const sucDest = document.getElementById('admin-suc-dest').value;
+  if(!sucOrig){ alert('Selecciona la sucursal origen'); return; }
+  if(!sucDest){ alert('Selecciona la sucursal destino'); return; }
+  if(sucOrig===sucDest){ alert('Origen y destino no pueden ser la misma sucursal'); return; }
+  if(!csvParsed){ alert('Primero carga un CSV'); return; }
+  if(traspasos.find(t=>t.folio===csvParsed.folio && t.status==='pendiente')){
+    alert(`El folio ${csvParsed.folio} ya está cargado y pendiente`); return;
+  }
+  const traspaso = {
+    id: Date.now().toString(),
+    folio: csvParsed.folio,
+    sucOrig, sucDest,
+    fecha: new Date().toLocaleDateString('es-MX'),
+    items: csvParsed.items,
+    status: 'pendiente'
+  };
+  try{
+    await addDoc(collection(db,'traspasos'), {...traspaso, ts: Date.now()});
+    const folio = csvParsed.folio;
+    csvParsed = null;
+    document.getElementById('file-csv').value = '';
+    document.getElementById('preview-csv').innerHTML = `<div class="alert alert-ok">✓ Folio ${folio}: ${sucOrig} → ${sucDest}</div>`;
+  } catch(e){ alert('Error al guardar: '+e.message); }
+};
+
+function renderAdminLista(){
+  const el = document.getElementById('admin-lista');
+  if(!traspasos.length){ el.innerHTML='<p style="font-size:13px;color:var(--muted)">Sin traspasos cargados.</p>'; return; }
+  el.innerHTML = traspasos.map(t=>`
+    <div class="card">
+      <div style="display:flex;justify-content:space-between;align-items:center">
+        <div>
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:3px">
+            <span class="folio">${t.folio}</span>
+            <span class="badge ${t.status==='recibido'?'b-ok':'b-pend'}">${t.status==='recibido'?'Recibido':'Pendiente'}</span>
+          </div>
+          <p style="font-size:12px;color:var(--muted)">${t.sucOrig||'—'} → ${t.sucDest||'—'} · ${t.fecha} · ${t.items.length} productos</p>
+        </div>
+      </div>
+    </div>`).join('');
+}
+window.renderAdminLista = renderAdminLista;
+
+// ── RECIBIR ──
+window.iniciarRecepcion = function(id){
+  const t = traspasos.find(x=>x.id===id);
+  if(!t) return;
+  recibiendoId = id;
+  // Preseleccionar mi sucursal en el select destino
+  const miSuc = document.getElementById('sel-mi-suc')?.value || '';
+  setTimeout(()=>{ const s=document.getElementById('rec-suc-dest'); if(s&&miSuc) s.value=miSuc; }, 50);
+  document.getElementById('rec-titulo').textContent = 'Recibir '+t.folio;
+  document.getElementById('rec-meta').innerHTML = `
+    <div style="display:flex;gap:16px;flex-wrap:wrap">
+      <div><p style="font-size:10px;color:var(--muted);font-weight:600;text-transform:uppercase;margin-bottom:2px">Folio</p><p class="mono">${t.folio}</p></div>
+      <div><p style="font-size:10px;color:var(--muted);font-weight:600;text-transform:uppercase;margin-bottom:2px">Origen</p><p style="font-size:13px;font-weight:500">${t.sucOrig||'—'}</p></div>
+      <div><p style="font-size:10px;color:var(--muted);font-weight:600;text-transform:uppercase;margin-bottom:2px">Destino</p><p style="font-size:13px;font-weight:500">${t.sucDest}</p></div>
+      <div><p style="font-size:10px;color:var(--muted);font-weight:600;text-transform:uppercase;margin-bottom:2px">Fecha</p><p style="font-size:13px">${t.fecha}</p></div>
+    </div>`;
+  document.getElementById('rec-count').textContent = `(${t.items.length})`;
+  const lista = document.getElementById('rec-lista');
+  lista.innerHTML = '';
+  t.items.forEach((item,i)=>{
+    const div = document.createElement('div');
+    div.className = 'card'; div.style.marginBottom = '8px';
+    div.innerHTML = `<div class="tr-row">
+      <div class="tr-info">
+        <p class="tr-clave">${item.numart}</p>
+        <p class="tr-desc" title="${item.desc}">${item.desc}</p>
+      </div>
+      <div style="display:flex;align-items:center;gap:10px">
+        <div style="text-align:center">
+          <p style="font-size:10px;color:var(--muted);margin-bottom:2px">Esperado</p>
+          <p style="font-size:20px;font-weight:600;color:var(--muted);line-height:1">${item.cant}</p>
+        </div>
+        <div style="text-align:center">
+          <p style="font-size:10px;color:var(--muted);margin-bottom:2px">Recibido</p>
+          <input type="number" class="tr-input" id="rec-${i}" min="0" value="${item.cant}"
+            oninput="actualizarFila(${i},${item.cant})" onchange="actualizarFila(${i},${item.cant})">
+        </div>
+        <div id="fs-${i}" style="min-width:30px;text-align:center;font-size:13px"></div>
+      </div>
+    </div>`;
+    lista.appendChild(div);
+    actualizarFila(i, item.cant);
+  });
+  show('s-recibir');
+};
+
+window.actualizarFila = function(i, esperado){
+  const inp = document.getElementById('rec-'+i);
+  const st = document.getElementById('fs-'+i);
+  if(!inp||!st) return;
+  const val = parseInt(inp.value)||0;
+  const falt = esperado-val;
+  if(falt>0) st.innerHTML=`<span style="font-weight:600;color:var(--danger)">-${falt}</span>`;
+  else if(val>esperado) st.innerHTML=`<span style="font-weight:600;color:var(--warn)">+${val-esperado}</span>`;
+  else st.innerHTML=`<span style="color:var(--ok)">✓</span>`;
+};
+
+window.recibirTodo = function(){
+  const t = traspasos.find(x=>x.id===recibiendoId);
+  if(!t) return;
+  t.items.forEach((_,i)=>{ const inp=document.getElementById('rec-'+i); if(inp){ inp.value=t.items[i].cant; actualizarFila(i,t.items[i].cant); } });
+};
+
+window.confirmarRecepcion = async function(){
+  const t = traspasos.find(x=>x.id===recibiendoId);
+  if(!t) return;
+  const btn = document.getElementById('btn-confirmar');
+  btn.textContent = 'Guardando...'; btn.disabled = true;
+  const sucDest = document.getElementById('rec-suc-dest').value;
+  if(!sucDest){ alert('Selecciona tu sucursal antes de confirmar'); btn.textContent='Confirmar recepción'; btn.disabled=false; return; }
+  const items = t.items.map((item,i)=>{
+    const recibido = parseInt(document.getElementById('rec-'+i)?.value)||0;
+    return {...item, esperado:item.cant, recibido, faltante:Math.max(0,item.cant-recibido), sobrante:Math.max(0,recibido-item.cant)};
+  });
+  const recepcion = {
+    id: Date.now().toString(),
+    traspasoId: t.id,
+    folio: t.folio,
+    sucOrig: t.sucOrig||'—',
+    sucDest,
+    fecha: new Date().toLocaleDateString('es-MX'),
+    items
+  };
+  try{
+    await addDoc(collection(db,'recepciones'), {...recepcion, ts: Date.now()});
+    // marcar traspaso como recibido
+    if(t._docId) await updateDoc(doc(db,'traspasos',t._docId), {status:'recibido', sucDest, fechaRecepcion: new Date().toISOString()});
+    show('s-home');
+  } catch(e){ alert('Error al guardar: '+e.message); }
+  btn.textContent = 'Confirmar recepción'; btn.disabled = false;
+};
+
+// ── FALTANTES ──
+function renderFaltantes(){
+  const todos = [];
+  recepciones.forEach(r=>{
+    r.items.forEach(i=>{ if(i.faltante>0) todos.push({sucOrig:r.sucOrig||'—',sucDest:r.sucDest,folio:r.folio,fecha:r.fecha,numart:i.numart,desc:i.desc,esperado:i.esperado,recibido:i.recibido,faltante:i.faltante}); });
+  });
+  const totalFalt=todos.length, totalPzas=todos.reduce((a,x)=>a+x.faltante,0), sucsAfect=[...new Set(todos.map(x=>x.sucDest))];
+  document.getElementById('falt-stats').innerHTML=`
+    <div class="stat"><div class="stat-n" style="color:var(--danger)">${totalFalt}</div><div class="stat-l">Registros</div></div>
+    <div class="stat"><div class="stat-n" style="color:var(--danger)">${totalPzas}</div><div class="stat-l">Piezas faltantes</div></div>
+    <div class="stat"><div class="stat-n">${sucsAfect.length}</div><div class="stat-l">Sucursales</div></div>`;
+  const tabsEl=document.getElementById('falt-tabs'), listaEl=document.getElementById('falt-lista');
+  if(!todos.length){ tabsEl.innerHTML=''; listaEl.innerHTML='<div class="empty"><div class="empty-icon">✓</div><p style="font-size:14px">Sin faltantes pendientes.</p></div>'; return; }
+  const tabOpts = ['Todas',...sucsAfect];
+  if(tabFalt>=tabOpts.length) tabFalt=0;
+  tabsEl.innerHTML = tabOpts.map((s,i)=>`<button class="tab ${i===tabFalt?'active':''}" onclick="tabFalt=${i};renderFaltantes()">${s}</button>`).join('');
+  const filtrados = tabFalt===0 ? todos : todos.filter(x=>x.sucDest===tabOpts[tabFalt]);
+  if(!filtrados.length){ listaEl.innerHTML='<p style="font-size:13px;color:var(--muted)">Sin faltantes para esta sucursal.</p>'; return; }
+  if(tabFalt===0){
+    const bySuc={};
+    filtrados.forEach(x=>{ if(!bySuc[x.sucDest]) bySuc[x.sucDest]=[]; bySuc[x.sucDest].push(x); });
+    listaEl.innerHTML = Object.entries(bySuc).map(([suc,items])=>`
+      <div class="card" style="margin-bottom:12px">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+          <p style="font-weight:600;font-size:14px">${suc}</p>
+          <span class="badge b-falt">${items.reduce((a,x)=>a+x.faltante,0)} pzas</span>
+        </div>
+        <table class="falt-table">
+          <thead><tr><th>Numart</th><th>Descripción</th><th>Folio</th><th style="text-align:right">Faltante</th></tr></thead>
+          <tbody>${items.map(i=>`<tr>
+            <td class="numart">${i.numart}</td>
+            <td style="max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${i.desc}</td>
+            <td><span class="folio">${i.folio}</span></td>
+            <td style="text-align:right;font-weight:600;color:var(--danger)">${i.faltante}</td>
+          </tr>`).join('')}</tbody>
+        </table>
+      </div>`).join('');
+  } else {
+    listaEl.innerHTML=`<div class="card"><table class="falt-table">
+      <thead><tr><th>Numart</th><th>Descripción</th><th>Folio</th><th>Esp</th><th>Rec</th><th style="text-align:right">Falta</th></tr></thead>
+      <tbody>${filtrados.map(i=>`<tr>
+        <td class="numart">${i.numart}</td>
+        <td style="max-width:130px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${i.desc}</td>
+        <td><span class="folio">${i.folio}</span></td>
+        <td style="color:var(--muted)">${i.esperado}</td><td style="color:var(--muted)">${i.recibido}</td>
+        <td style="text-align:right;font-weight:600;color:var(--danger)">${i.faltante}</td>
+      </tr>`).join('')}</tbody>
+    </table></div>`;
+  }
+}
+window.renderFaltantes = renderFaltantes;
+window.tabFalt = tabFalt;
+
+window.exportarFaltantes = function(){
+  const todos=[];
+  recepciones.forEach(r=>{ r.items.forEach(i=>{ if(i.faltante>0) todos.push({sucOrig:r.sucOrig||'—',sucDest:r.sucDest,folio:r.folio,fecha:r.fecha,numart:i.numart,desc:i.desc,esperado:i.esperado,recibido:i.recibido,faltante:i.faltante}); }); });
+  if(!todos.length){ alert('Sin faltantes para exportar'); return; }
+  let csv='Origen,Destino,Folio,Fecha,Numart,Descripción,Esperado,Recibido,Faltante\n';
+  todos.forEach(i=>{ csv+=`"${i.sucOrig}","${i.sucDest}","${i.folio}","${i.fecha}","${i.numart}","${i.desc}",${i.esperado},${i.recibido},${i.faltante}\n`; });
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv;charset=utf-8'}));
+  a.download=`faltantes_${new Date().toLocaleDateString('es-MX').replace(/\//g,'-')}.csv`;
+  a.click();
+};
+
+// ── HISTORIAL ──
+function renderHistorial(){
+  tabHist = window.tabHist;
+  const bar=document.getElementById('tabs-hist'), lista=document.getElementById('hist-lista');
+  const sucs=[...new Set(recepciones.map(r=>r.sucDest))];
+  if(!sucs.length){ lista.innerHTML='<div class="empty"><div class="empty-icon">📋</div><p>Sin recepciones aún.</p></div>'; bar.innerHTML=''; return; }
+  if(tabHist>=sucs.length) tabHist=0;
+  bar.innerHTML=sucs.map((s,i)=>`<button class="tab ${i===tabHist?'active':''}" onclick="window.tabHist=${i};renderHistorial()">${s}</button>`).join('');
+  const fil=recepciones.filter(r=>r.sucDest===sucs[tabHist]);
+  lista.innerHTML=fil.map(r=>{
+    const tot=r.items.length,falt=r.items.filter(i=>i.faltante>0).length,sobr=r.items.filter(i=>(i.sobrante!=null?i.sobrante:Math.max(0,(i.recibido||0)-(i.esperado!=null?i.esperado:(i.cant||0))))>0).length;
+    return `<div class="card" style="cursor:pointer" onclick="verDetalle('${r.id}')">
+      <div style="display:flex;justify-content:space-between;align-items:center">
+        <div>
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px">
+            <span class="folio">${r.folio}</span>
+            ${falt>0?`<span class="badge b-falt">${falt} falt.</span>`:''}${sobr>0?`<span class="badge b-sobr">${sobr} sobr.</span>`:''}${(falt===0&&sobr===0)?`<span class="badge b-ok">Completo</span>`:''}
+            ${r.corregido?`<span class="badge" style="background:#f0e8ff;color:#6b21a8">Corregido</span>`:''}
+          </div>
+          <p style="font-size:12px;color:var(--muted)">${r.fecha} · ${tot} productos</p>
+        </div>
+        <span style="color:var(--muted);font-size:18px">›</span>
+      </div>
+    </div>`;
+  }).join('');
+}
+window.renderHistorial = renderHistorial;
+window.tabHist = tabHist;
+
+window.verDetalle = function(id){
+  const r=recepciones.find(x=>x.id===id);
+  if(!r) return;
+  detalleId=id;
+  window.detalleId=id;
+  // Asignar el ID directamente al botón corregir — no depende de variable global
+  const btnCor = document.getElementById('btn-corregir');
+  if(btnCor) btnCor.onclick = function(){ iniciarCorreccion(id); };
+  document.getElementById('det-titulo').textContent=r.folio+' · '+r.sucDest;
+  const tot=r.items.length,falt=r.items.filter(i=>i.faltante>0).length,sobr=r.items.filter(i=>(i.sobrante!=null?i.sobrante:Math.max(0,(i.recibido||0)-(i.esperado||0)))>0).length,okn=tot-falt-sobr;
+  document.getElementById('det-stats').innerHTML=`
+    <div class="stat"><div class="stat-n">${tot}</div><div class="stat-l">Productos</div></div>
+    <div class="stat"><div class="stat-n" style="color:var(--ok)">${okn}</div><div class="stat-l">Completos</div></div>
+    <div class="stat"><div class="stat-n" style="color:var(--danger)">${falt}</div><div class="stat-l">Faltantes</div></div>
+    <div class="stat"><div class="stat-n" style="color:var(--warn)">${sobr}</div><div class="stat-l">Sobrantes</div></div>`;
+  document.getElementById('det-productos').innerHTML=
+    `<p style="font-size:12px;color:var(--muted);margin-bottom:10px">${r.sucOrig||'—'} → ${r.sucDest} · ${r.fecha}</p>`+
+    (r.notaSolucion?`<div class="alert alert-ok" style="margin-bottom:10px">✓ Solución: ${r.notaSolucion}${r.fechaSolucion?' · '+r.fechaSolucion:''}</div>`:'')+
+    r.items.map(i=>`<div class="tr-row">
+      <div class="tr-info"><p class="tr-clave">${i.numart}</p><p class="tr-desc" title="${i.desc}">${i.desc}</p></div>
+      <div style="text-align:right">
+        <p style="font-size:12px;color:var(--muted)">Esp ${i.esperado} / Rec ${i.recibido}</p>
+        ${i.faltante>0?`<span class="badge b-falt">−${i.faltante}</span>`:((i.sobrante!=null?i.sobrante:Math.max(0,(i.recibido||0)-(i.esperado||0)))>0?`<span class="badge b-sobr">+${(i.sobrante!=null?i.sobrante:Math.max(0,(i.recibido||0)-(i.esperado||0)))}</span>`:`<span class="badge b-ok">✓</span>`)}
+      </div>
+    </div>`).join('');
+  show('s-detalle');
+};
+
+window.exportar = function(){
+  const r=recepciones.find(x=>x.id===window.detalleId);
+  if(!r) return;
+  let csv='Folio,Origen,Destino,Fecha,Numart,Descripción,Esperado,Recibido,Faltante,Solución,Fecha solución\n';
+  r.items.forEach(i=>{ csv+=`"${r.folio}","${r.sucOrig||''}","${r.sucDest}","${r.fecha}","${i.numart}","${i.desc}",${i.esperado},${i.recibido},${i.faltante},"${r.notaSolucion||''}","${r.fechaSolucion||''}"\n`; });
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(new Blob(['\ufeff'+csv],{type:'text/csv;charset=utf-8'}));
+  a.download=`recepcion_${r.folio}_${r.sucDest}.csv`;
+  a.click();
+};
+
+// ── CORRECCIÓN ──
+let corrigiendoId=null;
+window.iniciarCorreccion=function(id){
+  const r=recepciones.find(x=>x.id===id);
+  if(!r) return;
+  corrigiendoId=id;
+  document.getElementById('cor-titulo').textContent='Corregir '+r.folio;
+  document.getElementById('cor-meta').innerHTML=`
+    <div style="display:flex;gap:16px;flex-wrap:wrap">
+      <div><p style="font-size:10px;color:var(--muted);font-weight:600;text-transform:uppercase;margin-bottom:2px">Folio</p><p class="mono">${r.folio}</p></div>
+      <div><p style="font-size:10px;color:var(--muted);font-weight:600;text-transform:uppercase;margin-bottom:2px">Sucursal</p><p style="font-size:13px;font-weight:500">${r.sucDest}</p></div>
+      <div><p style="font-size:10px;color:var(--muted);font-weight:600;text-transform:uppercase;margin-bottom:2px">Fecha</p><p style="font-size:13px">${r.fecha}</p></div>
+    </div>`;
+  document.getElementById('cor-nota').value=r.notaSolucion||'';
+  const lista=document.getElementById('cor-lista');
+  lista.innerHTML='';
+  r.items.forEach((item,i)=>{
+    const div=document.createElement('div');
+    div.className='card';div.style.marginBottom='8px';
+    div.innerHTML=`<div class="tr-row">
+      <div class="tr-info"><p class="tr-clave">${item.numart}</p><p class="tr-desc">${item.desc}</p></div>
+      <div style="display:flex;align-items:center;gap:10px">
+        <div style="text-align:center"><p style="font-size:10px;color:var(--muted);margin-bottom:2px">Esperado</p><p style="font-size:18px;font-weight:600;color:var(--muted)">${item.esperado}</p></div>
+        <div style="text-align:center"><p style="font-size:10px;color:var(--muted);margin-bottom:2px">Recibido</p>
+          <input type="number" class="tr-input" id="cor-${i}" min="0" value="${item.recibido}"
+            oninput="actualizarFilaCor(${i},${item.esperado})" onchange="actualizarFilaCor(${i},${item.esperado})">
+        </div>
+        <div id="cfs-${i}" style="min-width:30px;text-align:center;font-size:13px"></div>
+      </div>
+    </div>`;
+    lista.appendChild(div);
+    actualizarFilaCor(i,item.esperado);
+  });
+  show('s-corregir');
+};
+
+window.actualizarFilaCor=function(i,esperado){
+  const inp=document.getElementById('cor-'+i),st=document.getElementById('cfs-'+i);
+  if(!inp||!st) return;
+  const val=parseInt(inp.value)||0,falt=esperado-val;
+  if(falt>0) st.innerHTML=`<span style="font-weight:600;color:var(--danger)">-${falt}</span>`;
+  else if(val>esperado) st.innerHTML=`<span style="font-weight:600;color:var(--warn)">+${val-esperado}</span>`;
+  else st.innerHTML=`<span style="color:var(--ok)">✓</span>`;
+};
+
+window.guardarCorreccion=async function(){
+  const r=recepciones.find(x=>x.id===corrigiendoId);
+  if(!r) return;
+  const btn=document.getElementById('btn-guardar-cor');
+  btn.textContent='Guardando...';btn.disabled=true;
+  const nota=document.getElementById('cor-nota').value.trim();
+  const itemsCorregidos=r.items.map((item,i)=>{
+    const recibido=parseInt(document.getElementById('cor-'+i)?.value)||0;
+    return{...item,recibido,faltante:Math.max(0,item.esperado-recibido)};
+  });
+  try{
+    const _fechaSol = nota?new Date().toLocaleDateString('es-MX'):(r.fechaSolucion||'');
+    if(r._docId){
+      await updateDoc(doc(db,'recepciones',r._docId),{
+        items:itemsCorregidos,
+        notaSolucion:nota,
+        fechaSolucion:_fechaSol,
+        corregido:true
+      });
+    }
+    // Sincronizar la copia en memoria para que la lista no siga mostrando el faltante viejo
+    r.items = itemsCorregidos;
+    r.notaSolucion = nota;
+    r.fechaSolucion = _fechaSol;
+    r.corregido = true;
+    show('s-historial');renderHistorial();
+  }catch(e){alert('Error: '+e.message);}
+  btn.textContent='Guardar corrección';btn.disabled=false;
+};
+
+// ── LIMPIAR BD ──
+window.confirmarLimpiarBD=function(){
+  if(!confirm('¿Borrar TODOS los traspasos y recepciones? No se puede deshacer.')) return;
+  const code=prompt('Escribe CONFIRMAR para proceder:');
+  if(code!=='CONFIRMAR'){alert('Cancelado');return;}
+  limpiarBD();
+};
+async function limpiarBD(){
+  let n=0;
+  try{
+    for(const t of traspasos){if(t._docId){await deleteDoc(doc(db,'traspasos',t._docId));n++;}}
+    for(const r of recepciones){if(r._docId){await deleteDoc(doc(db,'recepciones',r._docId));n++;}}
+    alert(`✓ BD limpiada — ${n} registros borrados`);
+    renderHome();renderAdminLista();
+  }catch(e){alert('Error: '+e.message);}
+}
+
+// ── REPORTE EXCEL FALTANTES ──
+window.exportarReporteFaltantes=function(){
+  if(!recepciones.length){alert('Sin recepciones para exportar');return;}
+  const header=['Folio','Origen','Destino','Fecha recepción','Numart','Descripción','Esperado','Recibido','Faltante','Solución','Fecha solución'];
+  const filas=[];
+  recepciones.forEach(r=>{
+    r.items.forEach(i=>{
+      filas.push([r.folio,r.sucOrig||'—',r.sucDest,r.fecha,i.numart,i.desc,i.esperado,i.recibido,i.faltante,r.notaSolucion||'',r.fechaSolucion||'']);
+    });
+  });
+  const csv=[header,...filas].map(row=>row.map(v=>`"${String(v).replace(/"/g,'""')}"`).join(',')).join('\n');
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(new Blob(['\ufeff'+csv],{type:'text/csv;charset=utf-8'}));
+  a.download=`Reporte_Faltantes_${new Date().toLocaleDateString('es-MX').replace(/\//g,'-')}.csv`;
+  a.click();
+};
+
+// ── CARGADOR SURTIDO MULTI-SUCURSAL ──
+const SUC_MAP_SURTIDO = {
+  'Matriz': '1-Matriz (Mtz de la Torre)',
+  'Morelos': '2-Morelos (Mtz de la Torre)',
+  'Hidalgo CEDIS': '3-Hidalgo CEDIS (Teziutlán)',
+  'Allende': '4-Allende (Teziutlán)',
+  'Oficina': '5-Oficina (Administrativo)',
+  'Tlapacoyan': '6-Tlapacoyan',
+  'Papantla': '7-Papantla',
+  'Perote': '9-Perote',
+  'Independencia': '10-Independencia (Mtz de la Torre)',
+  'Ávila Camacho': '11-Ávila Camacho (Mtz de la Torre)',
+  'Misantla': '12-Misantla'
+};
+function _shortSucSurtido(nombreApp){
+  const m = nombreApp.match(/^(\d+)-([^ (]+)/);
+  if(!m) return nombreApp.replace(/[^a-zA-Z0-9]/g,'');
+  return m[1] + m[2].normalize('NFD').replace(/[\u0300-\u036f]/g,'');
+}
+let __surtidoTraspasos = null;
+let __surtidoFechaArchivo = null;
+
+document.getElementById('file-xlsx-surtido').addEventListener('change', async (ev)=>{
+  const file = ev.target.files[0];
+  const prev = document.getElementById('preview-xlsx-surtido');
+  const btn = document.getElementById('btn-cargar-surtido');
+  __surtidoTraspasos = null;
+  btn.style.display = 'none';
+  if(!file){ prev.innerHTML=''; return; }
+  const fm = file.name.match(/(\d{4})-(\d{2})-(\d{2})/);
+  if(!fm){
+    prev.innerHTML = '<div class="alert alert-err">El nombre del archivo debe contener la fecha YYYY-MM-DD</div>';
+    return;
+  }
+  __surtidoFechaArchivo = fm[1]+'-'+fm[2]+'-'+fm[3];
+  const folioFecha = fm[1]+fm[2]+fm[3];
+  prev.innerHTML = '<div style="color:var(--muted)">Leyendo archivo...</div>';
+  try{
+    const XLSX = await import('https://cdn.sheetjs.com/xlsx-0.20.3/package/xlsx.mjs');
+    const buf = await file.arrayBuffer();
+    const wb = XLSX.read(buf, {type:'array'});
+    if(!wb.SheetNames.includes('POR SUCURSAL')){
+      prev.innerHTML = '<div class="alert alert-err">El XLSX no contiene la hoja "POR SUCURSAL"</div>';
+      return;
+    }
+    const ws = wb.Sheets['POR SUCURSAL'];
+    const rows = XLSX.utils.sheet_to_json(ws, {header:1, defval:null});
+    const pares = {};
+    let currentDest = null;
+    let inData = false;
+    for(const row of rows){
+      const a = row[0];
+      if(typeof a === 'string' && a.startsWith('SUC ')){
+        const m = a.split('—');
+        if(m.length > 1){
+          const nombre = m[1].split('|')[0].trim();
+          currentDest = SUC_MAP_SURTIDO[nombre] || null;
+        }
+        inData = false;
+        continue;
+      }
+      if(a === 'Motivo'){ inData = true; continue; }
+      if(inData && currentDest){
+        const clave = row[1];
+        const desc = row[2];
+        const cant = parseInt(row[6]) || 0;
+        const origenNombre = row[7];
+        if(!clave || !origenNombre || cant <= 0) continue;
+        const origen = SUC_MAP_SURTIDO[origenNombre];
+        if(!origen) continue;
+        const key = currentDest + '||' + origen;
+        if(!pares[key]) pares[key] = {dest: currentDest, orig: origen, items: []};
+        pares[key].items.push({numart: String(clave), desc: String(desc||''), cant: cant});
+      }
+    }
+    const tArr = Object.values(pares).map(p => ({
+      folio: 'S' + folioFecha + '-' + _shortSucSurtido(p.dest) + '-' + _shortSucSurtido(p.orig),
+      sucOrig: p.orig,
+      sucDest: p.dest,
+      items: p.items
+    }));
+    if(tArr.length === 0){
+      prev.innerHTML = '<div class="alert alert-err">No se detectaron movimientos en el archivo</div>';
+      return;
+    }
+    __surtidoTraspasos = tArr;
+    const totalItems = tArr.reduce((s,t)=>s+t.items.length,0);
+    const totalPzas = tArr.reduce((s,t)=>s+t.items.reduce((a,i)=>a+i.cant,0),0);
+    const sucsDest = [...new Set(tArr.map(t=>t.sucDest))];
+    prev.innerHTML = '<div class="alert alert-ok">' +
+      '<strong>Surtido del ' + __surtidoFechaArchivo + '</strong><br>' +
+      tArr.length + ' traspasos · ' + sucsDest.length + ' sucursales destino · ' +
+      totalItems + ' renglones · ' + totalPzas + ' piezas' +
+      '</div>';
+    btn.style.display = 'block';
+  }catch(e){
+    prev.innerHTML = '<div class="alert alert-err">Error: ' + (e.message||e) + '</div>';
+  }
+});
+
+document.getElementById('btn-cargar-surtido').addEventListener('click', async ()=>{
+  if(!__surtidoTraspasos) return;
+  const btn = document.getElementById('btn-cargar-surtido');
+  const prev = document.getElementById('preview-xlsx-surtido');
+  btn.disabled = true;
+  const yaCargados = new Set(traspasos.filter(t=>t.status==='pendiente').map(t=>t.folio));
+  const nuevos = __surtidoTraspasos.filter(t => !yaCargados.has(t.folio));
+  const ignorados = __surtidoTraspasos.length - nuevos.length;
+  if(nuevos.length === 0){
+    prev.innerHTML = '<div class="alert alert-err">Todos los traspasos del archivo (' + ignorados + ') ya están cargados como pendientes</div>';
+    btn.disabled = false;
+    return;
+  }
+  let creados = 0;
+  let errores = 0;
+  for(const t of nuevos){
+    try{
+      const traspaso = {
+        id: Date.now().toString() + '-' + creados,
+        folio: t.folio,
+        sucOrig: t.sucOrig,
+        sucDest: t.sucDest,
+        fecha: new Date().toLocaleDateString('es-MX'),
+        items: t.items,
+        status: 'pendiente'
+      };
+      await addDoc(collection(db,'traspasos'), {...traspaso, ts: Date.now()});
+      creados++;
+      prev.innerHTML = '<div style="color:var(--muted)">Cargando... ' + creados + ' / ' + nuevos.length + '</div>';
+    }catch(e){
+      errores++;
+    }
+  }
+  let msg = '<div class="alert alert-ok">✓ ' + creados + ' traspasos cargados';
+  if(ignorados > 0) msg += ' · ' + ignorados + ' ignorados (ya existían)';
+  if(errores > 0) msg += ' · ' + errores + ' con error';
+  msg += '</div>';
+  prev.innerHTML = msg;
+  document.getElementById('file-xlsx-surtido').value = '';
+  btn.style.display = 'none';
+  btn.disabled = false;
+  __surtidoTraspasos = null;
+});
+
+
+// ── ORDENES DE COMPRA ──
+let __ordenesCompra = [];
+let __ordenEditandoId = null;
+
+function _fmtFecha(s){
+  if(!s) return '';
+  const m = String(s).match(/^(\d{4})-(\d{2})-(\d{2})/);
+  if(m) return m[3] + '/' + m[2] + '/' + m[1];
+  return String(s);
+}
+function _fmtFechaHora(s){
+  if(!s) return '';
+  const str = String(s);
+  // Si el ISO tiene zona (Z al final o offset +/-), convertir a hora local del navegador
+  if(/Z$/.test(str) || /[+-]\d{2}:?\d{2}$/.test(str)){
+    const d = new Date(str);
+    if(!isNaN(d.getTime())){
+      const pad = n => String(n).padStart(2,'0');
+      return pad(d.getDate()) + '/' + pad(d.getMonth()+1) + '/' + d.getFullYear() + ' ' + pad(d.getHours()) + ':' + pad(d.getMinutes());
+    }
+  }
+  // Si es naive (sin zona), parsear como texto local (caso de inputs datetime-local)
+  const m = str.match(/^(\d{4})-(\d{2})-(\d{2})[T ](\d{2}):(\d{2})/);
+  if(m) return m[3] + '/' + m[2] + '/' + m[1] + ' ' + m[4] + ':' + m[5];
+  // Si solo viene fecha
+  const mf = str.match(/^(\d{4})-(\d{2})-(\d{2})/);
+  if(mf) return mf[3] + '/' + mf[2] + '/' + mf[1];
+  return str;
+}
+function _fmtImporte(n){
+  const v = parseFloat(n) || 0;
+  return String.fromCharCode(36) + v.toLocaleString('es-MX', {minimumFractionDigits:2, maximumFractionDigits:2});
+}
+function _hoyISO(){
+  const d = new Date();
+  const mm = String(d.getMonth()+1).padStart(2,'0');
+  const dd = String(d.getDate()).padStart(2,'0');
+  return d.getFullYear() + '-' + mm + '-' + dd;
+}
+function _hace7dias(fechaISO){
+  if(!fechaISO) return false;
+  const f = new Date(fechaISO);
+  const ahora = new Date();
+  const diff = (ahora - f) / (1000*60*60*24);
+  return diff > 7;
+}
+
+onSnapshot(collection(db, 'ordenesCompra'), (snap) => {
+  __ordenesCompra = snap.docs.map(d => ({id: d.id, ...d.data()}));
+  __ordenesCompra.sort((a,b) => (b.ts||0) - (a.ts||0));
+  renderOrdenesAdmin();
+  renderProximasLlegadas();
+});
+
+function renderOrdenesAdmin(){
+  const cont = document.getElementById('lista-ordenes-admin');
+  if(!cont) return;
+  const visibles = __ordenesCompra.filter(o => {
+    if(o.status === 'transito') return true;
+    if(o.status === 'llegada') return true;
+    if(o.status === 'revisado') return true;
+    if(o.status === 'surtido'){
+      // Si tiene folio vinculado, verificar estado de traspasos
+      if(o.folioTraspaso){
+        const tList = traspasos.filter(t => t.folio === o.folioTraspaso);
+        if(tList.length === 0) return true; // No hay traspasos aún, mantener visible
+        const todosRecibidos = tList.every(t => t.status === 'recibido');
+        if(!todosRecibidos) return true; // Falta alguno por recibir
+        // Todos recibidos: calcular fecha del último recibido
+        const fechasRec = tList.map(t => t.fechaRecepcion || t.fecha).filter(Boolean);
+        if(fechasRec.length === 0) return true;
+        // Tomar la fecha más reciente y ver si pasaron 7 días
+        const ultimaFecha = fechasRec.sort().pop();
+        return !_hace7dias(ultimaFecha);
+      } else {
+        // Sin folio (multi-sucursal): comportamiento original
+        return !_hace7dias(o.fechaSurtido);
+      }
+    }
+    return false;
+  });
+  if(visibles.length === 0){
+    cont.innerHTML = '<div style="color:var(--muted);text-align:center;padding:14px;font-size:13px">Sin órdenes activas</div>';
+    return;
+  }
+  cont.innerHTML = visibles.map(o => {
+    // Badge segun estado
+    const badges = {
+      'transito': '<span style="background:#fed7aa;color:#9a3412;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:600">EN TRÁNSITO</span>',
+      'llegada': '<span style="background:#bbf7d0;color:#166534;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:600">LLEGÓ</span>',
+      'revisado': '<span style="background:#bfdbfe;color:#1e40af;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:600">REVISADO</span>',
+      'surtido': '<span style="background:#e9d5ff;color:#6b21a8;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:600">SURTIDO</span>'
+    };
+    const badge = badges[o.status] || badges['transito'];
+    const importe = o.importe ? _fmtImporte(o.importe) : '';
+    const notas = o.notas ? '<div style="font-size:12px;color:var(--muted);margin-top:4px">📝 ' + o.notas + '</div>' : '';
+    // Construir lineas de historial segun estado
+    let lineasHistorial = '<div style="font-size:12px;color:var(--muted)">Pedido: ' + _fmtFecha(o.fechaPedido);
+    if(o.status === 'transito'){
+      lineasHistorial += ' · Estimada: ' + (o.fechaEstimada ? _fmtFecha(o.fechaEstimada) : 'sin fecha') + '</div>';
+    } else {
+      lineasHistorial += '</div>';
+      if(o.fechaLlegada){
+        lineasHistorial += '<div style="font-size:12px;color:#166534;margin-top:2px">✓ Llegó: ' + _fmtFecha(o.fechaLlegada) + '</div>';
+      }
+      if(o.fechaRevision){
+        const quien = o.quienReviso ? ' por ' + o.quienReviso : '';
+        const notasR = o.notasRevision ? ' — ' + o.notasRevision : '';
+        lineasHistorial += '<div style="font-size:12px;color:#1e40af;margin-top:2px">✓ Revisado: ' + _fmtFechaHora(o.fechaRevision) + quien + notasR + '</div>';
+      }
+      if(o.fechaSurtido){
+        const quien = o.quienSurtio ? ' por ' + o.quienSurtio : '';
+        const notasS = o.notasSurtido ? ' — ' + o.notasSurtido : '';
+        lineasHistorial += '<div style="font-size:12px;color:#6b21a8;margin-top:2px">✓ Surtido: ' + _fmtFechaHora(o.fechaSurtido) + quien + notasS + '</div>';
+        // Mostrar estado por sucursal si hay folioTraspaso vinculado
+        if(o.folioTraspaso){
+          const tList = traspasos.filter(t => t.folio === o.folioTraspaso);
+          if(tList.length > 0){
+            lineasHistorial += '<div style="font-size:12px;color:#6b21a8;margin-top:4px;font-weight:600">📦 Folio: ' + o.folioTraspaso + '</div>';
+            lineasHistorial += '<div style="font-size:12px;margin-top:4px;background:#faf5ff;border-radius:6px;padding:6px 8px">';
+            lineasHistorial += '<div style="font-size:11px;color:var(--muted);margin-bottom:4px;font-weight:600">ESTADO EN SUCURSALES</div>';
+            tList.sort((a,b) => (a.sucDest||'').localeCompare(b.sucDest||'')).forEach(t => {
+              const recibido = t.status === 'recibido';
+              const icono = recibido ? '✅' : '⏳';
+              const color = recibido ? '#166534' : '#9a3412';
+              const detalle = recibido ? (t.fechaRecepcion ? ' ' + _fmtFechaHora(t.fechaRecepcion) : ' recibido') : ' pendiente';
+              lineasHistorial += '<div style="display:flex;justify-content:space-between;font-size:12px;color:' + color + ';padding:2px 0">';
+              lineasHistorial += '<span>' + icono + ' ' + (t.sucDest||'') + '</span><span>' + detalle + '</span>';
+              lineasHistorial += '</div>';
+            });
+            lineasHistorial += '</div>';
+          } else {
+            lineasHistorial += '<div style="font-size:11px;color:#9a3412;margin-top:4px">⚠️ No hay traspasos con folio ' + o.folioTraspaso + '</div>';
           }
         }
-        sugNC();
-      }catch(e){ av.textContent='No pude leer el PDF: '+e.message; }
-    };
-    document.getElementById('m-nc').classList.add('on');
-  };
-  function sugNC(){
-    var folio=document.getElementById('mn-folio').value, f=factDe(folio);
-    var tipo=document.getElementById('mn-tipo').value;
-    var box=document.getElementById('mn-sug'), inp=document.getElementById('mn-monto');
-    if(!f){ box.innerHTML=''; return; }
-    var e=estadoDe(f), s='';
-    if(tipo==='faltante'){
-      if(f.faltMonto>0){
-        inp.value=f.faltMonto.toFixed(2);
-        s+='<div class="sug">Faltaron <b>'+f.faltPz+' piezas</b> valorizadas en <b>'+money(f.faltMonto)+'</b> (sin IVA). Este es el monto sugerido.</div>';
-        var d='',i;
-        for(i=0;i<f.faltDet.length && i<6;i++){ var x=f.faltDet[i];
-          d+='<div class="lineitem"><span>'+esc(x.clave)+' '+esc(String(x.desc).slice(0,26))+'</span><span>'+x.falta+' × '+money(x.costo)+'</span></div>'; }
-        s+=d;
-      } else { s+='<div class="sug">Esta factura no tiene faltantes registrados.</div>'; }
-    } else if(tipo==='prontopago'){
-      var c=cfg(f.proveedor);
-      if(c.pct>0 && f.total>0){
-        var m=Math.round(f.total*c.pct/100*100)/100;
-        inp.value=m.toFixed(2);
-        s+='<div class="sug">Pronto pago de '+c.pct+'% sobre '+money(f.total)+' = <b>'+money(m)+'</b>.</div>';
-      } else {
-        s+='<div class="sug">Configura el % de pronto pago de este proveedor en la pestaña Proveedores para calcularlo solo.</div>';
       }
-    } else { inp.value=''; }
-    box.innerHTML=s;
+    }
+    // Botones de transicion segun estado actual
+    let botonAccion = '';
+    if(o.status === 'transito') botonAccion = '<button class="btn btn-sm btn-primary" data-orden-llegar="' + o.id + '" style="font-size:12px;padding:4px 10px">Marcar llegada</button>';
+    else if(o.status === 'llegada') botonAccion = '<button class="btn btn-sm btn-primary" data-orden-revisar="' + o.id + '" style="font-size:12px;padding:4px 10px;background:#3b82f6">Marcar revisado</button>';
+    else if(o.status === 'revisado') botonAccion = '<button class="btn btn-sm btn-primary" data-orden-surtir="' + o.id + '" style="font-size:12px;padding:4px 10px;background:#a855f7">Marcar surtido</button>';
+    return '<div style="border:1px solid #e5e7eb;border-radius:10px;padding:10px;background:#fff">' +
+      '<div style="display:flex;justify-content:space-between;align-items:start;gap:8px">' +
+        '<div style="flex:1;min-width:0">' +
+          '<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">' +
+            '<strong style="font-size:14px">' + (o.folio||'(sin folio)') + '</strong>' + badge +
+          '</div>' +
+          '<div style="font-size:13px;margin-top:4px"><strong>' + (o.proveedor||'') + '</strong></div>' +
+          lineasHistorial +
+          (importe ? '<div style="font-size:13px;font-weight:600;margin-top:2px">' + importe + '</div>' : '') +
+          notas +
+        '</div>' +
+      '</div>' +
+      '<div style="display:flex;gap:6px;margin-top:8px;flex-wrap:wrap">' +
+        botonAccion +
+        ((o.productos && o.productos.length > 0) || (o.productosRecibidos && o.productosRecibidos.length > 0) || (o.compras && o.compras.length > 0) ? '<button class="btn btn-sm" data-orden-detalle="' + o.id + '" style="font-size:12px;padding:4px 10px;background:#f3e8ff;color:#6b21a8">📦 ' + (o.productos && o.productos.length ? o.productos.length : (_getAcumuladoRecibido(o).length || (o.productosRecibidos ? o.productosRecibidos.length : 0))) + ' productos' + (o.backorder && o.backorder.length > 0 ? ' ⚠️ ' + o.backorder.length + ' backorder' : '') + (o.folioCompra ? ' ✓ ' + o.folioCompra : ((o.compras && o.compras.length) ? ' ✓ ' + o.compras.map(function(c){return c.folio;}).join(',') : '')) + '</button>' : '') +
+        (o.status === 'surtido' ? '<button class="btn btn-sm" data-orden-vincular="' + o.id + '" style="font-size:12px;padding:4px 10px;background:#a855f7;color:#fff">' + (o.folioTraspaso ? 'Cambiar folio' : '🔗 Vincular folio') + '</button>' : '') + '<button class="btn btn-sm" data-orden-editar="' + o.id + '" style="font-size:12px;padding:4px 10px">Editar</button>' +
+        '<button class="btn btn-sm btn-danger" data-orden-eliminar="' + o.id + '" style="font-size:12px;padding:4px 10px">Eliminar</button>' +
+      '</div>' +
+    '</div>';
+  }).join('');
+}
+
+function renderProximasLlegadas(){
+  const transito = __ordenesCompra.filter(o => o.status === 'transito');
+  let cont = document.getElementById('seccion-proximas-llegadas');
+  if(!cont){
+    const sMain = document.getElementById('s-main');
+    if(sMain){
+      cont = document.createElement('div');
+      cont.id = 'seccion-proximas-llegadas';
+      cont.style.cssText = 'margin-top:14px';
+      const firstCard = sMain.querySelector('.card');
+      if(firstCard) firstCard.insertAdjacentElement('afterend', cont);
+      else sMain.appendChild(cont);
+    }
   }
-  window.guardarNC=async function(){
-    var folio=document.getElementById('mn-folio').value, f=factDe(folio); if(!f) return;
-    var monto=parseFloat(document.getElementById('mn-monto').value);
-    var st=document.getElementById('mn-status');
-    if(!(monto>0)){ st.textContent='Captura un monto válido.'; return; }
-    st.textContent='Guardando…';
-    var reg={ folio:folio, proveedor:f.proveedor, tipo:document.getElementById('mn-tipo').value,
-      folioNC:document.getElementById('mn-folionc').value.trim(), monto:Math.round(monto*100)/100,
-      fecha:document.getElementById('mn-fecha').value, estado:document.getElementById('mn-estado').value,
-      nota:document.getElementById('mn-nota').value.trim(), ts:Date.now() };
-    try{
-      if(pendNC.data){ st.textContent='Subiendo la NC…'; reg.adjunto=await guardarAdjunto(pendNC.data, pendNC.nombre); }
-      st.textContent='Guardando…';
-      var ref=await fs.addDoc(fs.collection(db,'notasCredito'), reg);
-      reg._id=ref.id; NC.push(reg);
-      pendNC={data:null,nombre:null};
-      cerrarModal('m-nc'); render();
-    }catch(e){ st.textContent='Error: '+e.message; }
-  };
-  window.borrarNC=async function(id){
-    if(!confirm('¿Borrar esta nota de crédito?')) return;
-    try{ await fs.deleteDoc(fs.doc(db,'notasCredito',id)); NC=NC.filter(function(n){return n._id!==id;}); render(); }
-    catch(e){ alert('Error: '+e.message); }
-  };
+  if(!cont) return;
+  if(transito.length === 0){ cont.innerHTML = ''; return; }
+  cont.innerHTML = '<p style="font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:8px">Próximas llegadas</p>' +
+    '<div class="card" style="padding:10px"><div style="display:flex;flex-direction:column;gap:6px">' +
+    transito.map(o => 
+      '<div style="display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid #f1f5f9">' +
+        '<div><strong style="font-size:13px">' + (o.proveedor||'(sin proveedor)') + '</strong></div>' +
+        '<div style="font-size:12px;color:var(--muted)">' + (o.fechaEstimada ? _fmtFecha(o.fechaEstimada) : 'sin fecha') + '</div>' +
+      '</div>'
+    ).join('') +
+    '</div></div>';
+}
 
-  window.abrirProv=function(p){
-    editProv=p;
-    var c=cfg(p);
-    document.getElementById('mv-title').textContent=p;
-    document.getElementById('mv-cred').value=c.cred||'';
-    document.getElementById('mv-pct').value=c.pct||'';
-    document.getElementById('mv-dpp').value=c.dpp||'';
-    document.getElementById('mv-status').textContent='';
-    document.getElementById('m-prov').classList.add('on');
-  };
-  window.guardarProv=async function(){
-    if(!editProv) return;
-    var st=document.getElementById('mv-status'); st.textContent='Guardando…';
-    var reg={ nombre:editProv,
-      diasCredito:parseInt(document.getElementById('mv-cred').value)||0,
-      pctProntoPago:parseFloat(document.getElementById('mv-pct').value)||0,
-      diasProntoPago:parseInt(document.getElementById('mv-dpp').value)||0 };
-    try{
-      await fs.setDoc(fs.doc(db,'proveedoresCfg',editProv), reg);
-      PROV[editProv]=reg;
-      cerrarModal('m-prov'); render();
-    }catch(e){ st.textContent='Error: '+e.message; }
-  };
+document.getElementById('btn-nueva-orden')?.addEventListener('click', () => {
+  __ordenEditandoId = null;
+  document.getElementById('form-orden-titulo').textContent = 'Nueva orden de compra';
+  document.getElementById('inp-orden-folio').value = '';
+  document.getElementById('inp-orden-proveedor').value = '';
+  document.getElementById('inp-orden-fecha-pedido').value = _hoyISO();
+  document.getElementById('inp-orden-fecha-est').value = '';
+  document.getElementById('inp-orden-importe').value = '';
+  document.getElementById('inp-orden-notas').value = '';
+  document.getElementById('form-orden-modal').style.display = 'flex';
+});
 
-  window.abrirTotal=function(folio){
-    editTotalFolio=folio;
-    var f=factDe(folio); if(!f) return;
-    document.getElementById('mt-info').textContent=f.folio+' · '+f.proveedor;
-    document.getElementById('mt-monto').value=f.total>0?f.total.toFixed(2):'';
-    var est=Math.round(f.mercancia*1.16*100)/100;
-    document.getElementById('mt-sug').innerHTML=
-      '<div class="lineitem"><span>Mercancía (según el PDF)</span><b>'+money(f.mercancia)+'</b></div>'+
-      '<div class="sug">Estimado con IVA 16%: <b>'+money(est)+'</b>. Verifícalo contra la factura — puede variar por descuentos o productos a tasa 0%.</div>';
-    document.getElementById('mt-status').textContent='';
-    document.getElementById('m-total').classList.add('on');
-  };
-  window.guardarTotal=async function(){
-    var monto=parseFloat(document.getElementById('mt-monto').value);
-    var st=document.getElementById('mt-status');
-    if(!(monto>0)){ st.textContent='Captura un total válido.'; return; }
-    st.textContent='Guardando…';
-    try{
-      await fs.setDoc(fs.doc(db,'facturasTotal',editTotalFolio), {total:Math.round(monto*100)/100, ts:Date.now()});
-      var f=factDe(editTotalFolio); if(f){ f.totalManual=Math.round(monto*100)/100; f.total=f.totalManual; }
-      cerrarModal('m-total'); render();
-    }catch(e){ st.textContent='Error: '+e.message; }
-  };
+document.getElementById('btn-orden-cancelar')?.addEventListener('click', () => {
+  document.getElementById('form-orden-modal').style.display = 'none';
+});
 
-  document.addEventListener('DOMContentLoaded', async function(){
-    var qi=document.getElementById('f-q');
-    if(qi) qi.addEventListener('input', function(e){ q=e.target.value.trim().toLowerCase(); render(); });
-    var ch=document.getElementById('f-chips');
-    if(ch) ch.addEventListener('click', function(e){
-      var c=e.target.closest('.chip'); if(!c) return;
-      var all=document.querySelectorAll('#f-chips .chip');
-      for(var i=0;i<all.length;i++) all[i].classList.remove('on');
-      c.classList.add('on'); filtro=c.getAttribute('data-f'); render();
-    });
-    document.querySelectorAll('.modal').forEach(function(m){
-      m.addEventListener('click', function(e){ if(e.target===m) m.classList.remove('on'); });
-    });
-    try{ await conectar(); await cargar(); }
-    catch(e){ document.getElementById('loading').textContent='Error al cargar: '+e.message; }
+document.getElementById('btn-orden-guardar')?.addEventListener('click', async () => {
+  const folio = document.getElementById('inp-orden-folio').value.trim();
+  const proveedor = document.getElementById('inp-orden-proveedor').value.trim();
+  const fechaPedido = document.getElementById('inp-orden-fecha-pedido').value;
+  const fechaEstimada = document.getElementById('inp-orden-fecha-est').value;
+  const importe = parseFloat(document.getElementById('inp-orden-importe').value) || 0;
+  const notas = document.getElementById('inp-orden-notas').value.trim();
+  if(!folio || !proveedor){ alert('Folio y proveedor son obligatorios'); return; }
+  try{
+    if(__ordenEditandoId){
+      await updateDoc(doc(db, 'ordenesCompra', __ordenEditandoId), {
+        folio, proveedor, fechaPedido, fechaEstimada, importe, notas
+      });
+    } else {
+      await addDoc(collection(db, 'ordenesCompra'), {
+        folio, proveedor, fechaPedido, fechaEstimada, importe, notas,
+        status: 'transito',
+        fechaLlegada: null,
+        ts: Date.now()
+      });
+    }
+    document.getElementById('form-orden-modal').style.display = 'none';
+    __ordenEditandoId = null;
+  }catch(e){
+    alert('Error al guardar: ' + e.message);
+  }
+});
+
+document.addEventListener('click', async (ev) => {
+  const llegar = ev.target.closest('[data-orden-llegar]');
+  const editar = ev.target.closest('[data-orden-editar]');
+  const eliminar = ev.target.closest('[data-orden-eliminar]');
+  if(llegar){
+    const id = llegar.getAttribute('data-orden-llegar');
+    if(!confirm('¿Marcar esta orden como llegada hoy?')) return;
+    try{
+      const o = __ordenesCompra.find(x => x.id === id);
+      if(o) await updateDoc(doc(db,'ordenesCompra',id), {status: 'llegada', fechaLlegada: _hoyISO()});
+    }catch(e){ alert('Error: ' + e.message); }
+  }
+  if(editar){
+    const id = editar.getAttribute('data-orden-editar');
+    const o = __ordenesCompra.find(x => x.id === id);
+    if(!o) return;
+    __ordenEditandoId = id;
+    document.getElementById('form-orden-titulo').textContent = 'Editar orden';
+    document.getElementById('inp-orden-folio').value = o.folio||'';
+    document.getElementById('inp-orden-proveedor').value = o.proveedor||'';
+    document.getElementById('inp-orden-fecha-pedido').value = o.fechaPedido||'';
+    document.getElementById('inp-orden-fecha-est').value = o.fechaEstimada||'';
+    document.getElementById('inp-orden-importe').value = o.importe||'';
+    document.getElementById('inp-orden-notas').value = o.notas||'';
+    document.getElementById('form-orden-modal').style.display = 'flex';
+  }
+  if(eliminar){
+    const id = eliminar.getAttribute('data-orden-eliminar');
+    const o = __ordenesCompra.find(x => x.id === id);
+    if(!o) return;
+    if(!confirm('¿Eliminar la orden "' + (o.folio||'') + '" de ' + (o.proveedor||'') + '? Esta acción no se puede deshacer.')) return;
+    try{
+      await deleteDoc(doc(db,'ordenesCompra',id));
+    }catch(e){ alert('Error: ' + e.message); }
+  }
+});
+
+
+
+// ── CARGADOR AUTOMÁTICO DE PDFs DE ORDEN ──
+document.body.insertAdjacentHTML('beforeend', '<div id="modal-pdfs-detectados" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);z-index:1000;align-items:flex-start;justify-content:center;overflow-y:auto;padding:20px 0"><div style="background:#fff;border-radius:12px;padding:20px;max-width:520px;width:92%;max-height:90vh;overflow-y:auto;margin:auto"><h3 style="margin:0 0 14px 0;font-size:18px">Órdenes detectadas</h3><p style="font-size:13px;color:var(--muted);margin:0 0 14px 0">Indica la fecha estimada de llegada de cada orden. Los demás datos se extrajeron automáticamente del PDF.</p><div id="lista-pdfs-detectados" style="display:flex;flex-direction:column;gap:10px"></div><div style="display:flex;gap:8px;margin-top:16px"><button id="btn-pdfs-cancelar" class="btn" style="flex:1">Cancelar</button><button id="btn-pdfs-guardar" class="btn btn-primary" style="flex:1">Guardar todas</button></div></div></div>');
+let __pdfsDetectados = [];
+
+const MESES_PDF = {
+  ene:0, feb:1, mar:2, abr:3, may:4, jun:5, jul:6, ago:7, sep:8, oct:9, nov:10, dic:11,
+  Ene:0, Feb:1, Mar:2, Abr:3, May:4, Jun:5, Jul:6, Ago:7, Sep:8, Oct:9, Nov:10, Dic:11,
+  Jan:0, Feb_en:1, Mar_en:2, Apr:3, May_en:4, Jun_en:5, Jul_en:6, Aug:7, Sep_en:8, Oct_en:9, Nov_en:10, Dec:11
+};
+function _mesANum(s){
+  const n = String(s||'').toLowerCase().substring(0,3);
+  const map = {ene:0, feb:1, mar:2, abr:3, may:4, jun:5, jul:6, ago:7, sep:8, oct:9, nov:10, dic:11,
+               jan:0, apr:3, aug:7, dec:11};
+  return map[n];
+}
+
+async function _cargarPDFJS(){
+  if(window.pdfjsLib) return window.pdfjsLib;
+  await new Promise((resolve, reject) => {
+    const s = document.createElement('script');
+    s.src = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js';
+    s.onload = resolve;
+    s.onerror = () => reject(new Error('No se pudo cargar PDF.js'));
+    document.head.appendChild(s);
   });
+  if(!window.pdfjsLib) throw new Error('pdfjsLib no apareció');
+  window.pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+  return window.pdfjsLib;
+}
+
+async function _extraerTextoPDF(file){
+  const pdfjs = await _cargarPDFJS();
+  const buf = await file.arrayBuffer();
+  const pdf = await pdfjs.getDocument({data: buf}).promise;
+  let texto = '';
+  let lineasGlobal = [];
+  for(let i = 1; i <= pdf.numPages; i++){
+    const page = await pdf.getPage(i);
+    const tc = await page.getTextContent();
+    texto += tc.items.map(it => it.str).join(' ') + ' ';
+    // Agrupar items por Y (líneas) y ordenar por X dentro de cada línea
+    const porY = {};
+    for(const it of tc.items){
+      if(!it.str || !it.transform) continue;
+      const y = Math.round(it.transform[5]);
+      if(!porY[y]) porY[y] = [];
+      porY[y].push({x: it.transform[4], str: it.str});
+    }
+    const ys = Object.keys(porY).map(Number).sort((a,b) => b-a); // top to bottom
+    for(const y of ys){
+      const items = porY[y].sort((a,b) => a.x - b.x);
+      // Insertar separadores grandes donde haya saltos horizontales >40 px (columnas)
+      let linea = '';
+      let prevX = null;
+      for(const it of items){
+        if(prevX !== null && (it.x - prevX) > 40) linea += '  ';
+        linea += (linea ? ' ' : '') + it.str;
+        prevX = it.x + (it.str.length * 5);
+      }
+      if(linea.trim()) lineasGlobal.push(linea);
+    }
+  }
+  return {texto, lineas: lineasGlobal};
+}
+
+function _parsearOrdenPDF(datosPDF, nombreArchivo){
+  const texto = (typeof datosPDF === 'string') ? datosPDF : datosPDF.texto;
+  const lineas = (typeof datosPDF === 'string') ? [] : (datosPDF.lineas || []);
+  
+  // Detectar tipo de documento
+  const esCompra = /Documento de compra/i.test(texto);
+  const esOrden = /Orden de Compra/i.test(texto);
+  const tipo = esCompra ? 'compra' : (esOrden ? 'orden' : 'orden'); // default a orden
+  
+  // Folio: S#### para orden, E#### para compra
+  let mFolio;
+  if(tipo === 'compra'){
+    mFolio = texto.match(/Folio:[\s\S]{0,80}?(E\d{3,6})/) || texto.match(/(E\d{4,5})/);
+  } else {
+    mFolio = texto.match(/Folio:[\s\S]{0,80}?(S\d{3,6})/) || texto.match(/(S\d{4,5})/);
+  }
+  
+  // Fecha: DD-MMM-YYYY
+  const mFecha = texto.match(/Fecha:\s*(\d{1,2})-([A-Za-z]+)-(\d{4})/);
+  // Proveedor
+  const mProv = texto.match(/Proveedor:\s*([^()\n\r]+?)(?:\s*\(\d+\)|\s+(?:BLVD|AV|CALLE|PROL|DR|CARR|ZACAP|MELCHOR|PABLO|RFC:|\s{3,}))/i);
+  // Total: en el PDF la etiqueta va ANTES del numero ("Total 635,845.41").
+  // Se busca en las lineas reconstruidas por columnas. El \s antes de Total evita
+  // confundirlo con "Subtotal". NUNCA usar Math.max: el subtotal suele ser mayor
+  // que el total cuando hay descuento de partidas.
+  let totalNum = null;
+  const RE_TOTAL = /(?:^|\s)Total\s+\$?\s*([\d,]+\.\d{2})/i;
+  for(const ln of lineas){
+    const mt = ln.match(RE_TOTAL);
+    if(mt) totalNum = parseFloat(mt[1].replace(/,/g, ''));
+  }
+  if(totalNum === null){
+    const mt2 = texto.match(RE_TOTAL);
+    if(mt2) totalNum = parseFloat(mt2[1].replace(/,/g, ''));
+  }
+  
+  let fechaPedido = '';
+  if(mFecha){
+    const dia = parseInt(mFecha[1]);
+    const mes = _mesANum(mFecha[2]);
+    const anio = parseInt(mFecha[3]);
+    if(mes !== undefined){
+      const mm = String(mes+1).padStart(2,'0');
+      const dd = String(dia).padStart(2,'0');
+      fechaPedido = anio + '-' + mm + '-' + dd;
+    }
+  }
+  
+  // Extraer líneas de productos
+  const LINE_RE = /^\s*([\d,]+\.\d{2})\s+([A-Za-z0-9]+)\s+(.+?)\s{2,}([\d,]+\.\d{2})(?:\s+[\d,]+\.\d{2})?\s+([\d,]+\.\d{2})\s*$/;
+  const num = s => parseFloat(s.replace(/,/g, ''));
+  const lineasProductos = [];
+  for(const linea of lineas){
+    const m = linea.match(LINE_RE);
+    if(!m) continue;
+    const [, cant, clave, desc, costoUnit, importe] = m;
+    if(clave.length < 2) continue;
+    lineasProductos.push({
+      clave: clave.trim().toUpperCase(),
+      descripcion: desc.trim().replace(/\s+/g,' '),
+      cantidad: num(cant),
+      costoUnit: num(costoUnit),
+      importe: (num(costoUnit) <= 0.05 ? 0 : num(importe)) /* bonificacion: precio ~0 => el ultimo numero es %desc(100), no importe */
+    });
+  }
+  
+  let productos = [];
+  let totalLineasOriginales = lineasProductos.length;
+  
+  if(tipo === 'compra'){
+    // Agrupar por clave para calcular costo promedio ponderado
+    const grupos = {};
+    for(const l of lineasProductos){
+      if(!grupos[l.clave]){
+        grupos[l.clave] = {
+          clave: l.clave,
+          descripcion: l.descripcion,
+          cantTotal: 0,
+          importeTotal: 0,
+          tieneBonificacion: false,
+          lineas: []
+        };
+      }
+      const g = grupos[l.clave];
+      g.cantTotal += l.cantidad;
+      g.importeTotal += l.importe;
+      g.lineas.push(l);
+      // Detectar bonificación: precio muy bajo (<= 5% del más alto del grupo)
+      if(g.lineas.length > 1) g.tieneBonificacion = true;
+    }
+    let _indirectos = 0;
+    const _mInd = texto.match(/Indirectos\s*:?\s*\$?\s*([\d,]+\.\d{2})/i);
+    if(_mInd) _indirectos = parseFloat(_mInd[1].replace(/,/g,'')) || 0;
+    const _totalImpProd = Object.values(grupos).reduce((s,x)=>s+x.importeTotal,0);
+    productos = Object.values(grupos).map(g => {
+      const _flete = (_indirectos>0 && _totalImpProd>0) ? Math.round(_indirectos*(g.importeTotal/_totalImpProd)*100)/100 : 0;
+      const _impTot = Math.round((g.importeTotal + _flete) * 100) / 100;
+      return {
+        clave: g.clave,
+        descripcion: g.descripcion,
+        cantRecibida: g.cantTotal,
+        importeMercancia: Math.round(g.importeTotal * 100) / 100,
+        fleteProrrateado: _flete,
+        importeTotal: _impTot,
+        costoPromedio: g.cantTotal>0 ? Math.round((_impTot / g.cantTotal) * 10000) / 10000 : 0,
+        tieneBonificacion: g.tieneBonificacion,
+        detalleLineas: g.lineas.map(l => ({cantidad: l.cantidad, costoUnit: l.costoUnit, importe: l.importe}))
+      };
+    });
+  } else {
+    // Orden: una línea = un producto (sin agrupación)
+    productos = lineasProductos.map(l => ({
+      clave: l.clave,
+      descripcion: l.descripcion,
+      cantPedida: l.cantidad,
+      costoUnit: l.costoUnit,
+      importe: l.importe
+    }));
+  }
+  
+  return {
+    tipo,
+    folio: mFolio ? mFolio[1] : '',
+    proveedor: mProv ? mProv[1].trim().replace(/\s+/g,' ') : '',
+    fechaPedido,
+    importe: totalNum || 0,
+    nombreArchivo,
+    productos,
+    totalLineasOriginales
+  };
+}
+
+function _renderPdfsDetectados(){
+  const cont = document.getElementById('lista-pdfs-detectados');
+  if(!cont) return;
+  cont.innerHTML = __pdfsDetectados.map((d, i) => {
+    const importeStr = d.importe ? (PESO_SYM + d.importe.toLocaleString('es-MX', {minimumFractionDigits:2, maximumFractionDigits:2})) : 'sin total';
+    const fleteTot = (d.productos||[]).reduce((s,p)=>s+(p.fleteProrrateado||0),0);
+    const fleteStr = fleteTot>0 ? ' · <span style="color:#b45309">flete '+PESO_SYM+fleteTot.toLocaleString('es-MX',{minimumFractionDigits:2,maximumFractionDigits:2})+'</span>' : '';
+    
+    // Detección de duplicado o vinculación según tipo
+    let advert = '';
+    let bloqueTipo = '';
+    let bloqueExtra = '';
+    
+    if(d.tipo === 'compra'){
+      bloqueTipo = '<div style="display:inline-block;background:#dbeafe;color:#1e40af;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:600;margin-right:6px">📦 DOCUMENTO DE COMPRA</div>';
+      // Buscar orden vinculada por folioTraspaso === d.folio (vinculación automática)
+      const ordenVinculada = __ordenesCompra.find(o => o.folioTraspaso === d.folio);
+      if(ordenVinculada){
+        const compras = _getComprasOrden(ordenVinculada);
+        const yaIncluida = compras.some(c => c.folio === d.folio);
+        const txtCompras = compras.length > 0 ? ' (ya tiene ' + compras.length + ' factura' + (compras.length>1?'s':'') + ')' : '';
+        const txtAccion = yaIncluida ? '<br><span style="color:#9a3412">⚠️ Esta factura ya está vinculada. Al guardar se REEMPLAZARÁ con la nueva versión.</span>' : '';
+        bloqueExtra = '<div style="background:#d1fae5;color:#065f46;padding:6px 10px;border-radius:6px;font-size:12px;margin-top:6px">✓ Se vinculará automáticamente a orden <strong>' + ordenVinculada.folio + '</strong> · ' + (ordenVinculada.proveedor||'') + txtCompras + txtAccion + '</div>';
+      } else {
+        // Permitir seleccionar orden manualmente - mostrar TODAS las órdenes activas (incluyendo las con compras ya vinculadas, por si quieres agregar otra)
+        const ordenesElegibles = __ordenesCompra.filter(o => o.status === 'transito' || o.status === 'llegada' || o.status === 'revisado' || o.status === 'surtido');
+        const opciones = ['<option value="">(sin vincular — registrar solo costos)</option>']
+          .concat(ordenesElegibles.map(o => {
+            const compras = _getComprasOrden(o);
+            const tag = compras.length > 0 ? ' [' + compras.length + ' factura' + (compras.length>1?'s':'') + ']' : '';
+            return '<option value="' + o.id + '">' + o.folio + ' · ' + (o.proveedor||'') + tag + '</option>';
+          }))
+          .join('');
+        bloqueExtra = '<div style="background:#fef3c7;color:#92400e;padding:6px 10px;border-radius:6px;font-size:12px;margin-top:6px">⚠️ No se encontró orden con folio ' + d.folio + ' vinculado<br><label style="font-size:11px;font-weight:600;margin-top:4px;display:block">¿Vincular a una orden?</label><select class="sel-vincular-orden" data-vincular="' + i + '" style="width:100%;padding:4px;border:1px solid #cbd5e1;border-radius:4px;font-size:12px;margin-top:2px">' + opciones + '</select><div style="font-size:11px;margin-top:4px;color:#78350f">💡 Selecciona una orden si esta es UNA DE VARIAS facturas del mismo pedido.</div></div>';
+      }
+      // Mostrar info productos
+      const pzasTotal = d.productos.reduce((s,p) => s + (p.cantRecibida||0), 0);
+      const conBonif = d.productos.filter(p => p.tieneBonificacion).length;
+      bloqueExtra += '<div style="font-size:12px;color:#16a34a;margin-top:4px">📦 ' + d.productos.length + ' productos únicos · ' + pzasTotal + ' piezas total' + (conBonif > 0 ? ' · ' + conBonif + ' con bonificación' : '') + '</div>';
+    } else {
+      bloqueTipo = '<div style="display:inline-block;background:#fed7aa;color:#9a3412;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:600;margin-right:6px">📋 ORDEN DE COMPRA</div>';
+      const duplicado = __ordenesCompra.find(o => o.folio === d.folio);
+      if(duplicado){
+        advert = '<div style="background:#fef2f2;color:#991b1b;padding:6px 10px;border-radius:6px;font-size:12px;margin-top:6px">⚠️ Ya existe orden con folio ' + d.folio + ' — se omitirá</div>';
+      }
+      bloqueExtra = d.productos && d.productos.length 
+        ? '<div style="font-size:12px;color:#16a34a;margin-top:2px">📦 ' + d.productos.length + ' productos detectados</div>'
+        : '<div style="font-size:12px;color:#9a3412;margin-top:2px">⚠️ Sin detalle de productos</div>';
+    }
+    
+    // Solo mostrar fecha estimada para ÓRDENES (no para compras, que ya llegaron)
+    const inputFecha = d.tipo === 'orden' ? 
+      '<div style="margin-top:8px"><label class="lbl" style="font-size:11px">Fecha estimada de llegada</label><input type="date" class="inp-pdf-fecha" data-pdf-fecha="' + i + '" style="width:100%;padding:6px;border:1px solid #cbd5e1;border-radius:6px;box-sizing:border-box" /></div>'
+      : '';
+    
+    return '<div style="border:1px solid #e5e7eb;border-radius:8px;padding:10px;background:#fff" data-pdf-idx="' + i + '">' +
+      '<div style="display:flex;justify-content:space-between;align-items:start;gap:8px">' +
+        '<div style="flex:1;min-width:0">' +
+          '<div style="font-size:11px;color:var(--muted);margin-bottom:2px">' + d.nombreArchivo + '</div>' +
+          '<div style="font-weight:600">' + bloqueTipo + (d.folio || '(sin folio)') + '</div>' +
+          '<div style="font-size:13px;margin-top:2px">' + (d.proveedor || '(sin proveedor)') + '</div>' +
+          '<div style="font-size:13px;color:var(--muted)">Fecha: ' + (d.fechaPedido || 'sin fecha') + ' · ' + importeStr + fleteStr + '</div>' +
+          bloqueExtra +
+        '</div>' +
+        '<button class="btn btn-sm" data-quitar-pdf="' + i + '" style="font-size:11px;padding:2px 8px">✕</button>' +
+      '</div>' +
+      inputFecha +
+      advert +
+    '</div>';
+  }).join('');
+  // Pre-seleccionar orden si viene de "+ Vincular otra factura"
+  if(window.__ordenParaVincularMas){
+    const sels = document.querySelectorAll('.sel-vincular-orden');
+    sels.forEach(sel => { sel.value = window.__ordenParaVincularMas; });
+    // Limpiar después del primer uso
+    setTimeout(() => { window.__ordenParaVincularMas = null; }, 200);
+  }
+}
+
+const PESO_SYM = String.fromCharCode(36);
+
+document.getElementById('file-pdf-ordenes')?.addEventListener('change', async (ev) => {
+  const files = Array.from(ev.target.files || []);
+  if(files.length === 0) return;
+  const dropzone = document.getElementById('pdf-dropzone-orden');
+  const originalHTML = dropzone.innerHTML;
+  dropzone.innerHTML = '<div style="font-size:13px;color:var(--muted);padding:8px">Procesando ' + files.length + ' PDF' + (files.length>1?'s':'') + '...</div>';
+  __pdfsDetectados = [];
+  for(const f of files){
+    try{
+      const txt = await _extraerTextoPDF(f);
+      const datos = _parsearOrdenPDF(txt, f.name);
+      __pdfsDetectados.push(datos);
+    }catch(e){
+      alert('Error procesando ' + f.name + ': ' + e.message);
+    }
+  }
+  dropzone.innerHTML = originalHTML;
+  document.getElementById('file-pdf-ordenes').value = '';
+  if(__pdfsDetectados.length === 0) return;
+  _renderPdfsDetectados();
+  document.getElementById('modal-pdfs-detectados').style.display = 'flex';
+});
+
+document.getElementById('btn-pdfs-cancelar')?.addEventListener('click', () => {
+  document.getElementById('modal-pdfs-detectados').style.display = 'none';
+  __pdfsDetectados = [];
+});
+
+document.getElementById('btn-pdfs-guardar')?.addEventListener('click', async () => {
+  // Recoger fechas estimadas (solo para ÓRDENES)
+  document.querySelectorAll('[data-pdf-fecha]').forEach(inp => {
+    const idx = parseInt(inp.getAttribute('data-pdf-fecha'));
+    if(__pdfsDetectados[idx]) __pdfsDetectados[idx].fechaEstimada = inp.value;
+  });
+  // Recoger vinculación manual de compras (data-vincular)
+  document.querySelectorAll('[data-vincular]').forEach(sel => {
+    const idx = parseInt(sel.getAttribute('data-vincular'));
+    if(__pdfsDetectados[idx]) __pdfsDetectados[idx].ordenVinculadaIdManual = sel.value || null;
+  });
+  // Validar: órdenes deben tener fecha estimada
+  const sinFecha = __pdfsDetectados.filter((d, i) => {
+    if(d.tipo !== 'orden') return false;
+    const dup = __ordenesCompra.find(o => o.folio === d.folio);
+    return !dup && !d.fechaEstimada;
+  });
+  if(sinFecha.length > 0){
+    alert('Falta capturar la fecha estimada de llegada en ' + sinFecha.length + ' orden(es).');
+    return;
+  }
+  const btn = document.getElementById('btn-pdfs-guardar');
+  btn.disabled = true;
+  let ordenesGuardadas = 0, comprasProcesadas = 0, comprasSinVincular = 0, omitidas = 0, errores = 0;
+  let totalCostosActualizados = 0, totalCostosNuevos = 0;
+  let backorderDetectado = 0;
+  
+  for(const d of __pdfsDetectados){
+    try{
+      if(d.tipo === 'orden'){
+        // ====== ORDEN DE COMPRA (pedido) ======
+        const dup = __ordenesCompra.find(o => o.folio === d.folio);
+        if(dup){ omitidas++; continue; }
+        await addDoc(collection(db, 'ordenesCompra'), {
+          folio: d.folio,
+          proveedor: d.proveedor,
+          fechaPedido: d.fechaPedido,
+          fechaEstimada: d.fechaEstimada,
+          importe: d.importe,
+          productos: d.productos || [],  // Productos PEDIDOS (con costos del pedido)
+          notas: '',
+          status: 'transito',
+          fechaLlegada: null,
+          ts: Date.now()
+        });
+        // NO actualizar catálogo de costos para órdenes (solo se actualiza con compras)
+        ordenesGuardadas++;
+      } else if(d.tipo === 'compra'){
+        // ====== DOCUMENTO DE COMPRA (recepción real) ======
+        // Encontrar la orden vinculada: primero automática (folioTraspaso), luego manual
+        let ordenVinculada = __ordenesCompra.find(o => o.folioTraspaso === d.folio);
+        if(!ordenVinculada && d.ordenVinculadaIdManual){
+          ordenVinculada = __ordenesCompra.find(o => o.id === d.ordenVinculadaIdManual);
+        }
+        
+        // Guardar datos en la orden (si está vinculada) o crear compra suelta
+        if(ordenVinculada){
+          // Construir nueva entrada de compra
+          const nuevaCompra = {
+            folio: d.folio,
+            fechaCompra: d.fechaPedido,
+            importeCompra: d.importe,
+            productosRecibidos: d.productos,
+            ts: Date.now()
+          };
+          // Obtener compras existentes (con compatibilidad legacy)
+          const comprasExistentes = _getComprasOrden(ordenVinculada);
+          // Verificar si ya estaba esta misma factura (evitar duplicar)
+          const yaExiste = comprasExistentes.some(c => c.folio === d.folio);
+          let nuevoArrayCompras;
+          if(yaExiste){
+            // Reemplazar la existente con la nueva (re-cargar mismo PDF)
+            nuevoArrayCompras = comprasExistentes.map(c => c.folio === d.folio ? nuevaCompra : c);
+          } else {
+            nuevoArrayCompras = [...comprasExistentes, nuevaCompra];
+          }
+          // Calcular backorder y extras con TODAS las compras
+          const tempOrden = {productos: ordenVinculada.productos, compras: nuevoArrayCompras};
+          const {backorder, extras} = _calcularBackorderYExtras(tempOrden);
+          // Actualizar doc
+          await updateDoc(doc(db, 'ordenesCompra', ordenVinculada.id), {
+            compras: nuevoArrayCompras,
+            backorder: backorder,
+            extrasRecibidos: extras,
+            // Limpiar campos legacy (ya están en compras[])
+            folioCompra: null,
+            fechaCompra: null,
+            importeCompra: null,
+            productosRecibidos: null,
+            // Si no tenía folioTraspaso, lo vinculamos al primer folio E
+            folioTraspaso: ordenVinculada.folioTraspaso || nuevoArrayCompras[0].folio
+          });
+          comprasProcesadas++;
+          if(backorder.length > 0) backorderDetectado++;
+        } else {
+          // Compra suelta sin orden
+          await addDoc(collection(db, 'comprasSueltas'), {
+            folio: d.folio,
+            proveedor: d.proveedor,
+            fechaCompra: d.fechaPedido,
+            importe: d.importe,
+            productos: d.productos,
+            ts: Date.now()
+          });
+          comprasSinVincular++;
+        }
+        
+        // Actualizar catálogo de costos con costo promedio ponderado
+        const productosParaCatalogo = d.productos.map(p => ({
+          clave: p.clave,
+          descripcion: p.descripcion,
+          costoUnit: p.costoPromedio  // Costo promedio incluyendo bonificación
+        }));
+        const res = await _actualizarCatalogoCostos(productosParaCatalogo, 'compra ' + d.folio);
+        totalCostosNuevos += res.nuevos;
+        totalCostosActualizados += res.actualizados;
+      }
+    }catch(e){
+      console.error('Error procesando ' + d.folio, e);
+      errores++;
+    }
+  }
+  btn.disabled = false;
+  document.getElementById('modal-pdfs-detectados').style.display = 'none';
+  __pdfsDetectados = [];
+  
+  // Mensaje resumen
+  const partes = [];
+  if(ordenesGuardadas > 0) partes.push('✓ ' + ordenesGuardadas + ' órdenes guardadas');
+  if(comprasProcesadas > 0) partes.push('✓ ' + comprasProcesadas + ' compras vinculadas');
+  if(comprasSinVincular > 0) partes.push(comprasSinVincular + ' compras sin vincular');
+  if(totalCostosActualizados > 0) partes.push('💲 ' + totalCostosActualizados + ' costos actualizados');
+  if(totalCostosNuevos > 0) partes.push(totalCostosNuevos + ' costos nuevos');
+  if(backorderDetectado > 0) partes.push('⚠️ ' + backorderDetectado + ' orden(es) con backorder');
+  if(omitidas > 0) partes.push(omitidas + ' omitidas (ya existían)');
+  if(errores > 0) partes.push(errores + ' con error');
+  alert(partes.join('\n'));
+});
+
+document.addEventListener('click', (ev) => {
+  const quitar = ev.target.closest('[data-quitar-pdf]');
+  if(quitar){
+    const idx = parseInt(quitar.getAttribute('data-quitar-pdf'));
+    __pdfsDetectados.splice(idx, 1);
+    if(__pdfsDetectados.length === 0){
+      document.getElementById('modal-pdfs-detectados').style.display = 'none';
+    } else {
+      _renderPdfsDetectados();
+    }
+  }
+});
+
+
+// ── FLUJO REVISADO / SURTIDO ──
+document.body.insertAdjacentHTML('beforeend', '<div id="modal-revisar-orden" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);z-index:1001;align-items:center;justify-content:center"><div style="background:#fff;border-radius:12px;padding:20px;max-width:420px;width:92%;max-height:90vh;overflow-y:auto"><h3 style="margin:0 0 14px 0;font-size:18px;color:#1e40af">Marcar como revisado</h3><div id="info-orden-revisar" style="font-size:13px;color:var(--muted);margin-bottom:14px"></div><div style="display:flex;flex-direction:column;gap:10px"><div><label class="lbl">Fecha y hora de revisión</label><input id="inp-rev-fechahora" type="datetime-local" style="width:100%;padding:8px;border:1px solid #cbd5e1;border-radius:6px;box-sizing:border-box" /></div><div><label class="lbl">Quien revisó</label><input id="inp-rev-quien" type="text" placeholder="Nombre de la persona" style="width:100%;padding:8px;border:1px solid #cbd5e1;border-radius:6px;box-sizing:border-box" /></div><div><label class="lbl">Notas (opcional)</label><textarea id="inp-rev-notas" rows="3" style="width:100%;padding:8px;border:1px solid #cbd5e1;border-radius:6px;box-sizing:border-box;resize:vertical"></textarea></div><div style="display:flex;gap:8px;margin-top:6px"><button id="btn-rev-cancelar" class="btn" style="flex:1">Cancelar</button><button id="btn-rev-guardar" class="btn btn-primary" style="flex:1;background:#3b82f6">Guardar</button></div></div></div></div>');
+document.body.insertAdjacentHTML('beforeend', '<div id="modal-surtir-orden" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);z-index:1001;align-items:center;justify-content:center"><div style="background:#fff;border-radius:12px;padding:20px;max-width:420px;width:92%;max-height:90vh;overflow-y:auto"><h3 style="margin:0 0 14px 0;font-size:18px;color:#6b21a8">Marcar como surtido</h3><div id="info-orden-surtir" style="font-size:13px;color:var(--muted);margin-bottom:14px"></div><div style="display:flex;flex-direction:column;gap:10px"><div><label class="lbl">Folio del traspaso (opcional - dejar vacío si es multi-sucursal)</label><input id="inp-sur-folio" type="text" placeholder="E____" style="width:100%;padding:8px;border:1px solid #cbd5e1;border-radius:6px;box-sizing:border-box;text-transform:uppercase" /></div><div><label class="lbl">Fecha y hora de surtido</label><input id="inp-sur-fechahora" type="datetime-local" style="width:100%;padding:8px;border:1px solid #cbd5e1;border-radius:6px;box-sizing:border-box" /></div><div><label class="lbl">Quien surtió</label><input id="inp-sur-quien" type="text" placeholder="Nombre de la persona" style="width:100%;padding:8px;border:1px solid #cbd5e1;border-radius:6px;box-sizing:border-box" /></div><div><label class="lbl">Notas (opcional)</label><textarea id="inp-sur-notas" rows="3" style="width:100%;padding:8px;border:1px solid #cbd5e1;border-radius:6px;box-sizing:border-box;resize:vertical"></textarea></div><div style="display:flex;gap:8px;margin-top:6px"><button id="btn-sur-cancelar" class="btn" style="flex:1">Cancelar</button><button id="btn-sur-guardar" class="btn btn-primary" style="flex:1;background:#a855f7">Guardar</button></div></div></div></div>');
+
+let __ordenAccionId = null;
+
+function _ahoraDatetimeLocal(){
+  const d = new Date();
+  const pad = (n) => String(n).padStart(2,'0');
+  return d.getFullYear() + '-' + pad(d.getMonth()+1) + '-' + pad(d.getDate()) + 'T' + pad(d.getHours()) + ':' + pad(d.getMinutes());
+}
+
+// Listeners modal Revisar
+document.getElementById('btn-rev-cancelar')?.addEventListener('click', () => {
+  document.getElementById('modal-revisar-orden').style.display = 'none';
+  __ordenAccionId = null;
+});
+
+document.getElementById('btn-rev-guardar')?.addEventListener('click', async () => {
+  if(!__ordenAccionId) return;
+  const fechaHora = document.getElementById('inp-rev-fechahora').value;
+  const quien = document.getElementById('inp-rev-quien').value.trim();
+  const notas = document.getElementById('inp-rev-notas').value.trim();
+  if(!fechaHora){ alert('Falta la fecha y hora'); return; }
+  if(!quien){ alert('Falta el nombre de quien revisó'); return; }
+  try{
+    await updateDoc(doc(db, 'ordenesCompra', __ordenAccionId), {
+      status: 'revisado',
+      fechaRevision: fechaHora,
+      quienReviso: quien,
+      notasRevision: notas
+    });
+    document.getElementById('modal-revisar-orden').style.display = 'none';
+    __ordenAccionId = null;
+  }catch(e){
+    alert('Error: ' + e.message);
+  }
+});
+
+// Listeners modal Surtir
+document.getElementById('btn-sur-cancelar')?.addEventListener('click', () => {
+  document.getElementById('modal-surtir-orden').style.display = 'none';
+  __ordenAccionId = null;
+});
+
+document.getElementById('btn-sur-guardar')?.addEventListener('click', async () => {
+  if(!__ordenAccionId) return;
+  const fechaHora = document.getElementById('inp-sur-fechahora').value;
+  const quien = document.getElementById('inp-sur-quien').value.trim();
+  const notas = document.getElementById('inp-sur-notas').value.trim();
+  const folioTraspaso = document.getElementById('inp-sur-folio').value.trim().toUpperCase();
+  if(!fechaHora){ alert('Falta la fecha y hora'); return; }
+  if(!quien){ alert('Falta el nombre de quien surtió'); return; }
+  // Validar que el folio exista en la colección traspasos
+  if(folioTraspaso){
+    const tCoincide = traspasos.filter(t => t.folio === folioTraspaso);
+    if(tCoincide.length === 0){
+      if(!confirm('No se encontró ningún traspaso con folio "' + folioTraspaso + '". ¿Guardar de todos modos?')) return;
+    }
+  }
+  try{
+    await updateDoc(doc(db, 'ordenesCompra', __ordenAccionId), {
+      status: 'surtido',
+      fechaSurtido: fechaHora,
+      quienSurtio: quien,
+      notasSurtido: notas,
+      folioTraspaso: folioTraspaso || null
+    });
+    document.getElementById('modal-surtir-orden').style.display = 'none';
+    __ordenAccionId = null;
+  }catch(e){
+    alert('Error: ' + e.message);
+  }
+});
+
+// Delegacion para botones de transicion
+document.addEventListener('click', (ev) => {
+  const revisar = ev.target.closest('[data-orden-revisar]');
+  const surtir = ev.target.closest('[data-orden-surtir]');
+  if(revisar){
+    const id = revisar.getAttribute('data-orden-revisar');
+    const o = __ordenesCompra.find(x => x.id === id);
+    if(!o) return;
+    __ordenAccionId = id;
+    document.getElementById('info-orden-revisar').textContent = (o.folio||'') + ' · ' + (o.proveedor||'');
+    document.getElementById('inp-rev-fechahora').value = _ahoraDatetimeLocal();
+    document.getElementById('inp-rev-quien').value = '';
+    document.getElementById('inp-rev-notas').value = '';
+    document.getElementById('modal-revisar-orden').style.display = 'flex';
+  }
+  if(surtir){
+    const id = surtir.getAttribute('data-orden-surtir');
+    const o = __ordenesCompra.find(x => x.id === id);
+    if(!o) return;
+    __ordenAccionId = id;
+    document.getElementById('info-orden-surtir').textContent = (o.folio||'') + ' · ' + (o.proveedor||'');
+    document.getElementById('inp-sur-fechahora').value = _ahoraDatetimeLocal();
+    document.getElementById('inp-sur-quien').value = '';
+    document.getElementById('inp-sur-notas').value = '';
+    document.getElementById('inp-sur-folio').value = '';
+    document.getElementById('modal-surtir-orden').style.display = 'flex';
+  }
+});
+
+
+// VINCULAR FOLIO RETROACTIVO
+document.body.insertAdjacentHTML('beforeend', '<div id="modal-vincular-folio" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);z-index:1001;align-items:center;justify-content:center"><div style="background:#fff;border-radius:12px;padding:20px;max-width:420px;width:92%"><h3 style="margin:0 0 14px 0;font-size:18px;color:#6b21a8">Vincular folio de traspaso</h3><div id="info-orden-vincular" style="font-size:13px;color:var(--muted);margin-bottom:14px"></div><div><label class="lbl">Folio del traspaso (dejar vacío si es multi-sucursal)</label><input id="inp-vinc-folio" type="text" placeholder="E____" style="width:100%;padding:8px;border:1px solid #cbd5e1;border-radius:6px;box-sizing:border-box;text-transform:uppercase" /></div><div style="display:flex;gap:8px;margin-top:16px"><button id="btn-vinc-cancelar" class="btn" style="flex:1">Cancelar</button><button id="btn-vinc-guardar" class="btn btn-primary" style="flex:1;background:#a855f7">Guardar</button></div></div></div>');
+
+let __ordenVincularId = null;
+
+document.getElementById('btn-vinc-cancelar')?.addEventListener('click', () => {
+  document.getElementById('modal-vincular-folio').style.display = 'none';
+  __ordenVincularId = null;
+});
+
+document.getElementById('btn-vinc-guardar')?.addEventListener('click', async () => {
+  if(!__ordenVincularId) return;
+  const folio = document.getElementById('inp-vinc-folio').value.trim().toUpperCase();
+  if(folio){
+    const tCoincide = traspasos.filter(t => t.folio === folio);
+    if(tCoincide.length === 0){
+      if(!confirm('No se encontró ningún traspaso con folio "' + folio + '". ¿Guardar de todos modos?')) return;
+    }
+  }
+  try{
+    await updateDoc(doc(db, 'ordenesCompra', __ordenVincularId), {
+      folioTraspaso: folio || null
+    });
+    document.getElementById('modal-vincular-folio').style.display = 'none';
+    __ordenVincularId = null;
+  }catch(e){
+    alert('Error: ' + e.message);
+  }
+});
+
+document.addEventListener('click', (ev) => {
+  const vinc = ev.target.closest('[data-orden-vincular]');
+  if(vinc){
+    const id = vinc.getAttribute('data-orden-vincular');
+    const o = __ordenesCompra.find(x => x.id === id);
+    if(!o) return;
+    __ordenVincularId = id;
+    document.getElementById('info-orden-vincular').textContent = (o.folio||'') + ' · ' + (o.proveedor||'');
+    document.getElementById('inp-vinc-folio').value = o.folioTraspaso || '';
+    document.getElementById('modal-vincular-folio').style.display = 'flex';
+  }
+});
+
+// ============================================================
+// MANEJO DE MÚLTIPLES COMPRAS POR ORDEN
+// ============================================================
+// Modelo nuevo: orden.compras = [{folio, fechaCompra, importeCompra, productosRecibidos[]}]
+// Modelo legacy: orden.folioCompra + orden.productosRecibidos (1 sola compra)
+// Esta función normaliza a array siempre
+
+function _getComprasOrden(o){
+  if(Array.isArray(o.compras) && o.compras.length > 0) return o.compras;
+  // Compatibilidad con modelo legacy
+  if(o.folioCompra && Array.isArray(o.productosRecibidos) && o.productosRecibidos.length > 0){
+    return [{
+      folio: o.folioCompra,
+      fechaCompra: o.fechaCompra,
+      importeCompra: o.importeCompra,
+      productosRecibidos: o.productosRecibidos
+    }];
+  }
+  return [];
+}
+
+// Suma cantidades e importes de todas las compras agrupadas por clave
+function _getAcumuladoRecibido(o){
+  const compras = _getComprasOrden(o);
+  const map = {};
+  for(const c of compras){
+    for(const p of (c.productosRecibidos || [])){
+      if(!map[p.clave]){
+        map[p.clave] = {
+          clave: p.clave,
+          descripcion: p.descripcion || '',
+          cantTotal: 0,
+          importeTotal: 0,
+          tieneBonificacion: false,
+          desgloseFacturas: []
+        };
+      }
+      const g = map[p.clave];
+      g.cantTotal += p.cantRecibida || 0;
+      g.importeTotal += p.importeTotal || 0;
+      if(p.tieneBonificacion) g.tieneBonificacion = true;
+      g.desgloseFacturas.push({
+        folio: c.folio,
+        fecha: c.fechaCompra,
+        cant: p.cantRecibida || 0,
+        importe: p.importeTotal || 0
+      });
+      if(!g.descripcion && p.descripcion) g.descripcion = p.descripcion;
+    }
+  }
+  return Object.values(map).map(g => ({
+    clave: g.clave,
+    descripcion: g.descripcion,
+    cantRecibida: g.cantTotal,
+    importeTotal: Math.round(g.importeTotal * 100) / 100,
+    costoPromedio: g.cantTotal > 0 ? Math.round((g.importeTotal / g.cantTotal) * 10000) / 10000 : 0,
+    tieneBonificacion: g.tieneBonificacion,
+    desgloseFacturas: g.desgloseFacturas
+  }));
+}
+
+// Calcula backorder y extras con base en acumulado de todas las compras
+function _calcularBackorderYExtras(o){
+  if(!Array.isArray(o.productos) || o.productos.length === 0) return {backorder: [], extras: []};
+  const acumulado = _getAcumuladoRecibido(o);
+  const mapAcum = {};
+  acumulado.forEach(a => mapAcum[a.clave] = a);
+  const mapPed = {};
+  o.productos.forEach(p => mapPed[p.clave] = p);
+  
+  const backorder = [];
+  for(const p of o.productos){
+    const recibido = mapAcum[p.clave];
+    const cantRec = recibido ? recibido.cantRecibida : 0;
+    if(cantRec < (p.cantPedida || 0)){
+      backorder.push({
+        clave: p.clave,
+        descripcion: p.descripcion,
+        cantPedida: p.cantPedida || 0,
+        cantRecibida: cantRec,
+        faltante: (p.cantPedida || 0) - cantRec,
+        costoUnit: p.costoUnit || 0
+      });
+    }
+  }
+  const extras = [];
+  for(const a of acumulado){
+    if(!mapPed[a.clave]){
+      extras.push({clave: a.clave, descripcion: a.descripcion, cantRecibida: a.cantRecibida});
+    }
+  }
+  return {backorder, extras};
+}
+
+// ============================================================
+// CATÁLOGO DE COSTOS
+// ============================================================
+// Colección "costos" en Firestore.
+// Cada doc: id = clave del producto, campos:
+//   { clave, descripcion, costoActual, fechaActualizacion, fuente, historial: [{costo, fecha, fuente}] }
+// Se actualiza automáticamente al guardar una orden, o manualmente desde el botón "Importar costos".
+
+async function _actualizarCatalogoCostos(productos, fuente){
+  if(!productos || productos.length === 0) return {actualizados: 0, nuevos: 0, sinCambio: 0};
+  const ahora = new Date().toISOString();
+  let actualizados = 0, nuevos = 0, sinCambio = 0;
+  // Hacer en batches de 400 para no saturar
+  const tamBatch = 400;
+  for(let i = 0; i < productos.length; i += tamBatch){
+    const lote = productos.slice(i, i + tamBatch);
+    const batch = writeBatch(db);
+    for(const p of lote){
+      if(!p.clave || !p.costoUnit || p.costoUnit <= 0) continue;
+      const refCosto = doc(db, 'costos', p.clave);
+      // Leer doc actual
+      let docActual = null;
+      try { 
+        const snap = await getDoc(refCosto); 
+        if(snap.exists()) docActual = snap.data(); 
+      } catch(e) {}
+      
+      if(!docActual){
+        // Producto nuevo en catálogo
+        batch.set(refCosto, {
+          clave: p.clave,
+          descripcion: p.descripcion || '',
+          costoActual: p.costoUnit,
+          fechaActualizacion: ahora,
+          fuente: fuente,
+          historial: [{costo: p.costoUnit, fecha: ahora, fuente: fuente}]
+        });
+        nuevos++;
+      } else if(Math.abs((docActual.costoActual || 0) - p.costoUnit) > 0.001){
+        // Costo cambió: actualizar y agregar al historial
+        const historial = Array.isArray(docActual.historial) ? docActual.historial : [];
+        historial.unshift({costo: p.costoUnit, fecha: ahora, fuente: fuente});
+        // Limitar a últimos 30 cambios
+        if(historial.length > 30) historial.length = 30;
+        batch.update(refCosto, {
+          costoAnterior: docActual.costoActual,
+          costoActual: p.costoUnit,
+          fechaActualizacion: ahora,
+          fuente: fuente,
+          historial: historial,
+          descripcion: p.descripcion || docActual.descripcion || ''
+        });
+        actualizados++;
+      } else {
+        sinCambio++;
+      }
+    }
+    await batch.commit();
+  }
+  return {actualizados, nuevos, sinCambio};
+}
+
+// ============================================================
+// MODAL "VER DETALLE DE PRODUCTOS"
+// ============================================================
+document.body.insertAdjacentHTML('beforeend', '<div id="modal-detalle-productos" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);z-index:1000;align-items:flex-start;justify-content:center;overflow-y:auto;padding:20px 0"><div style="background:#fff;border-radius:12px;padding:20px;max-width:780px;width:94%;max-height:90vh;overflow-y:auto;margin:auto"><div style="display:flex;justify-content:space-between;align-items:start;margin-bottom:12px;gap:8px"><div><h3 style="margin:0;font-size:17px" id="titulo-detalle-productos">Detalle de productos</h3><div id="subtitulo-detalle-productos" style="font-size:13px;color:var(--muted);margin-top:2px"></div></div><button id="btn-cerrar-detalle-productos" class="btn btn-sm" style="font-size:13px">Cerrar</button></div><div id="cuerpo-detalle-productos"></div></div></div>');
+
+function _abrirDetalleProductos(orden){
+  const productos = orden.productos || [];
+  const compras = _getComprasOrden(orden);
+  const recibidos = _getAcumuladoRecibido(orden); // ACUMULADO de TODAS las compras
+  const backorder = orden.backorder || [];
+  const tieneCompra = recibidos.length > 0;
+  
+  document.getElementById('titulo-detalle-productos').textContent = 'Detalle: ' + (orden.folio || '(sin folio)');
+  let subtit = (orden.proveedor || '') + ' · ' + productos.length + ' productos pedidos';
+  if(tieneCompra){
+    subtit += ' · ' + compras.length + ' factura' + (compras.length>1?'s':'') + ' vinculada' + (compras.length>1?'s':'');
+  }
+  document.getElementById('subtitulo-detalle-productos').textContent = subtit;
+  
+  const cuerpo = document.getElementById('cuerpo-detalle-productos');
+  
+  if(productos.length === 0 && recibidos.length === 0){
+    cuerpo.innerHTML = '<div style="padding:20px;text-align:center;color:var(--muted);background:#f9fafb;border-radius:8px">Esta orden no tiene detalle de productos.<br><span style="font-size:12px">Posiblemente se cargó antes de que la app extrajera productos automáticamente. Vuelve a cargar el PDF para obtener el detalle.</span></div>';
+    document.getElementById('modal-detalle-productos').style.display = 'flex';
+    return;
+  }
+  
+  let html = '';
+  
+  // Si hay compras: mostrar primero la lista de facturas vinculadas
+  if(tieneCompra){
+    const totalImporteCompras = compras.reduce((s,c) => s + (c.importeCompra||0), 0);
+    html += '<div style="background:#dbeafe;padding:10px 12px;border-radius:6px;margin-bottom:10px;font-size:13px;color:#1e40af">'
+      + '<div style="display:flex;justify-content:space-between;align-items:start;gap:8px;flex-wrap:wrap">'
+      + '<div><strong>📦 ' + compras.length + ' factura' + (compras.length>1?'s':'') + ' vinculada' + (compras.length>1?'s':'') + '</strong> · Total: ' + _fmtImporte(totalImporteCompras) + '</div>'
+      + '<button class="btn btn-sm" data-vincular-mas="' + orden.id + '" style="background:#1e40af;color:#fff;font-size:11px;padding:3px 10px">+ Vincular otra factura</button>'
+      + '</div>'
+      + '<div style="margin-top:6px;font-size:12px">'
+      + compras.map(c => '<div style="padding:3px 0;display:flex;justify-content:space-between;gap:8px;border-top:1px solid #93c5fd"><span><strong>' + (c.folio||'') + '</strong> · ' + (c.fechaCompra||'sin fecha') + ' · ' + (c.productosRecibidos?c.productosRecibidos.length:0) + ' productos</span><span>' + _fmtImporte(c.importeCompra||0) + '</span></div>').join('')
+      + '</div>'
+      + '</div>';
+    
+    const tienePedidos = productos.length > 0;
+    
+    if(!tienePedidos){
+      // Orden sin detalle de pedido: no podemos calcular backorder
+      html += '<div style="background:#fef3c7;padding:8px 12px;border-radius:6px;margin-bottom:10px;font-size:12px;color:#92400e">ℹ️ Esta orden fue creada sin detalle de productos pedidos. No se puede calcular backorder retroactivo. Solo se muestra lo recibido con costos reales.<br><span style="font-size:11px">Para tener backorder correcto: elimina esta orden y vuelve a cargar tanto el PDF de orden como los de compra.</span></div>';
+      // Tabla simple de recibidos (acumulado)
+      let sumaImp = 0;
+      html += '<div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse;font-size:12px"><thead><tr style="background:#f3e8ff;color:#6b21a8">'
+        + '<th style="padding:5px 6px;text-align:left">Clave</th>'
+        + '<th style="padding:5px 6px;text-align:left">Descripción</th>'
+        + '<th style="padding:5px 6px;text-align:right">Recibido</th>'
+        + '<th style="padding:5px 6px;text-align:right">Costo Real</th>'
+        + '<th style="padding:5px 6px;text-align:right">Importe</th>'
+        + '<th style="padding:5px 6px;text-align:center">Notas</th>'
+        + '</tr></thead><tbody>';
+      for(const rec of recibidos){
+        const bonifTag = rec.tieneBonificacion ? '<span title="Con bonificación del proveedor">🎁</span>' : '';
+        const multiTag = rec.desgloseFacturas.length > 1 ? ' <span style="font-size:10px;color:#6b21a8" title="' + rec.desgloseFacturas.map(f => f.folio + ': ' + f.cant).join(', ') + '">📑×' + rec.desgloseFacturas.length + '</span>' : '';
+        sumaImp += rec.importeTotal || 0;
+        html += '<tr style="border-bottom:1px solid #f3f4f6">'
+          + '<td style="padding:4px 6px;font-family:monospace;font-size:11px">' + (rec.clave||'') + '</td>'
+          + '<td style="padding:4px 6px">' + (rec.descripcion||'') + multiTag + '</td>'
+          + '<td style="padding:4px 6px;text-align:right">' + (rec.cantRecibida||0) + '</td>'
+          + '<td style="padding:4px 6px;text-align:right">' + _fmtImporte(rec.costoPromedio||0) + '</td>'
+          + '<td style="padding:4px 6px;text-align:right;font-weight:600">' + _fmtImporte(rec.importeTotal||0) + '</td>'
+          + '<td style="padding:4px 6px;text-align:center">' + bonifTag + '</td>'
+          + '</tr>';
+      }
+      html += '</tbody><tfoot><tr style="background:#faf5ff;font-weight:600">'
+        + '<td colspan="4" style="padding:6px 8px;text-align:right">Suma:</td>'
+        + '<td style="padding:6px 8px;text-align:right">' + _fmtImporte(sumaImp) + '</td>'
+        + '<td></td>'
+        + '</tr></tfoot></table></div>';
+      html += '<div style="margin-top:10px;font-size:11px;color:var(--muted)">🎁 = con bonificación · 📑×N = recibido en N facturas distintas (pasa cursor para ver desglose)</div>';
+    } else {
+      // Tabla comparativa completa
+      const mapPed = {};
+      productos.forEach(p => mapPed[p.clave] = p);
+      const mapRec = {};
+      recibidos.forEach(p => mapRec[p.clave] = p);
+      const todasClaves = Array.from(new Set([...Object.keys(mapPed), ...Object.keys(mapRec)]));
+      todasClaves.sort();
+      
+      let sumaPed = 0, sumaRec = 0;
+      
+      if(backorder.length > 0){
+        html += '<div style="background:#fef3c7;padding:8px 12px;border-radius:6px;margin-bottom:10px;font-size:13px;color:#92400e"><strong>⚠️ Backorder pendiente con proveedor: ' + backorder.length + ' producto(s)</strong></div>';
+      }
+      
+      html += '<div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse;font-size:12px"><thead><tr style="background:#f3e8ff;color:#6b21a8">'
+        + '<th style="padding:5px 6px;text-align:left">Clave</th>'
+        + '<th style="padding:5px 6px;text-align:left">Descripción</th>'
+        + '<th style="padding:5px 6px;text-align:right">Pedido</th>'
+        + '<th style="padding:5px 6px;text-align:right">Recibido</th>'
+        + '<th style="padding:5px 6px;text-align:right">Δ</th>'
+        + '<th style="padding:5px 6px;text-align:right">Costo Ped</th>'
+        + '<th style="padding:5px 6px;text-align:right">Costo Real</th>'
+        + '<th style="padding:5px 6px;text-align:right">Estado</th>'
+        + '</tr></thead><tbody>';
+      
+      for(const cl of todasClaves){
+        const ped = mapPed[cl];
+        const rec = mapRec[cl];
+        const cantPed = ped ? (ped.cantPedida || 0) : 0;
+        const cantRec = rec ? (rec.cantRecibida || 0) : 0;
+        const delta = cantRec - cantPed;
+        const costoPed = ped ? (ped.costoUnit || 0) : 0;
+        const costoReal = rec ? (rec.costoPromedio || 0) : 0;
+        
+        sumaPed += cantPed * costoPed;
+        sumaRec += rec ? (rec.importeTotal || 0) : 0;
+        
+        let estado = '';
+        let bgRow = '';
+        if(!ped && rec){
+          estado = '<span style="color:#7c3aed">✨ Extra</span>';
+          bgRow = 'background:#f3e8ff';
+        } else if(ped && !rec){
+          estado = '<span style="color:#dc2626">🚫 No llegó</span>';
+          bgRow = 'background:#fef2f2';
+        } else if(delta < 0){
+          estado = '<span style="color:#d97706">⚠️ Faltó ' + Math.abs(delta) + '</span>';
+          bgRow = 'background:#fef3c7';
+        } else if(delta > 0){
+          estado = '<span style="color:#7c3aed">+' + delta + ' extra</span>';
+        } else {
+          estado = '<span style="color:#16a34a">✓</span>';
+        }
+        
+        let cambioCosto = '';
+        if(costoPed > 0 && costoReal > 0){
+          const pct = ((costoReal - costoPed) / costoPed * 100);
+          if(Math.abs(pct) >= 1){
+            const signo = pct > 0 ? '+' : '';
+            const color = pct > 5 ? '#dc2626' : (pct > 0 ? '#d97706' : '#16a34a');
+            cambioCosto = ' <span style="color:' + color + ';font-size:10px">(' + signo + pct.toFixed(1) + '%)</span>';
+          }
+        }
+        
+        const bonifTag = rec && rec.tieneBonificacion ? ' 🎁' : '';
+        const multiTag = rec && rec.desgloseFacturas && rec.desgloseFacturas.length > 1 ? ' <span style="font-size:10px;color:#6b21a8" title="' + rec.desgloseFacturas.map(f => f.folio + ': ' + f.cant).join(', ') + '">📑×' + rec.desgloseFacturas.length + '</span>' : '';
+        
+        html += '<tr style="border-bottom:1px solid #f3f4f6;' + bgRow + '">'
+          + '<td style="padding:4px 6px;font-family:monospace;font-size:11px">' + cl + '</td>'
+          + '<td style="padding:4px 6px">' + ((ped&&ped.descripcion)||(rec&&rec.descripcion)||'') + bonifTag + multiTag + '</td>'
+          + '<td style="padding:4px 6px;text-align:right">' + cantPed + '</td>'
+          + '<td style="padding:4px 6px;text-align:right">' + cantRec + '</td>'
+          + '<td style="padding:4px 6px;text-align:right">' + (delta!==0 ? (delta>0?'+':'')+delta : '—') + '</td>'
+          + '<td style="padding:4px 6px;text-align:right">' + (costoPed>0?_fmtImporte(costoPed):'—') + '</td>'
+          + '<td style="padding:4px 6px;text-align:right">' + (costoReal>0?_fmtImporte(costoReal):'—') + cambioCosto + '</td>'
+          + '<td style="padding:4px 6px;text-align:right">' + estado + '</td>'
+          + '</tr>';
+      }
+      
+      html += '</tbody><tfoot><tr style="background:#faf5ff;font-weight:600">'
+        + '<td colspan="5" style="padding:6px 8px;text-align:right">Importe pedido vs real:</td>'
+        + '<td style="padding:6px 8px;text-align:right">' + _fmtImporte(sumaPed) + '</td>'
+        + '<td colspan="2" style="padding:6px 8px;text-align:right">' + _fmtImporte(sumaRec) + '</td>'
+        + '</tr></tfoot></table></div>';
+      html += '<div style="margin-top:10px;font-size:11px;color:var(--muted)">🎁 = con bonificación · 📑×N = recibido en N facturas distintas (pasa cursor para ver desglose) · costo real = promedio ponderado de TODAS las facturas</div>';
+    }
+  } else {
+    // Solo pedido (no ha llegado compra todavía)
+    const suma = productos.reduce((s,p) => s + (p.importe || (p.cantPedida * p.costoUnit) || 0), 0);
+    html = '<div style="background:#fed7aa;padding:8px 12px;border-radius:6px;margin-bottom:10px;font-size:13px;color:#9a3412"><strong>📋 Pedido al proveedor</strong> — pendiente de recepción de mercancía</div>';
+    html += '<div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse;font-size:13px"><thead><tr style="background:#f3e8ff;color:#6b21a8"><th style="padding:6px 8px;text-align:left">Clave</th><th style="padding:6px 8px;text-align:left">Descripción</th><th style="padding:6px 8px;text-align:right">Cant Ped</th><th style="padding:6px 8px;text-align:right">Costo</th><th style="padding:6px 8px;text-align:right">Importe</th></tr></thead><tbody>' + productos.map(p => '<tr style="border-bottom:1px solid #f3f4f6"><td style="padding:5px 8px;font-family:monospace;font-size:12px">' + (p.clave||'') + '</td><td style="padding:5px 8px">' + (p.descripcion||'') + '</td><td style="padding:5px 8px;text-align:right">' + (p.cantPedida||0) + '</td><td style="padding:5px 8px;text-align:right">' + _fmtImporte(p.costoUnit||0) + '</td><td style="padding:5px 8px;text-align:right;font-weight:600">' + _fmtImporte(p.importe || (p.cantPedida * p.costoUnit) || 0) + '</td></tr>').join('') + '</tbody><tfoot><tr style="background:#faf5ff;font-weight:600"><td colspan="4" style="padding:6px 8px;text-align:right">Suma:</td><td style="padding:6px 8px;text-align:right">' + _fmtImporte(suma) + '</td></tr></tfoot></table></div>';
+  }
+  
+  cuerpo.innerHTML = html;
+  document.getElementById('modal-detalle-productos').style.display = 'flex';
+}
+
+document.getElementById('btn-cerrar-detalle-productos').addEventListener('click', () => {
+  document.getElementById('modal-detalle-productos').style.display = 'none';
+});
+
+document.addEventListener('click', (ev) => {
+  const det = ev.target.closest('[data-orden-detalle]');
+  if(det){
+    const id = det.getAttribute('data-orden-detalle');
+    const o = __ordenesCompra.find(x => x.id === id);
+    if(o) _abrirDetalleProductos(o);
+  }
+  // Botón "+ Vincular otra factura" dentro del modal detalle
+  const vinMas = ev.target.closest('[data-vincular-mas]');
+  if(vinMas){
+    const id = vinMas.getAttribute('data-vincular-mas');
+    window.__ordenParaVincularMas = id;
+    document.getElementById('modal-detalle-productos').style.display = 'none';
+    // Disparar el file picker de PDFs
+    const fileInput = document.getElementById('file-pdf-ordenes');
+    if(fileInput) fileInput.click();
+  }
+});
+
+// ============================================================
+// IMPORTAR COSTOS DESDE EXCEL (botón en panel Admin)
+// ============================================================
+// Inyectar botón en sección "Órdenes de compra" del admin
+(function inyectarBtnImportarCostos(){
+  // Buscar contenedor de lista de órdenes admin e insertar arriba
+  const listaOrdenes = document.getElementById('lista-ordenes-admin');
+  if(!listaOrdenes) return;
+  const cont = document.createElement('div');
+  cont.style.cssText = 'margin:0 0 14px 0;padding:10px;background:#faf5ff;border:1px solid #e9d5ff;border-radius:8px';
+  cont.innerHTML = '<div style="display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap"><div><div style="font-weight:600;font-size:13px;color:#6b21a8">📊 Catálogo de costos</div><div style="font-size:12px;color:#7c3aed;margin-top:2px" id="info-catalogo-costos">El catálogo se actualiza con cada PDF cargado.</div></div><label class="btn btn-sm" style="background:#6b21a8;color:#fff;cursor:pointer;font-size:12px;padding:6px 12px;margin:0">📥 Importar desde Excel<input type="file" id="file-importar-costos" accept=".xlsx,.xls,.csv" style="display:none"></label></div>';
+  listaOrdenes.parentNode.insertBefore(cont, listaOrdenes);
 })();
+
+// Cargar SheetJS bajo demanda
+async function _cargarSheetJS(){
+  if(window.XLSX) return window.XLSX;
+  await new Promise((resolve, reject) => {
+    const s = document.createElement('script');
+    s.src = 'https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js';
+    s.onload = resolve;
+    s.onerror = () => reject(new Error('No se pudo cargar SheetJS'));
+    document.head.appendChild(s);
+  });
+  if(!window.XLSX) throw new Error('XLSX no apareció');
+  return window.XLSX;
+}
+
+document.addEventListener('change', async (ev) => {
+  if(ev.target.id !== 'file-importar-costos') return;
+  const file = ev.target.files[0];
+  if(!file) return;
+  const info = document.getElementById('info-catalogo-costos');
+  const setInfo = (t) => { if(info) info.textContent = t; };
+  setInfo('Procesando archivo...');
+  try{
+    const xlsx = await _cargarSheetJS();
+    const buf = await file.arrayBuffer();
+    const wb = xlsx.read(buf, {type: 'array'});
+    const ws = wb.Sheets[wb.SheetNames[0]];
+    const rows = xlsx.utils.sheet_to_json(ws, {header: 1, defval: ''});
+    // Buscar fila de encabezados (busca "Clave" o "clave")
+    let headerRow = -1;
+    let colClave = -1, colDesc = -1, colCosto = -1, colExist = -1;
+    for(let r = 0; r < Math.min(rows.length, 20); r++){
+      const row = (rows[r] || []).map(x => String(x).toLowerCase().trim());
+      const idxClave = row.findIndex(c => c === 'clave');
+      if(idxClave >= 0){
+        headerRow = r;
+        colClave = idxClave;
+        colDesc = row.findIndex(c => c.includes('descrip'));
+        colCosto = row.findIndex(c => c.includes('ultimo costo') || c.includes('último costo') || c.includes('costo unitario') || c === 'costo');
+        colExist = row.findIndex(c => c.includes('existencia'));
+        break;
+      }
+    }
+    if(headerRow < 0 || colClave < 0){
+      alert('No se encontró columna "Clave" en el archivo. Verifica el formato.');
+      setInfo('El catálogo se actualiza con cada PDF cargado.');
+      ev.target.value = '';
+      return;
+    }
+    if(colCosto < 0){
+      alert('No se encontró columna de costo (Ultimo Costo / Costo). Verifica el formato.');
+      setInfo('El catálogo se actualiza con cada PDF cargado.');
+      ev.target.value = '';
+      return;
+    }
+    // Extraer productos
+    const productos = [];
+    for(let r = headerRow + 1; r < rows.length; r++){
+      const row = rows[r] || [];
+      const clave = String(row[colClave] || '').trim();
+      const costo = parseFloat(row[colCosto]) || 0;
+      if(!clave || costo <= 0) continue;
+      const prod = {
+        clave: clave.toUpperCase(),
+        descripcion: colDesc >= 0 ? String(row[colDesc] || '').trim() : '',
+        costoUnit: costo,
+        cantPedida: 0,
+        importe: 0
+      };
+      if(colExist >= 0){
+        prod._existencia = parseFloat(row[colExist]) || 0;
+      }
+      productos.push(prod);
+    }
+    if(productos.length === 0){
+      alert('No se detectaron productos con costo válido.');
+      setInfo('El catálogo se actualiza con cada PDF cargado.');
+      ev.target.value = '';
+      return;
+    }
+    if(!confirm('Se cargarán ' + productos.length + ' productos al catálogo de costos. ¿Continuar?')){
+      setInfo('El catálogo se actualiza con cada PDF cargado.');
+      ev.target.value = '';
+      return;
+    }
+    setInfo('Subiendo ' + productos.length + ' productos al catálogo...');
+    const fuente = 'Importación Excel ' + new Date().toLocaleDateString('es-MX');
+    const res = await _actualizarCatalogoCostos(productos, fuente);
+    setInfo('✓ Importación: ' + res.nuevos + ' nuevos · ' + res.actualizados + ' actualizados · ' + res.sinCambio + ' sin cambio');
+    alert('Importación completa:\n• ' + res.nuevos + ' productos nuevos\n• ' + res.actualizados + ' costos actualizados\n• ' + res.sinCambio + ' sin cambio');
+  }catch(e){
+    alert('Error procesando archivo: ' + e.message);
+    setInfo('El catálogo se actualiza con cada PDF cargado.');
+  }
+  ev.target.value = '';
+});
 
 </script>
 </body>
