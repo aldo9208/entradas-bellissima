@@ -1,0 +1,2824 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Entradas · Bellissima</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#F7F6F2;--surface:#FFFFFF;--surface2:#F0EFE9;--border:#E2E0D8;--text:#1C1B18;--muted:#8A8880;--ok-bg:#E8F5EC;--ok:#1A6B32;--warn-bg:#FFF3DC;--warn:#8A5B00;--danger-bg:#FDECEA;--danger:#B52020;--info-bg:#E8EFFE;--info:#1A3DA8;--r:10px;--r-lg:14px;}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);font-size:15px;line-height:1.5;min-height:100vh}
+.app{max-width:520px;margin:0 auto;padding:1.25rem 1rem 4rem}
+.screen{display:none}.screen.active{display:block}
+h1{font-size:24px;font-weight:600;letter-spacing:-0.5px}
+h2{font-size:18px;font-weight:600;letter-spacing:-0.3px}
+.mono{font-family:'DM Mono',monospace;font-size:12px}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-lg);padding:1rem 1.25rem;margin-bottom:10px}
+.card-flat{background:var(--surface2);border-radius:var(--r);padding:10px 14px;margin-bottom:8px}
+.badge{display:inline-flex;align-items:center;padding:3px 10px;border-radius:20px;font-size:12px;font-weight:500}
+.b-ok{background:var(--ok-bg);color:var(--ok)}.b-falt{background:var(--danger-bg);color:var(--danger)}.b-sobr{background:var(--warn-bg);color:var(--warn)}.b-pend{background:var(--warn-bg);color:var(--warn)}
+.stat-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(72px,1fr));gap:8px;margin-bottom:1rem}
+.stat{background:var(--surface2);border-radius:var(--r);padding:12px 10px;text-align:center}
+.stat-n{font-size:26px;font-weight:600;letter-spacing:-1px}.stat-l{font-size:11px;color:var(--muted);margin-top:1px;font-weight:500}
+label.lbl{font-size:12px;font-weight:500;color:var(--muted);display:block;margin-bottom:4px;text-transform:uppercase;letter-spacing:0.3px}
+input,select{width:100%;padding:9px 12px;border:1px solid var(--border);border-radius:var(--r);font-size:14px;font-family:'DM Sans',sans-serif;background:var(--surface);color:var(--text)}
+input:focus,select:focus{outline:none;border-color:var(--text)}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px}
+.btn{display:block;width:100%;padding:11px 16px;border-radius:var(--r);cursor:pointer;font-size:14px;font-weight:500;font-family:'DM Sans',sans-serif;text-align:center;border:none;margin-bottom:8px}
+.btn-p{background:var(--text);color:#fff}.btn-s{background:var(--surface);color:var(--text);border:1px solid var(--border)}
+.btn-danger{background:var(--danger-bg);color:var(--danger);border:1px solid #f5c6c6}
+.btn-sm{padding:6px 14px;font-size:13px;width:auto;display:inline-block;margin-bottom:0}
+.btn-ico{background:none;border:none;cursor:pointer;font-size:16px;color:var(--muted);padding:4px;line-height:1}
+.topbar{display:flex;align-items:center;gap:10px;margin-bottom:1.5rem}.topbar h2{flex:1}
+.tabs{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:1rem}
+.tab{padding:6px 14px;border-radius:20px;font-size:13px;cursor:pointer;border:1px solid var(--border);background:var(--surface);color:var(--muted);font-family:'DM Sans',sans-serif;font-weight:500}
+.tab.active{background:var(--text);color:#fff;border-color:var(--text)}
+.tr-row{display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--border)}.tr-row:last-child{border-bottom:none}
+.tr-info{flex:1;min-width:0}.tr-clave{font-family:'DM Mono',monospace;font-size:11px;color:var(--muted)}
+.tr-desc{font-size:13px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tr-input{width:68px;text-align:center;padding:6px 8px;font-size:15px;font-weight:600}
+.alert{border-radius:var(--r);padding:10px 14px;font-size:13px;font-weight:500;margin-bottom:12px;display:flex;align-items:center;gap:8px}
+.alert-danger{background:var(--danger-bg);color:var(--danger)}.alert-ok{background:var(--ok-bg);color:var(--ok)}.alert-info{background:var(--info-bg);color:var(--info)}
+.upload-zone{border:2px dashed var(--border);border-radius:var(--r-lg);padding:1.5rem 1rem;text-align:center;cursor:pointer;display:block;background:var(--surface)}
+.upload-zone input[type=file]{display:none}
+.folio{font-family:'DM Mono',monospace;font-size:12px;background:var(--surface2);border:1px solid var(--border);border-radius:6px;padding:2px 8px;color:var(--muted);display:inline-block}
+.divider{height:1px;background:var(--border);margin:14px 0}
+.empty{text-align:center;padding:2.5rem 1rem;color:var(--muted)}.empty-icon{font-size:32px;margin-bottom:10px}
+.falt-table{width:100%;border-collapse:collapse;font-size:13px}
+.falt-table th{font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:0.5px;padding:6px 8px;text-align:left;border-bottom:2px solid var(--border)}
+.falt-table td{padding:8px;border-bottom:1px solid var(--border);vertical-align:top}.falt-table tr:last-child td{border-bottom:none}
+.falt-table .numart{font-family:'DM Mono',monospace;font-size:11px;color:var(--muted)}
+.loading{text-align:center;padding:2rem;color:var(--muted);font-size:14px}
+</style>
+</head>
+<body>
+<div class="app">
+
+<!-- HOME -->
+<div id="s-home" class="screen active">
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem">
+    <div>
+      <p style="font-size:11px;font-weight:600;letter-spacing:1.5px;color:var(--muted);text-transform:uppercase;margin-bottom:2px">Distribución</p>
+      <h1>Bellissima</h1>
+    </div>
+    <div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px">
+      <button class="btn btn-sm btn-s" onclick="show('s-admin');renderAdminLista()">⚙ Admin</button>
+      <span id="conn-status" style="font-size:11px;color:var(--muted)">● Conectando...</span>
+    </div>
+  </div>
+  <div class="card" style="margin-bottom:1rem">
+    <label class="lbl">Mi sucursal</label>
+    <select id="sel-mi-suc" onchange="guardarMiSuc();renderHome()">
+      <option value="">— selecciona tu sucursal —</option>
+    </select>
+  </div>
+  <div id="home-contenido"><div class="loading">Cargando datos...</div></div>
+</div>
+
+<!-- ADMIN -->
+<div id="s-admin" class="screen">
+  <div class="topbar">
+    <button class="btn-ico" onclick="show('s-home');renderHome()">←</button>
+    <h2>Administración</h2>
+  </div>
+
+  <!-- OPCIÓN 1: Excel de distribución de Cowork -->
+  <p style="font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:10px">Cargar distribución de compra</p>
+  <div class="card" style="border:1.5px solid var(--info-bg)">
+    <p style="font-size:13px;color:var(--info);font-weight:500;margin-bottom:10px">📊 Desde Excel de Cowork — crea traspasos para todas las sucursales automáticamente</p>
+    <label class="upload-zone">
+      <input type="file" id="file-xlsx" accept=".xlsx,.xls" onchange="leerExcelDistribucion()">
+      <div style="font-size:28px;margin-bottom:8px">📊</div>
+      <p style="font-weight:500;font-size:14px">Seleccionar Excel de distribución</p>
+      <p style="font-size:12px;color:var(--muted);margin-top:4px">Generado por Cowork (Distribucion_*.xlsx)</p>
+    </label>
+    <div id="preview-xlsx" style="margin-top:10px"></div>
+  </div>
+
+  <div class="divider"></div>
+
+  <!-- OPCIÓN 2: CSV individual de SAIT -->
+  <p style="font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:10px">Cargar traspaso individual (CSV SAIT)</p>
+  <div class="card">
+    <div class="grid2">
+      <div>
+        <label class="lbl">Sale de</label>
+        <select id="admin-suc-orig"><option value="">— selecciona —</option></select>
+      </div>
+      <div>
+        <label class="lbl">Llega a</label>
+        <select id="admin-suc-dest"><option value="">— selecciona —</option></select>
+      </div>
+    </div>
+    <label class="upload-zone">
+      <input type="file" id="file-csv" accept=".csv" onchange="leerCSV()">
+      <div style="font-size:28px;margin-bottom:8px">📄</div>
+      <p style="font-weight:500;font-size:14px">Seleccionar CSV de traspaso</p>
+      <p style="font-size:12px;color:var(--muted);margin-top:4px">Exportado desde SAIT</p>
+    </label>
+    <div id="preview-csv" style="margin-top:10px"></div>
+  </div>
+
+  <p style="font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:10px;margin-top:18px">Cargar surtido multi-sucursal (XLSX)</p>
+  <div class="card">
+    <label style="display:block;border:2px dashed #cbd5e1;border-radius:12px;padding:28px;text-align:center;cursor:pointer;background:#f8fafc">
+      <input type="file" id="file-xlsx-surtido" accept=".xlsx" style="display:none" />
+      <div style="font-weight:600">Seleccionar XLSX de surtido multi-sucursal</div>
+      <p style="font-size:12px;color:var(--muted);margin-top:4px">Surtido_MultiSucursal_YYYY-MM-DD.xlsx</p>
+    </label>
+    <div id="preview-xlsx-surtido" style="margin-top:10px"></div>
+    <button id="btn-cargar-surtido" class="btn btn-primary" style="margin-top:10px;width:100%;display:none">Cargar todos los traspasos</button>
+  </div>
+
+  <p style="font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:10px;margin-top:18px">Ordenes de compra</p>
+  <div class="card">
+    <button id="btn-nueva-orden" class="btn btn-primary" style="width:100%;margin-bottom:10px">+ Nueva orden</button>
+    <label id="pdf-dropzone-orden" style="display:block;border:2px dashed #cbd5e1;border-radius:10px;padding:16px;text-align:center;cursor:pointer;background:#f8fafc;margin-bottom:10px">
+      <input type="file" id="file-pdf-ordenes" accept=".pdf" multiple style="display:none" />
+      <div style="font-size:14px;font-weight:600;color:#1e293b">📄 Subir PDF de orden (SAIT)</div>
+      <p style="font-size:11px;color:var(--muted);margin:4px 0 0 0">Puedes seleccionar varios PDFs a la vez</p>
+    </label>
+    <div id="lista-ordenes-admin" style="display:flex;flex-direction:column;gap:8px"></div>
+  </div>
+
+  <p style="font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:10px;margin-top:18px">Ajustes de inventario</p>
+  <div class="card">
+    <label id="pdf-dropzone-ajustes" style="display:block;border:2px dashed #cbd5e1;border-radius:10px;padding:16px;text-align:center;cursor:pointer;background:#f8fafc;margin-bottom:10px">
+      <input type="file" id="file-pdf-ajustes" accept=".pdf" multiple style="display:none" />
+      <div style="font-size:14px;font-weight:600;color:#1e293b">📥 Subir PDF de movimientos (SAIT)</div>
+      <p style="font-size:11px;color:var(--muted);margin:4px 0 0 0">Reporte "Movimientos al inventario" — entradas (EA) y salidas (SA) por ajuste</p>
+    </label>
+    <button class="btn btn-s" onclick="show('s-ajustes');renderAjustes()" style="margin-bottom:0">📋 Ver historial de ajustes</button>
+  </div>
+
+  <div id="form-orden-modal" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);z-index:1000;align-items:center;justify-content:center">
+    <div style="background:#fff;border-radius:12px;padding:20px;max-width:420px;width:92%;max-height:90vh;overflow-y:auto">
+      <h3 id="form-orden-titulo" style="margin:0 0 14px 0;font-size:18px">Nueva orden de compra</h3>
+      <div style="display:flex;flex-direction:column;gap:10px">
+        <div>
+          <label class="lbl">Folio interno</label>
+          <input id="inp-orden-folio" type="text" placeholder="OC-2026-001" style="width:100%;padding:8px;border:1px solid #cbd5e1;border-radius:6px;box-sizing:border-box" />
+        </div>
+        <div>
+          <label class="lbl">Proveedor</label>
+          <input id="inp-orden-proveedor" type="text" placeholder="BISSU, PINK UP, OFARREY..." style="width:100%;padding:8px;border:1px solid #cbd5e1;border-radius:6px;box-sizing:border-box" />
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+          <div>
+            <label class="lbl">Fecha pedido</label>
+            <input id="inp-orden-fecha-pedido" type="date" style="width:100%;padding:8px;border:1px solid #cbd5e1;border-radius:6px;box-sizing:border-box" />
+          </div>
+          <div>
+            <label class="lbl">Fecha estimada</label>
+            <input id="inp-orden-fecha-est" type="date" style="width:100%;padding:8px;border:1px solid #cbd5e1;border-radius:6px;box-sizing:border-box" />
+          </div>
+        </div>
+        <div>
+          <label class="lbl">Importe total ($)</label>
+          <input id="inp-orden-importe" type="number" step="0.01" placeholder="0.00" style="width:100%;padding:8px;border:1px solid #cbd5e1;border-radius:6px;box-sizing:border-box" />
+        </div>
+        <div>
+          <label class="lbl">Notas (opcional)</label>
+          <textarea id="inp-orden-notas" rows="2" style="width:100%;padding:8px;border:1px solid #cbd5e1;border-radius:6px;box-sizing:border-box;resize:vertical"></textarea>
+        </div>
+        <div style="display:flex;gap:8px;margin-top:6px">
+          <button id="btn-orden-cancelar" class="btn" style="flex:1">Cancelar</button>
+          <button id="btn-orden-guardar" class="btn btn-primary" style="flex:1">Guardar</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="divider"></div>
+  <button class="btn btn-danger" onclick="show('s-faltantes');renderFaltantes()" style="margin-bottom:8px">⚠ Ver faltantes · todas las sucursales</button>
+  <button class="btn btn-s" onclick="exportarReporteFaltantes()" style="margin-bottom:8px">↓ Reporte Excel faltantes</button>
+  <button class="btn btn-danger" onclick="confirmarLimpiarBD()" style="margin-bottom:14px;opacity:0.7">🗑 Limpiar base de datos</button>
+  <p style="font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:10px">Traspasos cargados</p>
+  <div id="admin-lista"></div>
+</div>
+
+<!-- RECIBIR -->
+<div id="s-recibir" class="screen">
+  <div class="topbar">
+    <button class="btn-ico" onclick="show('s-home');renderHome()">←</button>
+    <h2 id="rec-titulo">Recibir</h2>
+  </div>
+  <div id="rec-meta" class="card-flat" style="margin-bottom:1rem"></div>
+  <div class="card" style="margin-bottom:1rem">
+    <label class="lbl">Esta mercancía llega a</label>
+    <select id="rec-suc-dest"><option value="">— selecciona tu sucursal —</option></select>
+  </div>
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+    <p style="font-size:13px;font-weight:500">Productos <span id="rec-count" style="color:var(--muted)"></span></p>
+    <button class="btn btn-sm btn-s" onclick="recibirTodo()">Marcar todo recibido</button>
+  </div>
+  <div id="rec-lista"></div>
+  <button class="btn btn-p" onclick="confirmarRecepcion()" style="margin-top:1rem" id="btn-confirmar">Confirmar recepción</button>
+</div>
+
+<!-- HISTORIAL -->
+<div id="s-historial" class="screen">
+  <div class="topbar">
+    <button class="btn-ico" onclick="show('s-home');renderHome()">←</button>
+    <h2>Historial</h2>
+  </div>
+  <div class="tabs" id="tabs-hist"></div>
+  <div id="hist-lista"></div>
+</div>
+
+<!-- FALTANTES -->
+<div id="s-faltantes" class="screen">
+  <div class="topbar">
+    <button class="btn-ico" onclick="show('s-admin');renderAdminLista()">←</button>
+    <h2>Faltantes · Todas las sucursales</h2>
+  </div>
+  <div id="falt-stats" class="stat-grid"></div>
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+    <div class="tabs" id="falt-tabs" style="margin-bottom:0;flex:1"></div>
+    <button class="btn btn-sm btn-s" onclick="exportarFaltantes()" style="flex-shrink:0;margin-left:8px">↓ CSV</button>
+  </div>
+  <div id="falt-lista"></div>
+</div>
+
+<!-- CORREGIR RECEPCIÓN -->
+<div id="s-corregir" class="screen">
+  <div class="topbar">
+    <button class="btn-ico" onclick="show('s-historial');renderHistorial()">←</button>
+    <h2 id="cor-titulo">Corregir recepción</h2>
+  </div>
+  <div id="cor-meta" class="card-flat" style="margin-bottom:1rem"></div>
+  <p style="font-size:13px;color:var(--muted);margin-bottom:10px">Corrige las cantidades recibidas y anota la solución para cada faltante.</p>
+  <div id="cor-lista"></div>
+  <div style="margin-top:1rem">
+    <label class="lbl">Nota de solución (opcional)</label>
+    <input type="text" id="cor-nota" placeholder="Ej. Se completó en traspaso E3700, se devolvió a almacén...">
+  </div>
+  <button class="btn btn-p" onclick="guardarCorreccion()" style="margin-top:1rem" id="btn-guardar-cor">Guardar corrección</button>
+</div>
+
+<!-- DETALLE -->
+<div id="s-detalle" class="screen">
+  <div class="topbar">
+    <button class="btn-ico" onclick="show('s-historial');renderHistorial()">←</button>
+    <h2 id="det-titulo">Detalle</h2>
+  </div>
+  <div class="stat-grid" id="det-stats"></div>
+  <div class="card" id="det-productos"></div>
+  <button class="btn btn-s" onclick="exportar()" style="margin-top:4px">↓ Exportar CSV</button>
+  <button class="btn btn-danger" id="btn-corregir" style="margin-top:4px">✏ Corregir cantidades</button>
+</div>
+
+<!-- AJUSTES DE INVENTARIO -->
+<div id="s-ajustes" class="screen">
+  <div class="topbar">
+    <button class="btn-ico" onclick="show('s-admin');renderAdminLista()">←</button>
+    <h2>Ajustes de inventario</h2>
+  </div>
+  <div id="aj-stats" class="stat-grid"></div>
+  <div class="tabs" id="aj-tabs"></div>
+  <div class="tabs" id="aj-tabs-tipo"></div>
+  <div id="aj-lista"></div>
+</div>
+
+<!-- DETALLE DE AJUSTE -->
+<div id="s-ajuste-det" class="screen">
+  <div class="topbar">
+    <button class="btn-ico" onclick="show('s-ajustes');renderAjustes()">←</button>
+    <h2 id="ajdet-titulo">Ajuste</h2>
+  </div>
+  <div id="ajdet-meta" class="card-flat" style="margin-bottom:1rem"></div>
+  <div class="stat-grid" id="ajdet-stats"></div>
+  <div class="card" id="ajdet-productos" style="overflow-x:auto"></div>
+  <button class="btn btn-s" onclick="exportarAjusteCSV()" style="margin-top:4px">↓ Exportar CSV</button>
+  <button class="btn btn-danger" onclick="eliminarAjuste()" style="margin-top:4px">🗑 Eliminar este ajuste</button>
+</div>
+
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+<script type="module">
+import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
+import { getFirestore, collection, onSnapshot, addDoc, updateDoc, setDoc, getDoc, getDocs, doc, query, orderBy, deleteDoc, writeBatch, where } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
+
+const firebaseConfig = {
+  apiKey: "AIzaSyCpFCqO25oDdBne1mOiJarY-ZEBBX0jOVk",
+  authDomain: "bellissima-entradas.firebaseapp.com",
+  projectId: "bellissima-entradas",
+  storageBucket: "bellissima-entradas.firebasestorage.app",
+  messagingSenderId: "719891767858",
+  appId: "1:719891767858:web:06fcbb2ad149a75b07122b"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+
+// ── ESTADO GLOBAL ──
+const SUCS = ['1-Matriz (Mtz de la Torre)','2-Morelos (Mtz de la Torre)','3-Hidalgo CEDIS (Teziutlán)','4-Allende (Teziutlán)','5-Oficina (Administrativo)','6-Tlapacoyan','7-Papantla','9-Perote','10-Independencia (Mtz de la Torre)','11-Ávila Camacho (Mtz de la Torre)','12-Misantla'];
+let traspasos = [];
+let recepciones = [];
+let tabHist = 0;
+let tabFalt = 0;
+let detalleId = null;
+window.detalleId = null;
+let csvParsed = null;
+let recibiendoId = null;
+
+// ── CONEXIÓN STATUS ──
+function setStatus(ok){
+  const el = document.getElementById('conn-status');
+  if(el){ el.textContent = ok ? '● En línea' : '● Sin conexión'; el.style.color = ok ? 'var(--ok)' : 'var(--danger)'; }
+}
+
+// ── FIREBASE LISTENERS ──
+onSnapshot(query(collection(db,'traspasos'), orderBy('ts','desc')), snap=>{
+  traspasos = snap.docs.map(d=>({...d.data(), _docId: d.id}));
+  setStatus(true);
+  renderHome();
+  if(document.getElementById('s-admin').classList.contains('active')) renderAdminLista();
+}, err=>{ setStatus(false); console.error('traspasos error:', err); });
+
+onSnapshot(query(collection(db,'recepciones'), orderBy('ts','desc')), snap=>{
+  recepciones = snap.docs.map(d=>({...d.data(), _docId: d.id}));
+  renderHome();
+  if(document.getElementById('s-historial').classList.contains('active')) renderHistorial();
+  if(document.getElementById('s-faltantes').classList.contains('active')) renderFaltantes();
+}, err=>{ console.error('recepciones error:', err); });
+
+// ── UTILS ──
+function show(id){ document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active')); document.getElementById(id).classList.add('active'); }
+
+function poblarSelects(){
+  ['admin-suc-orig','admin-suc-dest','rec-suc-dest','sel-mi-suc'].forEach(sid=>{
+    const el = document.getElementById(sid);
+    if(!el) return;
+    const cur = el.value;
+    el.innerHTML = '<option value="">— selecciona —</option>';
+    SUCS.forEach(s=>{ const o = document.createElement('option'); o.value = o.textContent = s; el.appendChild(o); });
+    if(cur) el.value = cur;
+  });
+  // Restaurar mi sucursal guardada
+  const saved = localStorage.getItem('be_mi_suc');
+  if(saved) { const el=document.getElementById('sel-mi-suc'); if(el) el.value=saved; }
+}
+
+window.guardarMiSuc = function(){
+  const val = document.getElementById('sel-mi-suc').value;
+  if(val) localStorage.setItem('be_mi_suc', val);
+  else localStorage.removeItem('be_mi_suc');
+};
+poblarSelects();
+
+// ── HOME ──
+function renderHome(){
+  const cont = document.getElementById('home-contenido');
+  if(!cont) return;
+  const miSuc = document.getElementById('sel-mi-suc')?.value || '';
+  const pendientes = miSuc
+    ? traspasos.filter(t=>t.status==='pendiente' && t.sucDest===miSuc)
+    : traspasos.filter(t=>t.status==='pendiente');
+  const totalFalt = recepciones
+    .filter(r => r.sucDest === miSuc)
+    .reduce((a,r)=>a+r.items.filter(i=>i.faltante>0).length, 0);
+  let html = '';
+  if(!miSuc){
+    cont.innerHTML = '<div class="empty"><div class="empty-icon">📦</div><p style="font-size:14px">Selecciona tu sucursal arriba<br>para ver tus traspasos.</p></div>';
+    return;
+  }
+  if(totalFalt>0){
+    html += `<div class="alert alert-danger" style="cursor:pointer" onclick="show('s-faltantes');renderFaltantes()">⚠ ${totalFalt} pieza${totalFalt>1?'s':''} faltante${totalFalt>1?'s':''} — ver concentrado</div>`;
+  }
+  if(pendientes.length){
+    html += `<p style="font-size:13px;font-weight:600;margin-bottom:10px">En tránsito para ${miSuc} (${pendientes.length})</p>`;
+    pendientes.forEach(t=>{
+      html += `<div class="card"><div style="display:flex;justify-content:space-between;align-items:center">
+        <div>
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px">
+            <span class="folio">${t.folio}</span><span class="badge b-pend">En tránsito</span>${(()=>{const oc=__ordenesCompra?.find(o=>o.folioTraspaso===t.folio);return oc?'<div style="font-size:11px;color:#6b21a8;margin-top:2px;font-weight:600">📦 De '+(oc.folio||'')+' '+(oc.proveedor||'')+'</div>':'';})()}
+          </div>
+          <p style="font-size:12px;color:var(--muted)">Sale de: ${t.sucOrig||'—'}</p>
+          <p style="font-size:12px;color:var(--muted)">${t.fecha} · ${t.items.length} productos</p>
+        </div>
+        <button class="btn btn-sm btn-p" onclick="iniciarRecepcion('${t.id}')">Recibir</button>
+      </div></div>`;
+    });
+  } else {
+    html += '<div class="card-flat" style="text-align:center;padding:1rem;margin-bottom:10px"><p style="font-size:13px;color:var(--muted)">Sin traspasos pendientes ✓</p></div>';
+  }
+  const misRecepciones = recepciones.filter(r=>r.sucDest===miSuc);
+  if(misRecepciones.length){
+    html += `<button class="btn btn-s" style="margin-top:6px" onclick="show('s-historial');renderHistorial()">Ver historial (${misRecepciones.length} recepciones)</button>`;
+  }
+  cont.innerHTML = html;
+}
+window.renderHome = renderHome;
+window.show = show;
+
+// ── LEER EXCEL DISTRIBUCIÓN COWORK ──
+window.leerExcelDistribucion = function(){
+  const file = document.getElementById('file-xlsx').files[0];
+  if(!file) return;
+  const reader = new FileReader();
+  reader.onload = e=>{
+    try{
+      const wb = XLSX.read(e.target.result, {type:'array'});
+      const ws = wb.Sheets['Distribución'] || wb.Sheets[wb.SheetNames[0]];
+      const data = XLSX.utils.sheet_to_json(ws, {header:1, defval:''});
+
+      // Extraer folio
+      let folio = '';
+      for(let i=0;i<5;i++){
+        const row = data[i]||[];
+        for(const cell of row){
+          const m = String(cell).match(/Folio[:\s]+([A-Z0-9]+)/i);
+          if(m){folio=m[1];break;}
+        }
+        if(folio) break;
+      }
+      if(!folio) folio='DIST-'+Date.now();
+
+      // Encontrar fila encabezado
+      let headerRow=-1, colClave=-1, colDesc=-1;
+      const colSuc={};
+      for(let i=0;i<10;i++){
+        const row=data[i]||[];
+        for(let j=0;j<row.length;j++){
+          const v=String(row[j]).trim().toUpperCase();
+          if(v==='CLAVE'||v==='NUMART') colClave=j;
+          if(v.includes('DESCRIP')) colDesc=j;
+          const mSuc=v.match(/^SUC\s*(\d+)$/)||v.match(/^(\d+)$/);
+          if(mSuc) colSuc[mSuc[1]]=j;
+        }
+        if(colClave>=0&&Object.keys(colSuc).length>0){headerRow=i;break;}
+      }
+
+      if(headerRow<0){
+        document.getElementById('preview-xlsx').innerHTML='<div class="alert alert-danger">No se reconoció el formato. Usa el Excel generado por Cowork (hoja Distribución).</div>';
+        return;
+      }
+
+      const mapaNames={
+        '1':'1-Matriz (Mtz de la Torre)','2':'2-Morelos (Mtz de la Torre)',
+        '3':'3-Hidalgo CEDIS (Teziutlán)','4':'4-Allende (Teziutlán)',
+        '6':'6-Tlapacoyan','7':'7-Papantla','9':'9-Perote',
+        '10':'10-Independencia (Mtz de la Torre)',
+        '11':'11-Ávila Camacho (Mtz de la Torre)','12':'12-Misantla',
+      };
+
+      const porSucursal={};
+      Object.keys(colSuc).forEach(s=>{if(s!=='3') porSucursal[s]=[];});
+
+      for(let i=headerRow+1;i<data.length;i++){
+        const row=data[i]||[];
+        const clave=String(row[colClave]||'').trim();
+        const desc=String(row[colDesc>=0?colDesc:colClave+1]||'').trim();
+        if(!clave||clave.toUpperCase()==='TOTALES') continue;
+        Object.keys(porSucursal).forEach(s=>{
+          const cant=parseInt(row[colSuc[s]])||0;
+          if(cant>0) porSucursal[s].push({numart:clave,desc,cant});
+        });
+      }
+
+      const sucCon=Object.keys(porSucursal).filter(s=>porSucursal[s].length>0);
+      let html=`<div class="divider"></div>
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">
+          <span class="folio">${folio}</span>
+          <span style="font-size:13px;color:var(--muted)">${sucCon.length} sucursales</span>
+        </div>`;
+      sucCon.slice(0,4).forEach(s=>{
+        html+=`<div class="card-flat" style="display:flex;justify-content:space-between">
+          <span style="font-size:13px">${mapaNames[s]||'Suc '+s}</span>
+          <strong>${porSucursal[s].length} productos</strong>
+        </div>`;
+      });
+      if(sucCon.length>4) html+=`<p style="font-size:12px;color:var(--muted);text-align:center;margin:6px 0">… y ${sucCon.length-4} más</p>`;
+      html+=`<button class="btn btn-p" onclick="subirDistribucion()" style="margin-top:10px">Publicar traspasos para todas las sucursales →</button>`;
+      document.getElementById('preview-xlsx').innerHTML=html;
+      window._distParsed={folio,porSucursal,mapaNames};
+    } catch(err){
+      document.getElementById('preview-xlsx').innerHTML=`<div class="alert alert-danger">Error: ${err.message}</div>`;
+    }
+  };
+  reader.readAsArrayBuffer(file);
+};
+
+window.subirDistribucion = async function(){
+  const d=window._distParsed;
+  if(!d){alert('Primero carga el Excel');return;}
+  const btn=document.querySelector('#preview-xlsx .btn-p');
+  if(btn){btn.textContent='Publicando...';btn.disabled=true;}
+  const fecha=new Date().toLocaleDateString('es-MX');
+  const ts=Date.now();
+  let ok=0,errCount=0;
+  const sucActivas=Object.keys(d.porSucursal).filter(s=>d.porSucursal[s].length>0);
+  for(const s of sucActivas){
+    const traspaso={
+      id:`${d.folio}_${s}_${ts}`,
+      folio:d.folio,
+      sucOrig:'3-Hidalgo CEDIS (Teziutlán)',
+      sucDest:d.mapaNames[s]||`Sucursal ${s}`,
+      fecha,
+      items:d.porSucursal[s],
+      status:'pendiente',
+      ts,
+      fuente:'distribucion_compra',
+    };
+    try{
+      await addDoc(collection(db,'traspasos'),traspaso);
+      ok++;
+    } catch(e){errCount++;console.error(e);}
+  }
+  window._distParsed=null;
+  document.getElementById('file-xlsx').value='';
+  document.getElementById('preview-xlsx').innerHTML=
+    `<div class="alert ${errCount===0?'alert-ok':'alert-danger'}">
+      ${errCount===0?'✓':'⚠'} ${ok} traspasos publicados${errCount>0?`, ${errCount} errores`:''} — folio ${d.folio}
+    </div>`;
+  renderAdminLista();
+};
+
+// ── ADMIN CSV ──
+window.leerCSV = function(){
+  const file = document.getElementById('file-csv').files[0];
+  if(!file) return;
+  const reader = new FileReader();
+  reader.onload = e=>{
+    const text = e.target.result;
+    const lines = text.split('\n').map(l=>l.trim()).filter(l=>l);
+    let folio = '';
+    for(let i=0;i<Math.min(4,lines.length);i++){
+      const m = lines[i].match(/\b([A-Z]\d{3,})\b/);
+      if(m){ folio=m[1]; break; }
+    }
+    let dataStart = -1;
+    for(let i=0;i<lines.length;i++){
+      const low = lines[i].toLowerCase();
+      if(low.includes('numart')||low.includes('clave')){ dataStart=i+1; break; }
+    }
+    if(dataStart<0){ showPreview(null,'No se reconoció el formato del CSV'); return; }
+    const items = [];
+    for(let i=dataStart;i<lines.length;i++){
+      const cols = lines[i].split(',');
+      if(cols.length<3) continue;
+      const numart=cols[0].trim(), desc=cols[1].trim(), cant=parseInt(cols[2])||0;
+      if(numart&&desc&&cant>0) items.push({numart,desc,cant});
+    }
+    if(!items.length){ showPreview(null,'No se encontraron productos en el CSV'); return; }
+    csvParsed = {folio, items};
+    showPreview(csvParsed, null);
+  };
+  reader.readAsText(file,'latin1');
+};
+
+function showPreview(data, err){
+  const el = document.getElementById('preview-csv');
+  if(err){ el.innerHTML=`<div class="alert alert-danger">${err}</div>`; return; }
+  let html = `<div class="divider"></div>
+    <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">
+      <span class="folio">${data.folio}</span>
+      <span style="font-size:13px;color:var(--muted)">${data.items.length} productos</span>
+    </div>`;
+  data.items.slice(0,3).forEach(i=>{
+    html += `<div class="card-flat" style="display:flex;justify-content:space-between;align-items:center;gap:8px">
+      <span class="mono" style="flex-shrink:0">${i.numart}</span>
+      <span style="font-size:13px;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${i.desc}</span>
+      <strong style="flex-shrink:0">${i.cant}</strong>
+    </div>`;
+  });
+  if(data.items.length>3) html += `<p style="font-size:12px;color:var(--muted);text-align:center;margin:6px 0">… y ${data.items.length-3} más</p>`;
+  html += `<button class="btn btn-p" onclick="subirTraspaso()" style="margin-top:10px">Subir traspaso →</button>`;
+  el.innerHTML = html;
+}
+
+window.subirTraspaso = async function(){
+  const sucOrig = document.getElementById('admin-suc-orig').value;
+  const sucDest = document.getElementById('admin-suc-dest').value;
+  if(!sucOrig){ alert('Selecciona la sucursal origen'); return; }
+  if(!sucDest){ alert('Selecciona la sucursal destino'); return; }
+  if(sucOrig===sucDest){ alert('Origen y destino no pueden ser la misma sucursal'); return; }
+  if(!csvParsed){ alert('Primero carga un CSV'); return; }
+  if(traspasos.find(t=>t.folio===csvParsed.folio && t.status==='pendiente')){
+    alert(`El folio ${csvParsed.folio} ya está cargado y pendiente`); return;
+  }
+  const traspaso = {
+    id: Date.now().toString(),
+    folio: csvParsed.folio,
+    sucOrig, sucDest,
+    fecha: new Date().toLocaleDateString('es-MX'),
+    items: csvParsed.items,
+    status: 'pendiente'
+  };
+  try{
+    await addDoc(collection(db,'traspasos'), {...traspaso, ts: Date.now()});
+    const folio = csvParsed.folio;
+    csvParsed = null;
+    document.getElementById('file-csv').value = '';
+    document.getElementById('preview-csv').innerHTML = `<div class="alert alert-ok">✓ Folio ${folio}: ${sucOrig} → ${sucDest}</div>`;
+  } catch(e){ alert('Error al guardar: '+e.message); }
+};
+
+function renderAdminLista(){
+  const el = document.getElementById('admin-lista');
+  if(!traspasos.length){ el.innerHTML='<p style="font-size:13px;color:var(--muted)">Sin traspasos cargados.</p>'; return; }
+  el.innerHTML = traspasos.map(t=>`
+    <div class="card">
+      <div style="display:flex;justify-content:space-between;align-items:center">
+        <div>
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:3px">
+            <span class="folio">${t.folio}</span>
+            <span class="badge ${t.status==='recibido'?'b-ok':'b-pend'}">${t.status==='recibido'?'Recibido':'Pendiente'}</span>
+          </div>
+          <p style="font-size:12px;color:var(--muted)">${t.sucOrig||'—'} → ${t.sucDest||'—'} · ${t.fecha} · ${t.items.length} productos</p>
+        </div>
+      </div>
+    </div>`).join('');
+}
+window.renderAdminLista = renderAdminLista;
+
+// ── RECIBIR ──
+window.iniciarRecepcion = function(id){
+  const t = traspasos.find(x=>x.id===id);
+  if(!t) return;
+  recibiendoId = id;
+  // Preseleccionar mi sucursal en el select destino
+  const miSuc = document.getElementById('sel-mi-suc')?.value || '';
+  setTimeout(()=>{ const s=document.getElementById('rec-suc-dest'); if(s&&miSuc) s.value=miSuc; }, 50);
+  document.getElementById('rec-titulo').textContent = 'Recibir '+t.folio;
+  document.getElementById('rec-meta').innerHTML = `
+    <div style="display:flex;gap:16px;flex-wrap:wrap">
+      <div><p style="font-size:10px;color:var(--muted);font-weight:600;text-transform:uppercase;margin-bottom:2px">Folio</p><p class="mono">${t.folio}</p></div>
+      <div><p style="font-size:10px;color:var(--muted);font-weight:600;text-transform:uppercase;margin-bottom:2px">Origen</p><p style="font-size:13px;font-weight:500">${t.sucOrig||'—'}</p></div>
+      <div><p style="font-size:10px;color:var(--muted);font-weight:600;text-transform:uppercase;margin-bottom:2px">Destino</p><p style="font-size:13px;font-weight:500">${t.sucDest}</p></div>
+      <div><p style="font-size:10px;color:var(--muted);font-weight:600;text-transform:uppercase;margin-bottom:2px">Fecha</p><p style="font-size:13px">${t.fecha}</p></div>
+    </div>`;
+  document.getElementById('rec-count').textContent = `(${t.items.length})`;
+  const lista = document.getElementById('rec-lista');
+  lista.innerHTML = '';
+  t.items.forEach((item,i)=>{
+    const div = document.createElement('div');
+    div.className = 'card'; div.style.marginBottom = '8px';
+    div.innerHTML = `<div class="tr-row">
+      <div class="tr-info">
+        <p class="tr-clave">${item.numart}</p>
+        <p class="tr-desc" title="${item.desc}">${item.desc}</p>
+      </div>
+      <div style="display:flex;align-items:center;gap:10px">
+        <div style="text-align:center">
+          <p style="font-size:10px;color:var(--muted);margin-bottom:2px">Esperado</p>
+          <p style="font-size:20px;font-weight:600;color:var(--muted);line-height:1">${item.cant}</p>
+        </div>
+        <div style="text-align:center">
+          <p style="font-size:10px;color:var(--muted);margin-bottom:2px">Recibido</p>
+          <input type="number" class="tr-input" id="rec-${i}" min="0" value="${item.cant}"
+            oninput="actualizarFila(${i},${item.cant})" onchange="actualizarFila(${i},${item.cant})">
+        </div>
+        <div id="fs-${i}" style="min-width:30px;text-align:center;font-size:13px"></div>
+      </div>
+    </div>`;
+    lista.appendChild(div);
+    actualizarFila(i, item.cant);
+  });
+  show('s-recibir');
+};
+
+window.actualizarFila = function(i, esperado){
+  const inp = document.getElementById('rec-'+i);
+  const st = document.getElementById('fs-'+i);
+  if(!inp||!st) return;
+  const val = parseInt(inp.value)||0;
+  const falt = esperado-val;
+  if(falt>0) st.innerHTML=`<span style="font-weight:600;color:var(--danger)">-${falt}</span>`;
+  else if(val>esperado) st.innerHTML=`<span style="font-weight:600;color:var(--warn)">+${val-esperado}</span>`;
+  else st.innerHTML=`<span style="color:var(--ok)">✓</span>`;
+};
+
+window.recibirTodo = function(){
+  const t = traspasos.find(x=>x.id===recibiendoId);
+  if(!t) return;
+  t.items.forEach((_,i)=>{ const inp=document.getElementById('rec-'+i); if(inp){ inp.value=t.items[i].cant; actualizarFila(i,t.items[i].cant); } });
+};
+
+window.confirmarRecepcion = async function(){
+  const t = traspasos.find(x=>x.id===recibiendoId);
+  if(!t) return;
+  const btn = document.getElementById('btn-confirmar');
+  btn.textContent = 'Guardando...'; btn.disabled = true;
+  const sucDest = document.getElementById('rec-suc-dest').value;
+  if(!sucDest){ alert('Selecciona tu sucursal antes de confirmar'); btn.textContent='Confirmar recepción'; btn.disabled=false; return; }
+  const items = t.items.map((item,i)=>{
+    const recibido = parseInt(document.getElementById('rec-'+i)?.value)||0;
+    return {...item, esperado:item.cant, recibido, faltante:Math.max(0,item.cant-recibido), sobrante:Math.max(0,recibido-item.cant)};
+  });
+  const recepcion = {
+    id: Date.now().toString(),
+    traspasoId: t.id,
+    folio: t.folio,
+    sucOrig: t.sucOrig||'—',
+    sucDest,
+    fecha: new Date().toLocaleDateString('es-MX'),
+    items
+  };
+  try{
+    await addDoc(collection(db,'recepciones'), {...recepcion, ts: Date.now()});
+    // marcar traspaso como recibido
+    if(t._docId) await updateDoc(doc(db,'traspasos',t._docId), {status:'recibido', sucDest, fechaRecepcion: new Date().toISOString()});
+    show('s-home');
+  } catch(e){ alert('Error al guardar: '+e.message); }
+  btn.textContent = 'Confirmar recepción'; btn.disabled = false;
+};
+
+// ── FALTANTES ──
+function renderFaltantes(){
+  const todos = [];
+  recepciones.forEach(r=>{
+    r.items.forEach(i=>{ if(i.faltante>0) todos.push({sucOrig:r.sucOrig||'—',sucDest:r.sucDest,folio:r.folio,fecha:r.fecha,numart:i.numart,desc:i.desc,esperado:i.esperado,recibido:i.recibido,faltante:i.faltante}); });
+  });
+  const totalFalt=todos.length, totalPzas=todos.reduce((a,x)=>a+x.faltante,0), sucsAfect=[...new Set(todos.map(x=>x.sucDest))];
+  document.getElementById('falt-stats').innerHTML=`
+    <div class="stat"><div class="stat-n" style="color:var(--danger)">${totalFalt}</div><div class="stat-l">Registros</div></div>
+    <div class="stat"><div class="stat-n" style="color:var(--danger)">${totalPzas}</div><div class="stat-l">Piezas faltantes</div></div>
+    <div class="stat"><div class="stat-n">${sucsAfect.length}</div><div class="stat-l">Sucursales</div></div>`;
+  const tabsEl=document.getElementById('falt-tabs'), listaEl=document.getElementById('falt-lista');
+  if(!todos.length){ tabsEl.innerHTML=''; listaEl.innerHTML='<div class="empty"><div class="empty-icon">✓</div><p style="font-size:14px">Sin faltantes pendientes.</p></div>'; return; }
+  const tabOpts = ['Todas',...sucsAfect];
+  if(tabFalt>=tabOpts.length) tabFalt=0;
+  tabsEl.innerHTML = tabOpts.map((s,i)=>`<button class="tab ${i===tabFalt?'active':''}" onclick="tabFalt=${i};renderFaltantes()">${s}</button>`).join('');
+  const filtrados = tabFalt===0 ? todos : todos.filter(x=>x.sucDest===tabOpts[tabFalt]);
+  if(!filtrados.length){ listaEl.innerHTML='<p style="font-size:13px;color:var(--muted)">Sin faltantes para esta sucursal.</p>'; return; }
+  if(tabFalt===0){
+    const bySuc={};
+    filtrados.forEach(x=>{ if(!bySuc[x.sucDest]) bySuc[x.sucDest]=[]; bySuc[x.sucDest].push(x); });
+    listaEl.innerHTML = Object.entries(bySuc).map(([suc,items])=>`
+      <div class="card" style="margin-bottom:12px">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+          <p style="font-weight:600;font-size:14px">${suc}</p>
+          <span class="badge b-falt">${items.reduce((a,x)=>a+x.faltante,0)} pzas</span>
+        </div>
+        <table class="falt-table">
+          <thead><tr><th>Numart</th><th>Descripción</th><th>Folio</th><th style="text-align:right">Faltante</th></tr></thead>
+          <tbody>${items.map(i=>`<tr>
+            <td class="numart">${i.numart}</td>
+            <td style="max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${i.desc}</td>
+            <td><span class="folio">${i.folio}</span></td>
+            <td style="text-align:right;font-weight:600;color:var(--danger)">${i.faltante}</td>
+          </tr>`).join('')}</tbody>
+        </table>
+      </div>`).join('');
+  } else {
+    listaEl.innerHTML=`<div class="card"><table class="falt-table">
+      <thead><tr><th>Numart</th><th>Descripción</th><th>Folio</th><th>Esp</th><th>Rec</th><th style="text-align:right">Falta</th></tr></thead>
+      <tbody>${filtrados.map(i=>`<tr>
+        <td class="numart">${i.numart}</td>
+        <td style="max-width:130px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${i.desc}</td>
+        <td><span class="folio">${i.folio}</span></td>
+        <td style="color:var(--muted)">${i.esperado}</td><td style="color:var(--muted)">${i.recibido}</td>
+        <td style="text-align:right;font-weight:600;color:var(--danger)">${i.faltante}</td>
+      </tr>`).join('')}</tbody>
+    </table></div>`;
+  }
+}
+window.renderFaltantes = renderFaltantes;
+window.tabFalt = tabFalt;
+
+window.exportarFaltantes = function(){
+  const todos=[];
+  recepciones.forEach(r=>{ r.items.forEach(i=>{ if(i.faltante>0) todos.push({sucOrig:r.sucOrig||'—',sucDest:r.sucDest,folio:r.folio,fecha:r.fecha,numart:i.numart,desc:i.desc,esperado:i.esperado,recibido:i.recibido,faltante:i.faltante}); }); });
+  if(!todos.length){ alert('Sin faltantes para exportar'); return; }
+  let csv='Origen,Destino,Folio,Fecha,Numart,Descripción,Esperado,Recibido,Faltante\n';
+  todos.forEach(i=>{ csv+=`"${i.sucOrig}","${i.sucDest}","${i.folio}","${i.fecha}","${i.numart}","${i.desc}",${i.esperado},${i.recibido},${i.faltante}\n`; });
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv;charset=utf-8'}));
+  a.download=`faltantes_${new Date().toLocaleDateString('es-MX').replace(/\//g,'-')}.csv`;
+  a.click();
+};
+
+// ── HISTORIAL ──
+function renderHistorial(){
+  tabHist = window.tabHist;
+  const bar=document.getElementById('tabs-hist'), lista=document.getElementById('hist-lista');
+  const sucs=[...new Set(recepciones.map(r=>r.sucDest))];
+  if(!sucs.length){ lista.innerHTML='<div class="empty"><div class="empty-icon">📋</div><p>Sin recepciones aún.</p></div>'; bar.innerHTML=''; return; }
+  if(tabHist>=sucs.length) tabHist=0;
+  bar.innerHTML=sucs.map((s,i)=>`<button class="tab ${i===tabHist?'active':''}" onclick="window.tabHist=${i};renderHistorial()">${s}</button>`).join('');
+  const fil=recepciones.filter(r=>r.sucDest===sucs[tabHist]);
+  lista.innerHTML=fil.map(r=>{
+    const tot=r.items.length,falt=r.items.filter(i=>i.faltante>0).length,sobr=r.items.filter(i=>(i.sobrante!=null?i.sobrante:Math.max(0,(i.recibido||0)-(i.esperado!=null?i.esperado:(i.cant||0))))>0).length;
+    return `<div class="card" style="cursor:pointer" onclick="verDetalle('${r.id}')">
+      <div style="display:flex;justify-content:space-between;align-items:center">
+        <div>
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px">
+            <span class="folio">${r.folio}</span>
+            ${falt>0?`<span class="badge b-falt">${falt} falt.</span>`:''}${sobr>0?`<span class="badge b-sobr">${sobr} sobr.</span>`:''}${(falt===0&&sobr===0)?`<span class="badge b-ok">Completo</span>`:''}
+            ${r.corregido?`<span class="badge" style="background:#f0e8ff;color:#6b21a8">Corregido</span>`:''}
+          </div>
+          <p style="font-size:12px;color:var(--muted)">${r.fecha} · ${tot} productos</p>
+        </div>
+        <span style="color:var(--muted);font-size:18px">›</span>
+      </div>
+    </div>`;
+  }).join('');
+}
+window.renderHistorial = renderHistorial;
+window.tabHist = tabHist;
+
+window.verDetalle = function(id){
+  const r=recepciones.find(x=>x.id===id);
+  if(!r) return;
+  detalleId=id;
+  window.detalleId=id;
+  // Asignar el ID directamente al botón corregir — no depende de variable global
+  const btnCor = document.getElementById('btn-corregir');
+  if(btnCor) btnCor.onclick = function(){ iniciarCorreccion(id); };
+  document.getElementById('det-titulo').textContent=r.folio+' · '+r.sucDest;
+  const tot=r.items.length,falt=r.items.filter(i=>i.faltante>0).length,sobr=r.items.filter(i=>(i.sobrante!=null?i.sobrante:Math.max(0,(i.recibido||0)-(i.esperado||0)))>0).length,okn=tot-falt-sobr;
+  document.getElementById('det-stats').innerHTML=`
+    <div class="stat"><div class="stat-n">${tot}</div><div class="stat-l">Productos</div></div>
+    <div class="stat"><div class="stat-n" style="color:var(--ok)">${okn}</div><div class="stat-l">Completos</div></div>
+    <div class="stat"><div class="stat-n" style="color:var(--danger)">${falt}</div><div class="stat-l">Faltantes</div></div>
+    <div class="stat"><div class="stat-n" style="color:var(--warn)">${sobr}</div><div class="stat-l">Sobrantes</div></div>`;
+  document.getElementById('det-productos').innerHTML=
+    `<p style="font-size:12px;color:var(--muted);margin-bottom:10px">${r.sucOrig||'—'} → ${r.sucDest} · ${r.fecha}</p>`+
+    (r.notaSolucion?`<div class="alert alert-ok" style="margin-bottom:10px">✓ Solución: ${r.notaSolucion}${r.fechaSolucion?' · '+r.fechaSolucion:''}</div>`:'')+
+    r.items.map(i=>`<div class="tr-row">
+      <div class="tr-info"><p class="tr-clave">${i.numart}</p><p class="tr-desc" title="${i.desc}">${i.desc}</p></div>
+      <div style="text-align:right">
+        <p style="font-size:12px;color:var(--muted)">Esp ${i.esperado} / Rec ${i.recibido}</p>
+        ${i.faltante>0?`<span class="badge b-falt">−${i.faltante}</span>`:((i.sobrante!=null?i.sobrante:Math.max(0,(i.recibido||0)-(i.esperado||0)))>0?`<span class="badge b-sobr">+${(i.sobrante!=null?i.sobrante:Math.max(0,(i.recibido||0)-(i.esperado||0)))}</span>`:`<span class="badge b-ok">✓</span>`)}
+      </div>
+    </div>`).join('');
+  show('s-detalle');
+};
+
+window.exportar = function(){
+  const r=recepciones.find(x=>x.id===window.detalleId);
+  if(!r) return;
+  let csv='Folio,Origen,Destino,Fecha,Numart,Descripción,Esperado,Recibido,Faltante,Solución,Fecha solución\n';
+  r.items.forEach(i=>{ csv+=`"${r.folio}","${r.sucOrig||''}","${r.sucDest}","${r.fecha}","${i.numart}","${i.desc}",${i.esperado},${i.recibido},${i.faltante},"${r.notaSolucion||''}","${r.fechaSolucion||''}"\n`; });
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(new Blob(['\ufeff'+csv],{type:'text/csv;charset=utf-8'}));
+  a.download=`recepcion_${r.folio}_${r.sucDest}.csv`;
+  a.click();
+};
+
+// ── CORRECCIÓN ──
+let corrigiendoId=null;
+window.iniciarCorreccion=function(id){
+  const r=recepciones.find(x=>x.id===id);
+  if(!r) return;
+  corrigiendoId=id;
+  document.getElementById('cor-titulo').textContent='Corregir '+r.folio;
+  document.getElementById('cor-meta').innerHTML=`
+    <div style="display:flex;gap:16px;flex-wrap:wrap">
+      <div><p style="font-size:10px;color:var(--muted);font-weight:600;text-transform:uppercase;margin-bottom:2px">Folio</p><p class="mono">${r.folio}</p></div>
+      <div><p style="font-size:10px;color:var(--muted);font-weight:600;text-transform:uppercase;margin-bottom:2px">Sucursal</p><p style="font-size:13px;font-weight:500">${r.sucDest}</p></div>
+      <div><p style="font-size:10px;color:var(--muted);font-weight:600;text-transform:uppercase;margin-bottom:2px">Fecha</p><p style="font-size:13px">${r.fecha}</p></div>
+    </div>`;
+  document.getElementById('cor-nota').value=r.notaSolucion||'';
+  const lista=document.getElementById('cor-lista');
+  lista.innerHTML='';
+  r.items.forEach((item,i)=>{
+    const div=document.createElement('div');
+    div.className='card';div.style.marginBottom='8px';
+    div.innerHTML=`<div class="tr-row">
+      <div class="tr-info"><p class="tr-clave">${item.numart}</p><p class="tr-desc">${item.desc}</p></div>
+      <div style="display:flex;align-items:center;gap:10px">
+        <div style="text-align:center"><p style="font-size:10px;color:var(--muted);margin-bottom:2px">Esperado</p><p style="font-size:18px;font-weight:600;color:var(--muted)">${item.esperado}</p></div>
+        <div style="text-align:center"><p style="font-size:10px;color:var(--muted);margin-bottom:2px">Recibido</p>
+          <input type="number" class="tr-input" id="cor-${i}" min="0" value="${item.recibido}"
+            oninput="actualizarFilaCor(${i},${item.esperado})" onchange="actualizarFilaCor(${i},${item.esperado})">
+        </div>
+        <div id="cfs-${i}" style="min-width:30px;text-align:center;font-size:13px"></div>
+      </div>
+    </div>`;
+    lista.appendChild(div);
+    actualizarFilaCor(i,item.esperado);
+  });
+  show('s-corregir');
+};
+
+window.actualizarFilaCor=function(i,esperado){
+  const inp=document.getElementById('cor-'+i),st=document.getElementById('cfs-'+i);
+  if(!inp||!st) return;
+  const val=parseInt(inp.value)||0,falt=esperado-val;
+  if(falt>0) st.innerHTML=`<span style="font-weight:600;color:var(--danger)">-${falt}</span>`;
+  else if(val>esperado) st.innerHTML=`<span style="font-weight:600;color:var(--warn)">+${val-esperado}</span>`;
+  else st.innerHTML=`<span style="color:var(--ok)">✓</span>`;
+};
+
+window.guardarCorreccion=async function(){
+  const r=recepciones.find(x=>x.id===corrigiendoId);
+  if(!r) return;
+  const btn=document.getElementById('btn-guardar-cor');
+  btn.textContent='Guardando...';btn.disabled=true;
+  const nota=document.getElementById('cor-nota').value.trim();
+  const itemsCorregidos=r.items.map((item,i)=>{
+    const recibido=parseInt(document.getElementById('cor-'+i)?.value)||0;
+    return{...item,recibido,faltante:Math.max(0,item.esperado-recibido)};
+  });
+  try{
+    const _fechaSol = nota?new Date().toLocaleDateString('es-MX'):(r.fechaSolucion||'');
+    if(r._docId){
+      await updateDoc(doc(db,'recepciones',r._docId),{
+        items:itemsCorregidos,
+        notaSolucion:nota,
+        fechaSolucion:_fechaSol,
+        corregido:true
+      });
+    }
+    // Sincronizar la copia en memoria para que la lista no siga mostrando el faltante viejo
+    r.items = itemsCorregidos;
+    r.notaSolucion = nota;
+    r.fechaSolucion = _fechaSol;
+    r.corregido = true;
+    show('s-historial');renderHistorial();
+  }catch(e){alert('Error: '+e.message);}
+  btn.textContent='Guardar corrección';btn.disabled=false;
+};
+
+// ── LIMPIAR BD ──
+window.confirmarLimpiarBD=function(){
+  if(!confirm('¿Borrar TODOS los traspasos y recepciones? No se puede deshacer.')) return;
+  const code=prompt('Escribe CONFIRMAR para proceder:');
+  if(code!=='CONFIRMAR'){alert('Cancelado');return;}
+  limpiarBD();
+};
+async function limpiarBD(){
+  let n=0;
+  try{
+    for(const t of traspasos){if(t._docId){await deleteDoc(doc(db,'traspasos',t._docId));n++;}}
+    for(const r of recepciones){if(r._docId){await deleteDoc(doc(db,'recepciones',r._docId));n++;}}
+    alert(`✓ BD limpiada — ${n} registros borrados`);
+    renderHome();renderAdminLista();
+  }catch(e){alert('Error: '+e.message);}
+}
+
+// ── REPORTE EXCEL FALTANTES ──
+window.exportarReporteFaltantes=function(){
+  if(!recepciones.length){alert('Sin recepciones para exportar');return;}
+  const header=['Folio','Origen','Destino','Fecha recepción','Numart','Descripción','Esperado','Recibido','Faltante','Solución','Fecha solución'];
+  const filas=[];
+  recepciones.forEach(r=>{
+    r.items.forEach(i=>{
+      filas.push([r.folio,r.sucOrig||'—',r.sucDest,r.fecha,i.numart,i.desc,i.esperado,i.recibido,i.faltante,r.notaSolucion||'',r.fechaSolucion||'']);
+    });
+  });
+  const csv=[header,...filas].map(row=>row.map(v=>`"${String(v).replace(/"/g,'""')}"`).join(',')).join('\n');
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(new Blob(['\ufeff'+csv],{type:'text/csv;charset=utf-8'}));
+  a.download=`Reporte_Faltantes_${new Date().toLocaleDateString('es-MX').replace(/\//g,'-')}.csv`;
+  a.click();
+};
+
+// ── CARGADOR SURTIDO MULTI-SUCURSAL ──
+const SUC_MAP_SURTIDO = {
+  'Matriz': '1-Matriz (Mtz de la Torre)',
+  'Morelos': '2-Morelos (Mtz de la Torre)',
+  'Hidalgo CEDIS': '3-Hidalgo CEDIS (Teziutlán)',
+  'Allende': '4-Allende (Teziutlán)',
+  'Oficina': '5-Oficina (Administrativo)',
+  'Tlapacoyan': '6-Tlapacoyan',
+  'Papantla': '7-Papantla',
+  'Perote': '9-Perote',
+  'Independencia': '10-Independencia (Mtz de la Torre)',
+  'Ávila Camacho': '11-Ávila Camacho (Mtz de la Torre)',
+  'Misantla': '12-Misantla'
+};
+function _shortSucSurtido(nombreApp){
+  const m = nombreApp.match(/^(\d+)-([^ (]+)/);
+  if(!m) return nombreApp.replace(/[^a-zA-Z0-9]/g,'');
+  return m[1] + m[2].normalize('NFD').replace(/[\u0300-\u036f]/g,'');
+}
+let __surtidoTraspasos = null;
+let __surtidoFechaArchivo = null;
+
+document.getElementById('file-xlsx-surtido').addEventListener('change', async (ev)=>{
+  const file = ev.target.files[0];
+  const prev = document.getElementById('preview-xlsx-surtido');
+  const btn = document.getElementById('btn-cargar-surtido');
+  __surtidoTraspasos = null;
+  btn.style.display = 'none';
+  if(!file){ prev.innerHTML=''; return; }
+  const fm = file.name.match(/(\d{4})-(\d{2})-(\d{2})/);
+  if(!fm){
+    prev.innerHTML = '<div class="alert alert-err">El nombre del archivo debe contener la fecha YYYY-MM-DD</div>';
+    return;
+  }
+  __surtidoFechaArchivo = fm[1]+'-'+fm[2]+'-'+fm[3];
+  const folioFecha = fm[1]+fm[2]+fm[3];
+  prev.innerHTML = '<div style="color:var(--muted)">Leyendo archivo...</div>';
+  try{
+    const XLSX = await import('https://cdn.sheetjs.com/xlsx-0.20.3/package/xlsx.mjs');
+    const buf = await file.arrayBuffer();
+    const wb = XLSX.read(buf, {type:'array'});
+    if(!wb.SheetNames.includes('POR SUCURSAL')){
+      prev.innerHTML = '<div class="alert alert-err">El XLSX no contiene la hoja "POR SUCURSAL"</div>';
+      return;
+    }
+    const ws = wb.Sheets['POR SUCURSAL'];
+    const rows = XLSX.utils.sheet_to_json(ws, {header:1, defval:null});
+    const pares = {};
+    let currentDest = null;
+    let inData = false;
+    for(const row of rows){
+      const a = row[0];
+      if(typeof a === 'string' && a.startsWith('SUC ')){
+        const m = a.split('—');
+        if(m.length > 1){
+          const nombre = m[1].split('|')[0].trim();
+          currentDest = SUC_MAP_SURTIDO[nombre] || null;
+        }
+        inData = false;
+        continue;
+      }
+      if(a === 'Motivo'){ inData = true; continue; }
+      if(inData && currentDest){
+        const clave = row[1];
+        const desc = row[2];
+        const cant = parseInt(row[6]) || 0;
+        const origenNombre = row[7];
+        if(!clave || !origenNombre || cant <= 0) continue;
+        const origen = SUC_MAP_SURTIDO[origenNombre];
+        if(!origen) continue;
+        const key = currentDest + '||' + origen;
+        if(!pares[key]) pares[key] = {dest: currentDest, orig: origen, items: []};
+        pares[key].items.push({numart: String(clave), desc: String(desc||''), cant: cant});
+      }
+    }
+    const tArr = Object.values(pares).map(p => ({
+      folio: 'S' + folioFecha + '-' + _shortSucSurtido(p.dest) + '-' + _shortSucSurtido(p.orig),
+      sucOrig: p.orig,
+      sucDest: p.dest,
+      items: p.items
+    }));
+    if(tArr.length === 0){
+      prev.innerHTML = '<div class="alert alert-err">No se detectaron movimientos en el archivo</div>';
+      return;
+    }
+    __surtidoTraspasos = tArr;
+    const totalItems = tArr.reduce((s,t)=>s+t.items.length,0);
+    const totalPzas = tArr.reduce((s,t)=>s+t.items.reduce((a,i)=>a+i.cant,0),0);
+    const sucsDest = [...new Set(tArr.map(t=>t.sucDest))];
+    prev.innerHTML = '<div class="alert alert-ok">' +
+      '<strong>Surtido del ' + __surtidoFechaArchivo + '</strong><br>' +
+      tArr.length + ' traspasos · ' + sucsDest.length + ' sucursales destino · ' +
+      totalItems + ' renglones · ' + totalPzas + ' piezas' +
+      '</div>';
+    btn.style.display = 'block';
+  }catch(e){
+    prev.innerHTML = '<div class="alert alert-err">Error: ' + (e.message||e) + '</div>';
+  }
+});
+
+document.getElementById('btn-cargar-surtido').addEventListener('click', async ()=>{
+  if(!__surtidoTraspasos) return;
+  const btn = document.getElementById('btn-cargar-surtido');
+  const prev = document.getElementById('preview-xlsx-surtido');
+  btn.disabled = true;
+  const yaCargados = new Set(traspasos.filter(t=>t.status==='pendiente').map(t=>t.folio));
+  const nuevos = __surtidoTraspasos.filter(t => !yaCargados.has(t.folio));
+  const ignorados = __surtidoTraspasos.length - nuevos.length;
+  if(nuevos.length === 0){
+    prev.innerHTML = '<div class="alert alert-err">Todos los traspasos del archivo (' + ignorados + ') ya están cargados como pendientes</div>';
+    btn.disabled = false;
+    return;
+  }
+  let creados = 0;
+  let errores = 0;
+  for(const t of nuevos){
+    try{
+      const traspaso = {
+        id: Date.now().toString() + '-' + creados,
+        folio: t.folio,
+        sucOrig: t.sucOrig,
+        sucDest: t.sucDest,
+        fecha: new Date().toLocaleDateString('es-MX'),
+        items: t.items,
+        status: 'pendiente'
+      };
+      await addDoc(collection(db,'traspasos'), {...traspaso, ts: Date.now()});
+      creados++;
+      prev.innerHTML = '<div style="color:var(--muted)">Cargando... ' + creados + ' / ' + nuevos.length + '</div>';
+    }catch(e){
+      errores++;
+    }
+  }
+  let msg = '<div class="alert alert-ok">✓ ' + creados + ' traspasos cargados';
+  if(ignorados > 0) msg += ' · ' + ignorados + ' ignorados (ya existían)';
+  if(errores > 0) msg += ' · ' + errores + ' con error';
+  msg += '</div>';
+  prev.innerHTML = msg;
+  document.getElementById('file-xlsx-surtido').value = '';
+  btn.style.display = 'none';
+  btn.disabled = false;
+  __surtidoTraspasos = null;
+});
+
+
+// ── ORDENES DE COMPRA ──
+let __ordenesCompra = [];
+let __ordenEditandoId = null;
+
+function _fmtFecha(s){
+  if(!s) return '';
+  const m = String(s).match(/^(\d{4})-(\d{2})-(\d{2})/);
+  if(m) return m[3] + '/' + m[2] + '/' + m[1];
+  return String(s);
+}
+function _fmtFechaHora(s){
+  if(!s) return '';
+  const str = String(s);
+  // Si el ISO tiene zona (Z al final o offset +/-), convertir a hora local del navegador
+  if(/Z$/.test(str) || /[+-]\d{2}:?\d{2}$/.test(str)){
+    const d = new Date(str);
+    if(!isNaN(d.getTime())){
+      const pad = n => String(n).padStart(2,'0');
+      return pad(d.getDate()) + '/' + pad(d.getMonth()+1) + '/' + d.getFullYear() + ' ' + pad(d.getHours()) + ':' + pad(d.getMinutes());
+    }
+  }
+  // Si es naive (sin zona), parsear como texto local (caso de inputs datetime-local)
+  const m = str.match(/^(\d{4})-(\d{2})-(\d{2})[T ](\d{2}):(\d{2})/);
+  if(m) return m[3] + '/' + m[2] + '/' + m[1] + ' ' + m[4] + ':' + m[5];
+  // Si solo viene fecha
+  const mf = str.match(/^(\d{4})-(\d{2})-(\d{2})/);
+  if(mf) return mf[3] + '/' + mf[2] + '/' + mf[1];
+  return str;
+}
+function _fmtImporte(n){
+  const v = parseFloat(n) || 0;
+  return String.fromCharCode(36) + v.toLocaleString('es-MX', {minimumFractionDigits:2, maximumFractionDigits:2});
+}
+function _hoyISO(){
+  const d = new Date();
+  const mm = String(d.getMonth()+1).padStart(2,'0');
+  const dd = String(d.getDate()).padStart(2,'0');
+  return d.getFullYear() + '-' + mm + '-' + dd;
+}
+function _hace7dias(fechaISO){
+  if(!fechaISO) return false;
+  const f = new Date(fechaISO);
+  const ahora = new Date();
+  const diff = (ahora - f) / (1000*60*60*24);
+  return diff > 7;
+}
+
+onSnapshot(collection(db, 'ordenesCompra'), (snap) => {
+  __ordenesCompra = snap.docs.map(d => ({id: d.id, ...d.data()}));
+  __ordenesCompra.sort((a,b) => (b.ts||0) - (a.ts||0));
+  renderOrdenesAdmin();
+  renderProximasLlegadas();
+});
+
+function renderOrdenesAdmin(){
+  const cont = document.getElementById('lista-ordenes-admin');
+  if(!cont) return;
+  const visibles = __ordenesCompra.filter(o => {
+    if(o.status === 'transito') return true;
+    if(o.status === 'llegada') return true;
+    if(o.status === 'revisado') return true;
+    if(o.status === 'surtido'){
+      // Si tiene folio vinculado, verificar estado de traspasos
+      if(o.folioTraspaso){
+        const tList = traspasos.filter(t => t.folio === o.folioTraspaso);
+        if(tList.length === 0) return true; // No hay traspasos aún, mantener visible
+        const todosRecibidos = tList.every(t => t.status === 'recibido');
+        if(!todosRecibidos) return true; // Falta alguno por recibir
+        // Todos recibidos: calcular fecha del último recibido
+        const fechasRec = tList.map(t => t.fechaRecepcion || t.fecha).filter(Boolean);
+        if(fechasRec.length === 0) return true;
+        // Tomar la fecha más reciente y ver si pasaron 7 días
+        const ultimaFecha = fechasRec.sort().pop();
+        return !_hace7dias(ultimaFecha);
+      } else {
+        // Sin folio (multi-sucursal): comportamiento original
+        return !_hace7dias(o.fechaSurtido);
+      }
+    }
+    return false;
+  });
+  if(visibles.length === 0){
+    cont.innerHTML = '<div style="color:var(--muted);text-align:center;padding:14px;font-size:13px">Sin órdenes activas</div>';
+    return;
+  }
+  cont.innerHTML = visibles.map(o => {
+    // Badge segun estado
+    const badges = {
+      'transito': '<span style="background:#fed7aa;color:#9a3412;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:600">EN TRÁNSITO</span>',
+      'llegada': '<span style="background:#bbf7d0;color:#166534;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:600">LLEGÓ</span>',
+      'revisado': '<span style="background:#bfdbfe;color:#1e40af;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:600">REVISADO</span>',
+      'surtido': '<span style="background:#e9d5ff;color:#6b21a8;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:600">SURTIDO</span>'
+    };
+    const badge = badges[o.status] || badges['transito'];
+    const importe = o.importe ? _fmtImporte(o.importe) : '';
+    const notas = o.notas ? '<div style="font-size:12px;color:var(--muted);margin-top:4px">📝 ' + o.notas + '</div>' : '';
+    // Construir lineas de historial segun estado
+    let lineasHistorial = '<div style="font-size:12px;color:var(--muted)">Pedido: ' + _fmtFecha(o.fechaPedido);
+    if(o.status === 'transito'){
+      lineasHistorial += ' · Estimada: ' + (o.fechaEstimada ? _fmtFecha(o.fechaEstimada) : 'sin fecha') + '</div>';
+    } else {
+      lineasHistorial += '</div>';
+      if(o.fechaLlegada){
+        lineasHistorial += '<div style="font-size:12px;color:#166534;margin-top:2px">✓ Llegó: ' + _fmtFecha(o.fechaLlegada) + '</div>';
+      }
+      if(o.fechaRevision){
+        const quien = o.quienReviso ? ' por ' + o.quienReviso : '';
+        const notasR = o.notasRevision ? ' — ' + o.notasRevision : '';
+        lineasHistorial += '<div style="font-size:12px;color:#1e40af;margin-top:2px">✓ Revisado: ' + _fmtFechaHora(o.fechaRevision) + quien + notasR + '</div>';
+      }
+      if(o.fechaSurtido){
+        const quien = o.quienSurtio ? ' por ' + o.quienSurtio : '';
+        const notasS = o.notasSurtido ? ' — ' + o.notasSurtido : '';
+        lineasHistorial += '<div style="font-size:12px;color:#6b21a8;margin-top:2px">✓ Surtido: ' + _fmtFechaHora(o.fechaSurtido) + quien + notasS + '</div>';
+        // Mostrar estado por sucursal si hay folioTraspaso vinculado
+        if(o.folioTraspaso){
+          const tList = traspasos.filter(t => t.folio === o.folioTraspaso);
+          if(tList.length > 0){
+            lineasHistorial += '<div style="font-size:12px;color:#6b21a8;margin-top:4px;font-weight:600">📦 Folio: ' + o.folioTraspaso + '</div>';
+            lineasHistorial += '<div style="font-size:12px;margin-top:4px;background:#faf5ff;border-radius:6px;padding:6px 8px">';
+            lineasHistorial += '<div style="font-size:11px;color:var(--muted);margin-bottom:4px;font-weight:600">ESTADO EN SUCURSALES</div>';
+            tList.sort((a,b) => (a.sucDest||'').localeCompare(b.sucDest||'')).forEach(t => {
+              const recibido = t.status === 'recibido';
+              const icono = recibido ? '✅' : '⏳';
+              const color = recibido ? '#166534' : '#9a3412';
+              const detalle = recibido ? (t.fechaRecepcion ? ' ' + _fmtFechaHora(t.fechaRecepcion) : ' recibido') : ' pendiente';
+              lineasHistorial += '<div style="display:flex;justify-content:space-between;font-size:12px;color:' + color + ';padding:2px 0">';
+              lineasHistorial += '<span>' + icono + ' ' + (t.sucDest||'') + '</span><span>' + detalle + '</span>';
+              lineasHistorial += '</div>';
+            });
+            lineasHistorial += '</div>';
+          } else {
+            lineasHistorial += '<div style="font-size:11px;color:#9a3412;margin-top:4px">⚠️ No hay traspasos con folio ' + o.folioTraspaso + '</div>';
+          }
+        }
+      }
+    }
+    // Botones de transicion segun estado actual
+    let botonAccion = '';
+    if(o.status === 'transito') botonAccion = '<button class="btn btn-sm btn-primary" data-orden-llegar="' + o.id + '" style="font-size:12px;padding:4px 10px">Marcar llegada</button>';
+    else if(o.status === 'llegada') botonAccion = '<button class="btn btn-sm btn-primary" data-orden-revisar="' + o.id + '" style="font-size:12px;padding:4px 10px;background:#3b82f6">Marcar revisado</button>';
+    else if(o.status === 'revisado') botonAccion = '<button class="btn btn-sm btn-primary" data-orden-surtir="' + o.id + '" style="font-size:12px;padding:4px 10px;background:#a855f7">Marcar surtido</button>';
+    return '<div style="border:1px solid #e5e7eb;border-radius:10px;padding:10px;background:#fff">' +
+      '<div style="display:flex;justify-content:space-between;align-items:start;gap:8px">' +
+        '<div style="flex:1;min-width:0">' +
+          '<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">' +
+            '<strong style="font-size:14px">' + (o.folio||'(sin folio)') + '</strong>' + badge +
+          '</div>' +
+          '<div style="font-size:13px;margin-top:4px"><strong>' + (o.proveedor||'') + '</strong></div>' +
+          lineasHistorial +
+          (importe ? '<div style="font-size:13px;font-weight:600;margin-top:2px">' + importe + '</div>' : '') +
+          notas +
+        '</div>' +
+      '</div>' +
+      '<div style="display:flex;gap:6px;margin-top:8px;flex-wrap:wrap">' +
+        botonAccion +
+        ((o.productos && o.productos.length > 0) || (o.productosRecibidos && o.productosRecibidos.length > 0) || (o.compras && o.compras.length > 0) ? '<button class="btn btn-sm" data-orden-detalle="' + o.id + '" style="font-size:12px;padding:4px 10px;background:#f3e8ff;color:#6b21a8">📦 ' + (o.productos && o.productos.length ? o.productos.length : (_getAcumuladoRecibido(o).length || (o.productosRecibidos ? o.productosRecibidos.length : 0))) + ' productos' + (o.backorder && o.backorder.length > 0 ? ' ⚠️ ' + o.backorder.length + ' backorder' : '') + (o.folioCompra ? ' ✓ ' + o.folioCompra : ((o.compras && o.compras.length) ? ' ✓ ' + o.compras.map(function(c){return c.folio;}).join(',') : '')) + '</button>' : '') +
+        (o.status === 'surtido' ? '<button class="btn btn-sm" data-orden-vincular="' + o.id + '" style="font-size:12px;padding:4px 10px;background:#a855f7;color:#fff">' + (o.folioTraspaso ? 'Cambiar folio' : '🔗 Vincular folio') + '</button>' : '') + '<button class="btn btn-sm" data-orden-editar="' + o.id + '" style="font-size:12px;padding:4px 10px">Editar</button>' +
+        '<button class="btn btn-sm btn-danger" data-orden-eliminar="' + o.id + '" style="font-size:12px;padding:4px 10px">Eliminar</button>' +
+      '</div>' +
+    '</div>';
+  }).join('');
+}
+
+function renderProximasLlegadas(){
+  const transito = __ordenesCompra.filter(o => o.status === 'transito');
+  let cont = document.getElementById('seccion-proximas-llegadas');
+  if(!cont){
+    const sMain = document.getElementById('s-main');
+    if(sMain){
+      cont = document.createElement('div');
+      cont.id = 'seccion-proximas-llegadas';
+      cont.style.cssText = 'margin-top:14px';
+      const firstCard = sMain.querySelector('.card');
+      if(firstCard) firstCard.insertAdjacentElement('afterend', cont);
+      else sMain.appendChild(cont);
+    }
+  }
+  if(!cont) return;
+  if(transito.length === 0){ cont.innerHTML = ''; return; }
+  cont.innerHTML = '<p style="font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:8px">Próximas llegadas</p>' +
+    '<div class="card" style="padding:10px"><div style="display:flex;flex-direction:column;gap:6px">' +
+    transito.map(o => 
+      '<div style="display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid #f1f5f9">' +
+        '<div><strong style="font-size:13px">' + (o.proveedor||'(sin proveedor)') + '</strong></div>' +
+        '<div style="font-size:12px;color:var(--muted)">' + (o.fechaEstimada ? _fmtFecha(o.fechaEstimada) : 'sin fecha') + '</div>' +
+      '</div>'
+    ).join('') +
+    '</div></div>';
+}
+
+document.getElementById('btn-nueva-orden')?.addEventListener('click', () => {
+  __ordenEditandoId = null;
+  document.getElementById('form-orden-titulo').textContent = 'Nueva orden de compra';
+  document.getElementById('inp-orden-folio').value = '';
+  document.getElementById('inp-orden-proveedor').value = '';
+  document.getElementById('inp-orden-fecha-pedido').value = _hoyISO();
+  document.getElementById('inp-orden-fecha-est').value = '';
+  document.getElementById('inp-orden-importe').value = '';
+  document.getElementById('inp-orden-notas').value = '';
+  document.getElementById('form-orden-modal').style.display = 'flex';
+});
+
+document.getElementById('btn-orden-cancelar')?.addEventListener('click', () => {
+  document.getElementById('form-orden-modal').style.display = 'none';
+});
+
+document.getElementById('btn-orden-guardar')?.addEventListener('click', async () => {
+  const folio = document.getElementById('inp-orden-folio').value.trim();
+  const proveedor = document.getElementById('inp-orden-proveedor').value.trim();
+  const fechaPedido = document.getElementById('inp-orden-fecha-pedido').value;
+  const fechaEstimada = document.getElementById('inp-orden-fecha-est').value;
+  const importe = parseFloat(document.getElementById('inp-orden-importe').value) || 0;
+  const notas = document.getElementById('inp-orden-notas').value.trim();
+  if(!folio || !proveedor){ alert('Folio y proveedor son obligatorios'); return; }
+  try{
+    if(__ordenEditandoId){
+      await updateDoc(doc(db, 'ordenesCompra', __ordenEditandoId), {
+        folio, proveedor, fechaPedido, fechaEstimada, importe, notas
+      });
+    } else {
+      await addDoc(collection(db, 'ordenesCompra'), {
+        folio, proveedor, fechaPedido, fechaEstimada, importe, notas,
+        status: 'transito',
+        fechaLlegada: null,
+        ts: Date.now()
+      });
+    }
+    document.getElementById('form-orden-modal').style.display = 'none';
+    __ordenEditandoId = null;
+  }catch(e){
+    alert('Error al guardar: ' + e.message);
+  }
+});
+
+document.addEventListener('click', async (ev) => {
+  const llegar = ev.target.closest('[data-orden-llegar]');
+  const editar = ev.target.closest('[data-orden-editar]');
+  const eliminar = ev.target.closest('[data-orden-eliminar]');
+  if(llegar){
+    const id = llegar.getAttribute('data-orden-llegar');
+    if(!confirm('¿Marcar esta orden como llegada hoy?')) return;
+    try{
+      const o = __ordenesCompra.find(x => x.id === id);
+      if(o) await updateDoc(doc(db,'ordenesCompra',id), {status: 'llegada', fechaLlegada: _hoyISO()});
+    }catch(e){ alert('Error: ' + e.message); }
+  }
+  if(editar){
+    const id = editar.getAttribute('data-orden-editar');
+    const o = __ordenesCompra.find(x => x.id === id);
+    if(!o) return;
+    __ordenEditandoId = id;
+    document.getElementById('form-orden-titulo').textContent = 'Editar orden';
+    document.getElementById('inp-orden-folio').value = o.folio||'';
+    document.getElementById('inp-orden-proveedor').value = o.proveedor||'';
+    document.getElementById('inp-orden-fecha-pedido').value = o.fechaPedido||'';
+    document.getElementById('inp-orden-fecha-est').value = o.fechaEstimada||'';
+    document.getElementById('inp-orden-importe').value = o.importe||'';
+    document.getElementById('inp-orden-notas').value = o.notas||'';
+    document.getElementById('form-orden-modal').style.display = 'flex';
+  }
+  if(eliminar){
+    const id = eliminar.getAttribute('data-orden-eliminar');
+    const o = __ordenesCompra.find(x => x.id === id);
+    if(!o) return;
+    if(!confirm('¿Eliminar la orden "' + (o.folio||'') + '" de ' + (o.proveedor||'') + '? Esta acción no se puede deshacer.')) return;
+    try{
+      await deleteDoc(doc(db,'ordenesCompra',id));
+    }catch(e){ alert('Error: ' + e.message); }
+  }
+});
+
+
+
+// ── CARGADOR AUTOMÁTICO DE PDFs DE ORDEN ──
+document.body.insertAdjacentHTML('beforeend', '<div id="modal-pdfs-detectados" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);z-index:1000;align-items:flex-start;justify-content:center;overflow-y:auto;padding:20px 0"><div style="background:#fff;border-radius:12px;padding:20px;max-width:520px;width:92%;max-height:90vh;overflow-y:auto;margin:auto"><h3 style="margin:0 0 14px 0;font-size:18px">Órdenes detectadas</h3><p style="font-size:13px;color:var(--muted);margin:0 0 14px 0">Indica la fecha estimada de llegada de cada orden. Los demás datos se extrajeron automáticamente del PDF.</p><div id="lista-pdfs-detectados" style="display:flex;flex-direction:column;gap:10px"></div><div style="display:flex;gap:8px;margin-top:16px"><button id="btn-pdfs-cancelar" class="btn" style="flex:1">Cancelar</button><button id="btn-pdfs-guardar" class="btn btn-primary" style="flex:1">Guardar todas</button></div></div></div>');
+let __pdfsDetectados = [];
+
+const MESES_PDF = {
+  ene:0, feb:1, mar:2, abr:3, may:4, jun:5, jul:6, ago:7, sep:8, oct:9, nov:10, dic:11,
+  Ene:0, Feb:1, Mar:2, Abr:3, May:4, Jun:5, Jul:6, Ago:7, Sep:8, Oct:9, Nov:10, Dic:11,
+  Jan:0, Feb_en:1, Mar_en:2, Apr:3, May_en:4, Jun_en:5, Jul_en:6, Aug:7, Sep_en:8, Oct_en:9, Nov_en:10, Dec:11
+};
+function _mesANum(s){
+  const n = String(s||'').toLowerCase().substring(0,3);
+  const map = {ene:0, feb:1, mar:2, abr:3, may:4, jun:5, jul:6, ago:7, sep:8, oct:9, nov:10, dic:11,
+               jan:0, apr:3, aug:7, dec:11};
+  return map[n];
+}
+
+async function _cargarPDFJS(){
+  if(window.pdfjsLib) return window.pdfjsLib;
+  await new Promise((resolve, reject) => {
+    const s = document.createElement('script');
+    s.src = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js';
+    s.onload = resolve;
+    s.onerror = () => reject(new Error('No se pudo cargar PDF.js'));
+    document.head.appendChild(s);
+  });
+  if(!window.pdfjsLib) throw new Error('pdfjsLib no apareció');
+  window.pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+  return window.pdfjsLib;
+}
+
+async function _extraerTextoPDF(file){
+  const pdfjs = await _cargarPDFJS();
+  const buf = await file.arrayBuffer();
+  const pdf = await pdfjs.getDocument({data: buf}).promise;
+  let texto = '';
+  let lineasGlobal = [];
+  for(let i = 1; i <= pdf.numPages; i++){
+    const page = await pdf.getPage(i);
+    const tc = await page.getTextContent();
+    texto += tc.items.map(it => it.str).join(' ') + ' ';
+    // Agrupar items por Y (líneas) y ordenar por X dentro de cada línea
+    const porY = {};
+    for(const it of tc.items){
+      if(!it.str || !it.transform) continue;
+      const y = Math.round(it.transform[5]);
+      if(!porY[y]) porY[y] = [];
+      porY[y].push({x: it.transform[4], str: it.str});
+    }
+    const ys = Object.keys(porY).map(Number).sort((a,b) => b-a); // top to bottom
+    for(const y of ys){
+      const items = porY[y].sort((a,b) => a.x - b.x);
+      // Insertar separadores grandes donde haya saltos horizontales >40 px (columnas)
+      let linea = '';
+      let prevX = null;
+      for(const it of items){
+        if(prevX !== null && (it.x - prevX) > 40) linea += '  ';
+        linea += (linea ? ' ' : '') + it.str;
+        prevX = it.x + (it.str.length * 5);
+      }
+      if(linea.trim()) lineasGlobal.push(linea);
+    }
+  }
+  return {texto, lineas: lineasGlobal};
+}
+
+function _parsearOrdenPDF(datosPDF, nombreArchivo){
+  const texto = (typeof datosPDF === 'string') ? datosPDF : datosPDF.texto;
+  const lineas = (typeof datosPDF === 'string') ? [] : (datosPDF.lineas || []);
+  
+  // Detectar tipo de documento
+  const esCompra = /Documento de compra/i.test(texto);
+  const esOrden = /Orden de Compra/i.test(texto);
+  const tipo = esCompra ? 'compra' : (esOrden ? 'orden' : 'orden'); // default a orden
+  
+  // Folio: S#### para orden, E#### para compra
+  let mFolio;
+  if(tipo === 'compra'){
+    mFolio = texto.match(/Folio:[\s\S]{0,80}?(E\d{3,6})/) || texto.match(/(E\d{4,5})/);
+  } else {
+    mFolio = texto.match(/Folio:[\s\S]{0,80}?(S\d{3,6})/) || texto.match(/(S\d{4,5})/);
+  }
+  
+  // Fecha: DD-MMM-YYYY
+  const mFecha = texto.match(/Fecha:\s*(\d{1,2})-([A-Za-z]+)-(\d{4})/);
+  // Proveedor
+  const mProv = texto.match(/Proveedor:\s*([^()\n\r]+?)(?:\s*\(\d+\)|\s+(?:BLVD|AV|CALLE|PROL|DR|CARR|ZACAP|MELCHOR|PABLO|RFC:|\s{3,}))/i);
+  // Total: en el PDF la etiqueta va ANTES del numero ("Total 635,845.41").
+  // Se busca en las lineas reconstruidas por columnas. El \s antes de Total evita
+  // confundirlo con "Subtotal". NUNCA usar Math.max: el subtotal suele ser mayor
+  // que el total cuando hay descuento de partidas.
+  let totalNum = null;
+  const RE_TOTAL = /(?:^|\s)Total\s+\$?\s*([\d,]+\.\d{2})/i;
+  for(const ln of lineas){
+    const mt = ln.match(RE_TOTAL);
+    if(mt) totalNum = parseFloat(mt[1].replace(/,/g, ''));
+  }
+  if(totalNum === null){
+    const mt2 = texto.match(RE_TOTAL);
+    if(mt2) totalNum = parseFloat(mt2[1].replace(/,/g, ''));
+  }
+  
+  let fechaPedido = '';
+  if(mFecha){
+    const dia = parseInt(mFecha[1]);
+    const mes = _mesANum(mFecha[2]);
+    const anio = parseInt(mFecha[3]);
+    if(mes !== undefined){
+      const mm = String(mes+1).padStart(2,'0');
+      const dd = String(dia).padStart(2,'0');
+      fechaPedido = anio + '-' + mm + '-' + dd;
+    }
+  }
+  
+  // Extraer líneas de productos
+  const LINE_RE = /^\s*([\d,]+\.\d{2})\s+([A-Za-z0-9]+)\s+(.+?)\s{2,}([\d,]+\.\d{2})(?:\s+[\d,]+\.\d{2})?\s+([\d,]+\.\d{2})\s*$/;
+  const num = s => parseFloat(s.replace(/,/g, ''));
+  const lineasProductos = [];
+  for(const linea of lineas){
+    const m = linea.match(LINE_RE);
+    if(!m) continue;
+    const [, cant, clave, desc, costoUnit, importe] = m;
+    if(clave.length < 2) continue;
+    lineasProductos.push({
+      clave: clave.trim().toUpperCase(),
+      descripcion: desc.trim().replace(/\s+/g,' '),
+      cantidad: num(cant),
+      costoUnit: num(costoUnit),
+      importe: (num(costoUnit) <= 0.05 ? 0 : num(importe)) /* bonificacion: precio ~0 => el ultimo numero es %desc(100), no importe */
+    });
+  }
+  
+  let productos = [];
+  let totalLineasOriginales = lineasProductos.length;
+  
+  if(tipo === 'compra'){
+    // Agrupar por clave para calcular costo promedio ponderado
+    const grupos = {};
+    for(const l of lineasProductos){
+      if(!grupos[l.clave]){
+        grupos[l.clave] = {
+          clave: l.clave,
+          descripcion: l.descripcion,
+          cantTotal: 0,
+          importeTotal: 0,
+          tieneBonificacion: false,
+          lineas: []
+        };
+      }
+      const g = grupos[l.clave];
+      g.cantTotal += l.cantidad;
+      g.importeTotal += l.importe;
+      g.lineas.push(l);
+      // Detectar bonificación: precio muy bajo (<= 5% del más alto del grupo)
+      if(g.lineas.length > 1) g.tieneBonificacion = true;
+    }
+    let _indirectos = 0;
+    const _mInd = texto.match(/Indirectos\s*:?\s*\$?\s*([\d,]+\.\d{2})/i);
+    if(_mInd) _indirectos = parseFloat(_mInd[1].replace(/,/g,'')) || 0;
+    const _totalImpProd = Object.values(grupos).reduce((s,x)=>s+x.importeTotal,0);
+    productos = Object.values(grupos).map(g => {
+      const _flete = (_indirectos>0 && _totalImpProd>0) ? Math.round(_indirectos*(g.importeTotal/_totalImpProd)*100)/100 : 0;
+      const _impTot = Math.round((g.importeTotal + _flete) * 100) / 100;
+      return {
+        clave: g.clave,
+        descripcion: g.descripcion,
+        cantRecibida: g.cantTotal,
+        importeMercancia: Math.round(g.importeTotal * 100) / 100,
+        fleteProrrateado: _flete,
+        importeTotal: _impTot,
+        costoPromedio: g.cantTotal>0 ? Math.round((_impTot / g.cantTotal) * 10000) / 10000 : 0,
+        tieneBonificacion: g.tieneBonificacion,
+        detalleLineas: g.lineas.map(l => ({cantidad: l.cantidad, costoUnit: l.costoUnit, importe: l.importe}))
+      };
+    });
+  } else {
+    // Orden: una línea = un producto (sin agrupación)
+    productos = lineasProductos.map(l => ({
+      clave: l.clave,
+      descripcion: l.descripcion,
+      cantPedida: l.cantidad,
+      costoUnit: l.costoUnit,
+      importe: l.importe
+    }));
+  }
+  
+  return {
+    tipo,
+    folio: mFolio ? mFolio[1] : '',
+    proveedor: mProv ? mProv[1].trim().replace(/\s+/g,' ') : '',
+    fechaPedido,
+    importe: totalNum || 0,
+    nombreArchivo,
+    productos,
+    totalLineasOriginales
+  };
+}
+
+function _renderPdfsDetectados(){
+  const cont = document.getElementById('lista-pdfs-detectados');
+  if(!cont) return;
+  cont.innerHTML = __pdfsDetectados.map((d, i) => {
+    const importeStr = d.importe ? (PESO_SYM + d.importe.toLocaleString('es-MX', {minimumFractionDigits:2, maximumFractionDigits:2})) : 'sin total';
+    const fleteTot = (d.productos||[]).reduce((s,p)=>s+(p.fleteProrrateado||0),0);
+    const fleteStr = fleteTot>0 ? ' · <span style="color:#b45309">flete '+PESO_SYM+fleteTot.toLocaleString('es-MX',{minimumFractionDigits:2,maximumFractionDigits:2})+'</span>' : '';
+    
+    // Detección de duplicado o vinculación según tipo
+    let advert = '';
+    let bloqueTipo = '';
+    let bloqueExtra = '';
+    
+    if(d.tipo === 'compra'){
+      bloqueTipo = '<div style="display:inline-block;background:#dbeafe;color:#1e40af;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:600;margin-right:6px">📦 DOCUMENTO DE COMPRA</div>';
+      // Buscar orden vinculada por folioTraspaso === d.folio (vinculación automática)
+      const ordenVinculada = __ordenesCompra.find(o => o.folioTraspaso === d.folio);
+      if(ordenVinculada){
+        const compras = _getComprasOrden(ordenVinculada);
+        const yaIncluida = compras.some(c => c.folio === d.folio);
+        const txtCompras = compras.length > 0 ? ' (ya tiene ' + compras.length + ' factura' + (compras.length>1?'s':'') + ')' : '';
+        const txtAccion = yaIncluida ? '<br><span style="color:#9a3412">⚠️ Esta factura ya está vinculada. Al guardar se REEMPLAZARÁ con la nueva versión.</span>' : '';
+        bloqueExtra = '<div style="background:#d1fae5;color:#065f46;padding:6px 10px;border-radius:6px;font-size:12px;margin-top:6px">✓ Se vinculará automáticamente a orden <strong>' + ordenVinculada.folio + '</strong> · ' + (ordenVinculada.proveedor||'') + txtCompras + txtAccion + '</div>';
+      } else {
+        // Permitir seleccionar orden manualmente - mostrar TODAS las órdenes activas (incluyendo las con compras ya vinculadas, por si quieres agregar otra)
+        const ordenesElegibles = __ordenesCompra.filter(o => o.status === 'transito' || o.status === 'llegada' || o.status === 'revisado' || o.status === 'surtido');
+        const opciones = ['<option value="">(sin vincular — registrar solo costos)</option>']
+          .concat(ordenesElegibles.map(o => {
+            const compras = _getComprasOrden(o);
+            const tag = compras.length > 0 ? ' [' + compras.length + ' factura' + (compras.length>1?'s':'') + ']' : '';
+            return '<option value="' + o.id + '">' + o.folio + ' · ' + (o.proveedor||'') + tag + '</option>';
+          }))
+          .join('');
+        bloqueExtra = '<div style="background:#fef3c7;color:#92400e;padding:6px 10px;border-radius:6px;font-size:12px;margin-top:6px">⚠️ No se encontró orden con folio ' + d.folio + ' vinculado<br><label style="font-size:11px;font-weight:600;margin-top:4px;display:block">¿Vincular a una orden?</label><select class="sel-vincular-orden" data-vincular="' + i + '" style="width:100%;padding:4px;border:1px solid #cbd5e1;border-radius:4px;font-size:12px;margin-top:2px">' + opciones + '</select><div style="font-size:11px;margin-top:4px;color:#78350f">💡 Selecciona una orden si esta es UNA DE VARIAS facturas del mismo pedido.</div></div>';
+      }
+      // Mostrar info productos
+      const pzasTotal = d.productos.reduce((s,p) => s + (p.cantRecibida||0), 0);
+      const conBonif = d.productos.filter(p => p.tieneBonificacion).length;
+      bloqueExtra += '<div style="font-size:12px;color:#16a34a;margin-top:4px">📦 ' + d.productos.length + ' productos únicos · ' + pzasTotal + ' piezas total' + (conBonif > 0 ? ' · ' + conBonif + ' con bonificación' : '') + '</div>';
+    } else {
+      bloqueTipo = '<div style="display:inline-block;background:#fed7aa;color:#9a3412;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:600;margin-right:6px">📋 ORDEN DE COMPRA</div>';
+      const duplicado = __ordenesCompra.find(o => o.folio === d.folio);
+      if(duplicado){
+        advert = '<div style="background:#fef2f2;color:#991b1b;padding:6px 10px;border-radius:6px;font-size:12px;margin-top:6px">⚠️ Ya existe orden con folio ' + d.folio + ' — se omitirá</div>';
+      }
+      bloqueExtra = d.productos && d.productos.length 
+        ? '<div style="font-size:12px;color:#16a34a;margin-top:2px">📦 ' + d.productos.length + ' productos detectados</div>'
+        : '<div style="font-size:12px;color:#9a3412;margin-top:2px">⚠️ Sin detalle de productos</div>';
+    }
+    
+    // Solo mostrar fecha estimada para ÓRDENES (no para compras, que ya llegaron)
+    const inputFecha = d.tipo === 'orden' ? 
+      '<div style="margin-top:8px"><label class="lbl" style="font-size:11px">Fecha estimada de llegada</label><input type="date" class="inp-pdf-fecha" data-pdf-fecha="' + i + '" style="width:100%;padding:6px;border:1px solid #cbd5e1;border-radius:6px;box-sizing:border-box" /></div>'
+      : '';
+    
+    return '<div style="border:1px solid #e5e7eb;border-radius:8px;padding:10px;background:#fff" data-pdf-idx="' + i + '">' +
+      '<div style="display:flex;justify-content:space-between;align-items:start;gap:8px">' +
+        '<div style="flex:1;min-width:0">' +
+          '<div style="font-size:11px;color:var(--muted);margin-bottom:2px">' + d.nombreArchivo + '</div>' +
+          '<div style="font-weight:600">' + bloqueTipo + (d.folio || '(sin folio)') + '</div>' +
+          '<div style="font-size:13px;margin-top:2px">' + (d.proveedor || '(sin proveedor)') + '</div>' +
+          '<div style="font-size:13px;color:var(--muted)">Fecha: ' + (d.fechaPedido || 'sin fecha') + ' · ' + importeStr + fleteStr + '</div>' +
+          bloqueExtra +
+        '</div>' +
+        '<button class="btn btn-sm" data-quitar-pdf="' + i + '" style="font-size:11px;padding:2px 8px">✕</button>' +
+      '</div>' +
+      inputFecha +
+      advert +
+    '</div>';
+  }).join('');
+  // Pre-seleccionar orden si viene de "+ Vincular otra factura"
+  if(window.__ordenParaVincularMas){
+    const sels = document.querySelectorAll('.sel-vincular-orden');
+    sels.forEach(sel => { sel.value = window.__ordenParaVincularMas; });
+    // Limpiar después del primer uso
+    setTimeout(() => { window.__ordenParaVincularMas = null; }, 200);
+  }
+}
+
+const PESO_SYM = String.fromCharCode(36);
+
+document.getElementById('file-pdf-ordenes')?.addEventListener('change', async (ev) => {
+  const files = Array.from(ev.target.files || []);
+  if(files.length === 0) return;
+  const dropzone = document.getElementById('pdf-dropzone-orden');
+  const originalHTML = dropzone.innerHTML;
+  dropzone.innerHTML = '<div style="font-size:13px;color:var(--muted);padding:8px">Procesando ' + files.length + ' PDF' + (files.length>1?'s':'') + '...</div>';
+  __pdfsDetectados = [];
+  let _ajustesEnZonaOrdenes = 0;
+  for(const f of files){
+    try{
+      const txt = await _extraerTextoPDF(f);
+      if(/Movimientos al inventario/i.test(txt.texto)){
+        // Es un reporte de ajustes: enrutar al flujo de ajustes
+        const docs = _parsearMovimientosPDF(txt, f.name);
+        __ajustesDetectados.push(...docs);
+        _ajustesEnZonaOrdenes += docs.length;
+        continue;
+      }
+      const datos = _parsearOrdenPDF(txt, f.name);
+      __pdfsDetectados.push(datos);
+    }catch(e){
+      alert('Error procesando ' + f.name + ': ' + e.message);
+    }
+  }
+  dropzone.innerHTML = originalHTML;
+  document.getElementById('file-pdf-ordenes').value = '';
+  if(_ajustesEnZonaOrdenes > 0 && __pdfsDetectados.length === 0){
+    _renderAjustesDetectados();
+    document.getElementById('modal-ajustes-detectados').style.display = 'flex';
+    return;
+  }
+  if(_ajustesEnZonaOrdenes > 0){
+    alert('Se detectaron ' + _ajustesEnZonaOrdenes + ' movimientos de ajuste. Se abrirán después de guardar o cancelar las órdenes.');
+  }
+  if(__pdfsDetectados.length === 0 && __ajustesDetectados.length === 0) return;
+  if(__pdfsDetectados.length === 0) return;
+  _renderPdfsDetectados();
+  document.getElementById('modal-pdfs-detectados').style.display = 'flex';
+});
+
+document.getElementById('btn-pdfs-cancelar')?.addEventListener('click', () => {
+  document.getElementById('modal-pdfs-detectados').style.display = 'none';
+  __pdfsDetectados = [];
+  _abrirAjustesPendientes();
+});
+
+document.getElementById('btn-pdfs-guardar')?.addEventListener('click', async () => {
+  // Recoger fechas estimadas (solo para ÓRDENES)
+  document.querySelectorAll('[data-pdf-fecha]').forEach(inp => {
+    const idx = parseInt(inp.getAttribute('data-pdf-fecha'));
+    if(__pdfsDetectados[idx]) __pdfsDetectados[idx].fechaEstimada = inp.value;
+  });
+  // Recoger vinculación manual de compras (data-vincular)
+  document.querySelectorAll('[data-vincular]').forEach(sel => {
+    const idx = parseInt(sel.getAttribute('data-vincular'));
+    if(__pdfsDetectados[idx]) __pdfsDetectados[idx].ordenVinculadaIdManual = sel.value || null;
+  });
+  // Validar: órdenes deben tener fecha estimada
+  const sinFecha = __pdfsDetectados.filter((d, i) => {
+    if(d.tipo !== 'orden') return false;
+    const dup = __ordenesCompra.find(o => o.folio === d.folio);
+    return !dup && !d.fechaEstimada;
+  });
+  if(sinFecha.length > 0){
+    alert('Falta capturar la fecha estimada de llegada en ' + sinFecha.length + ' orden(es).');
+    return;
+  }
+  const btn = document.getElementById('btn-pdfs-guardar');
+  btn.disabled = true;
+  let ordenesGuardadas = 0, comprasProcesadas = 0, comprasSinVincular = 0, omitidas = 0, errores = 0;
+  let totalCostosActualizados = 0, totalCostosNuevos = 0;
+  let backorderDetectado = 0;
+  
+  for(const d of __pdfsDetectados){
+    try{
+      if(d.tipo === 'orden'){
+        // ====== ORDEN DE COMPRA (pedido) ======
+        const dup = __ordenesCompra.find(o => o.folio === d.folio);
+        if(dup){ omitidas++; continue; }
+        await addDoc(collection(db, 'ordenesCompra'), {
+          folio: d.folio,
+          proveedor: d.proveedor,
+          fechaPedido: d.fechaPedido,
+          fechaEstimada: d.fechaEstimada,
+          importe: d.importe,
+          productos: d.productos || [],  // Productos PEDIDOS (con costos del pedido)
+          notas: '',
+          status: 'transito',
+          fechaLlegada: null,
+          ts: Date.now()
+        });
+        // NO actualizar catálogo de costos para órdenes (solo se actualiza con compras)
+        ordenesGuardadas++;
+      } else if(d.tipo === 'compra'){
+        // ====== DOCUMENTO DE COMPRA (recepción real) ======
+        // Encontrar la orden vinculada: primero automática (folioTraspaso), luego manual
+        let ordenVinculada = __ordenesCompra.find(o => o.folioTraspaso === d.folio);
+        if(!ordenVinculada && d.ordenVinculadaIdManual){
+          ordenVinculada = __ordenesCompra.find(o => o.id === d.ordenVinculadaIdManual);
+        }
+        
+        // Guardar datos en la orden (si está vinculada) o crear compra suelta
+        if(ordenVinculada){
+          // Construir nueva entrada de compra
+          const nuevaCompra = {
+            folio: d.folio,
+            fechaCompra: d.fechaPedido,
+            importeCompra: d.importe,
+            productosRecibidos: d.productos,
+            ts: Date.now()
+          };
+          // Obtener compras existentes (con compatibilidad legacy)
+          const comprasExistentes = _getComprasOrden(ordenVinculada);
+          // Verificar si ya estaba esta misma factura (evitar duplicar)
+          const yaExiste = comprasExistentes.some(c => c.folio === d.folio);
+          let nuevoArrayCompras;
+          if(yaExiste){
+            // Reemplazar la existente con la nueva (re-cargar mismo PDF)
+            nuevoArrayCompras = comprasExistentes.map(c => c.folio === d.folio ? nuevaCompra : c);
+          } else {
+            nuevoArrayCompras = [...comprasExistentes, nuevaCompra];
+          }
+          // Calcular backorder y extras con TODAS las compras
+          const tempOrden = {productos: ordenVinculada.productos, compras: nuevoArrayCompras};
+          const {backorder, extras} = _calcularBackorderYExtras(tempOrden);
+          // Actualizar doc
+          await updateDoc(doc(db, 'ordenesCompra', ordenVinculada.id), {
+            compras: nuevoArrayCompras,
+            backorder: backorder,
+            extrasRecibidos: extras,
+            // Limpiar campos legacy (ya están en compras[])
+            folioCompra: null,
+            fechaCompra: null,
+            importeCompra: null,
+            productosRecibidos: null,
+            // Si no tenía folioTraspaso, lo vinculamos al primer folio E
+            folioTraspaso: ordenVinculada.folioTraspaso || nuevoArrayCompras[0].folio
+          });
+          comprasProcesadas++;
+          if(backorder.length > 0) backorderDetectado++;
+        } else {
+          // Compra suelta sin orden
+          await addDoc(collection(db, 'comprasSueltas'), {
+            folio: d.folio,
+            proveedor: d.proveedor,
+            fechaCompra: d.fechaPedido,
+            importe: d.importe,
+            productos: d.productos,
+            ts: Date.now()
+          });
+          comprasSinVincular++;
+        }
+        
+        // Actualizar catálogo de costos con costo promedio ponderado
+        const productosParaCatalogo = d.productos.map(p => ({
+          clave: p.clave,
+          descripcion: p.descripcion,
+          costoUnit: p.costoPromedio  // Costo promedio incluyendo bonificación
+        }));
+        const res = await _actualizarCatalogoCostos(productosParaCatalogo, 'compra ' + d.folio);
+        totalCostosNuevos += res.nuevos;
+        totalCostosActualizados += res.actualizados;
+      }
+    }catch(e){
+      console.error('Error procesando ' + d.folio, e);
+      errores++;
+    }
+  }
+  btn.disabled = false;
+  document.getElementById('modal-pdfs-detectados').style.display = 'none';
+  __pdfsDetectados = [];
+  
+  // Mensaje resumen
+  const partes = [];
+  if(ordenesGuardadas > 0) partes.push('✓ ' + ordenesGuardadas + ' órdenes guardadas');
+  if(comprasProcesadas > 0) partes.push('✓ ' + comprasProcesadas + ' compras vinculadas');
+  if(comprasSinVincular > 0) partes.push(comprasSinVincular + ' compras sin vincular');
+  if(totalCostosActualizados > 0) partes.push('💲 ' + totalCostosActualizados + ' costos actualizados');
+  if(totalCostosNuevos > 0) partes.push(totalCostosNuevos + ' costos nuevos');
+  if(backorderDetectado > 0) partes.push('⚠️ ' + backorderDetectado + ' orden(es) con backorder');
+  if(omitidas > 0) partes.push(omitidas + ' omitidas (ya existían)');
+  if(errores > 0) partes.push(errores + ' con error');
+  alert(partes.join('\n'));
+  _abrirAjustesPendientes();
+});
+
+document.addEventListener('click', (ev) => {
+  const quitar = ev.target.closest('[data-quitar-pdf]');
+  if(quitar){
+    const idx = parseInt(quitar.getAttribute('data-quitar-pdf'));
+    __pdfsDetectados.splice(idx, 1);
+    if(__pdfsDetectados.length === 0){
+      document.getElementById('modal-pdfs-detectados').style.display = 'none';
+    } else {
+      _renderPdfsDetectados();
+    }
+  }
+});
+
+
+// ── FLUJO REVISADO / SURTIDO ──
+document.body.insertAdjacentHTML('beforeend', '<div id="modal-revisar-orden" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);z-index:1001;align-items:center;justify-content:center"><div style="background:#fff;border-radius:12px;padding:20px;max-width:420px;width:92%;max-height:90vh;overflow-y:auto"><h3 style="margin:0 0 14px 0;font-size:18px;color:#1e40af">Marcar como revisado</h3><div id="info-orden-revisar" style="font-size:13px;color:var(--muted);margin-bottom:14px"></div><div style="display:flex;flex-direction:column;gap:10px"><div><label class="lbl">Fecha y hora de revisión</label><input id="inp-rev-fechahora" type="datetime-local" style="width:100%;padding:8px;border:1px solid #cbd5e1;border-radius:6px;box-sizing:border-box" /></div><div><label class="lbl">Quien revisó</label><input id="inp-rev-quien" type="text" placeholder="Nombre de la persona" style="width:100%;padding:8px;border:1px solid #cbd5e1;border-radius:6px;box-sizing:border-box" /></div><div><label class="lbl">Notas (opcional)</label><textarea id="inp-rev-notas" rows="3" style="width:100%;padding:8px;border:1px solid #cbd5e1;border-radius:6px;box-sizing:border-box;resize:vertical"></textarea></div><div style="display:flex;gap:8px;margin-top:6px"><button id="btn-rev-cancelar" class="btn" style="flex:1">Cancelar</button><button id="btn-rev-guardar" class="btn btn-primary" style="flex:1;background:#3b82f6">Guardar</button></div></div></div></div>');
+document.body.insertAdjacentHTML('beforeend', '<div id="modal-surtir-orden" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);z-index:1001;align-items:center;justify-content:center"><div style="background:#fff;border-radius:12px;padding:20px;max-width:420px;width:92%;max-height:90vh;overflow-y:auto"><h3 style="margin:0 0 14px 0;font-size:18px;color:#6b21a8">Marcar como surtido</h3><div id="info-orden-surtir" style="font-size:13px;color:var(--muted);margin-bottom:14px"></div><div style="display:flex;flex-direction:column;gap:10px"><div><label class="lbl">Folio del traspaso (opcional - dejar vacío si es multi-sucursal)</label><input id="inp-sur-folio" type="text" placeholder="E____" style="width:100%;padding:8px;border:1px solid #cbd5e1;border-radius:6px;box-sizing:border-box;text-transform:uppercase" /></div><div><label class="lbl">Fecha y hora de surtido</label><input id="inp-sur-fechahora" type="datetime-local" style="width:100%;padding:8px;border:1px solid #cbd5e1;border-radius:6px;box-sizing:border-box" /></div><div><label class="lbl">Quien surtió</label><input id="inp-sur-quien" type="text" placeholder="Nombre de la persona" style="width:100%;padding:8px;border:1px solid #cbd5e1;border-radius:6px;box-sizing:border-box" /></div><div><label class="lbl">Notas (opcional)</label><textarea id="inp-sur-notas" rows="3" style="width:100%;padding:8px;border:1px solid #cbd5e1;border-radius:6px;box-sizing:border-box;resize:vertical"></textarea></div><div style="display:flex;gap:8px;margin-top:6px"><button id="btn-sur-cancelar" class="btn" style="flex:1">Cancelar</button><button id="btn-sur-guardar" class="btn btn-primary" style="flex:1;background:#a855f7">Guardar</button></div></div></div></div>');
+
+let __ordenAccionId = null;
+
+function _ahoraDatetimeLocal(){
+  const d = new Date();
+  const pad = (n) => String(n).padStart(2,'0');
+  return d.getFullYear() + '-' + pad(d.getMonth()+1) + '-' + pad(d.getDate()) + 'T' + pad(d.getHours()) + ':' + pad(d.getMinutes());
+}
+
+// Listeners modal Revisar
+document.getElementById('btn-rev-cancelar')?.addEventListener('click', () => {
+  document.getElementById('modal-revisar-orden').style.display = 'none';
+  __ordenAccionId = null;
+});
+
+document.getElementById('btn-rev-guardar')?.addEventListener('click', async () => {
+  if(!__ordenAccionId) return;
+  const fechaHora = document.getElementById('inp-rev-fechahora').value;
+  const quien = document.getElementById('inp-rev-quien').value.trim();
+  const notas = document.getElementById('inp-rev-notas').value.trim();
+  if(!fechaHora){ alert('Falta la fecha y hora'); return; }
+  if(!quien){ alert('Falta el nombre de quien revisó'); return; }
+  try{
+    await updateDoc(doc(db, 'ordenesCompra', __ordenAccionId), {
+      status: 'revisado',
+      fechaRevision: fechaHora,
+      quienReviso: quien,
+      notasRevision: notas
+    });
+    document.getElementById('modal-revisar-orden').style.display = 'none';
+    __ordenAccionId = null;
+  }catch(e){
+    alert('Error: ' + e.message);
+  }
+});
+
+// Listeners modal Surtir
+document.getElementById('btn-sur-cancelar')?.addEventListener('click', () => {
+  document.getElementById('modal-surtir-orden').style.display = 'none';
+  __ordenAccionId = null;
+});
+
+document.getElementById('btn-sur-guardar')?.addEventListener('click', async () => {
+  if(!__ordenAccionId) return;
+  const fechaHora = document.getElementById('inp-sur-fechahora').value;
+  const quien = document.getElementById('inp-sur-quien').value.trim();
+  const notas = document.getElementById('inp-sur-notas').value.trim();
+  const folioTraspaso = document.getElementById('inp-sur-folio').value.trim().toUpperCase();
+  if(!fechaHora){ alert('Falta la fecha y hora'); return; }
+  if(!quien){ alert('Falta el nombre de quien surtió'); return; }
+  // Validar que el folio exista en la colección traspasos
+  if(folioTraspaso){
+    const tCoincide = traspasos.filter(t => t.folio === folioTraspaso);
+    if(tCoincide.length === 0){
+      if(!confirm('No se encontró ningún traspaso con folio "' + folioTraspaso + '". ¿Guardar de todos modos?')) return;
+    }
+  }
+  try{
+    await updateDoc(doc(db, 'ordenesCompra', __ordenAccionId), {
+      status: 'surtido',
+      fechaSurtido: fechaHora,
+      quienSurtio: quien,
+      notasSurtido: notas,
+      folioTraspaso: folioTraspaso || null
+    });
+    document.getElementById('modal-surtir-orden').style.display = 'none';
+    __ordenAccionId = null;
+  }catch(e){
+    alert('Error: ' + e.message);
+  }
+});
+
+// Delegacion para botones de transicion
+document.addEventListener('click', (ev) => {
+  const revisar = ev.target.closest('[data-orden-revisar]');
+  const surtir = ev.target.closest('[data-orden-surtir]');
+  if(revisar){
+    const id = revisar.getAttribute('data-orden-revisar');
+    const o = __ordenesCompra.find(x => x.id === id);
+    if(!o) return;
+    __ordenAccionId = id;
+    document.getElementById('info-orden-revisar').textContent = (o.folio||'') + ' · ' + (o.proveedor||'');
+    document.getElementById('inp-rev-fechahora').value = _ahoraDatetimeLocal();
+    document.getElementById('inp-rev-quien').value = '';
+    document.getElementById('inp-rev-notas').value = '';
+    document.getElementById('modal-revisar-orden').style.display = 'flex';
+  }
+  if(surtir){
+    const id = surtir.getAttribute('data-orden-surtir');
+    const o = __ordenesCompra.find(x => x.id === id);
+    if(!o) return;
+    __ordenAccionId = id;
+    document.getElementById('info-orden-surtir').textContent = (o.folio||'') + ' · ' + (o.proveedor||'');
+    document.getElementById('inp-sur-fechahora').value = _ahoraDatetimeLocal();
+    document.getElementById('inp-sur-quien').value = '';
+    document.getElementById('inp-sur-notas').value = '';
+    document.getElementById('inp-sur-folio').value = '';
+    document.getElementById('modal-surtir-orden').style.display = 'flex';
+  }
+});
+
+
+// VINCULAR FOLIO RETROACTIVO
+document.body.insertAdjacentHTML('beforeend', '<div id="modal-vincular-folio" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);z-index:1001;align-items:center;justify-content:center"><div style="background:#fff;border-radius:12px;padding:20px;max-width:420px;width:92%"><h3 style="margin:0 0 14px 0;font-size:18px;color:#6b21a8">Vincular folio de traspaso</h3><div id="info-orden-vincular" style="font-size:13px;color:var(--muted);margin-bottom:14px"></div><div><label class="lbl">Folio del traspaso (dejar vacío si es multi-sucursal)</label><input id="inp-vinc-folio" type="text" placeholder="E____" style="width:100%;padding:8px;border:1px solid #cbd5e1;border-radius:6px;box-sizing:border-box;text-transform:uppercase" /></div><div style="display:flex;gap:8px;margin-top:16px"><button id="btn-vinc-cancelar" class="btn" style="flex:1">Cancelar</button><button id="btn-vinc-guardar" class="btn btn-primary" style="flex:1;background:#a855f7">Guardar</button></div></div></div>');
+
+let __ordenVincularId = null;
+
+document.getElementById('btn-vinc-cancelar')?.addEventListener('click', () => {
+  document.getElementById('modal-vincular-folio').style.display = 'none';
+  __ordenVincularId = null;
+});
+
+document.getElementById('btn-vinc-guardar')?.addEventListener('click', async () => {
+  if(!__ordenVincularId) return;
+  const folio = document.getElementById('inp-vinc-folio').value.trim().toUpperCase();
+  if(folio){
+    const tCoincide = traspasos.filter(t => t.folio === folio);
+    if(tCoincide.length === 0){
+      if(!confirm('No se encontró ningún traspaso con folio "' + folio + '". ¿Guardar de todos modos?')) return;
+    }
+  }
+  try{
+    await updateDoc(doc(db, 'ordenesCompra', __ordenVincularId), {
+      folioTraspaso: folio || null
+    });
+    document.getElementById('modal-vincular-folio').style.display = 'none';
+    __ordenVincularId = null;
+  }catch(e){
+    alert('Error: ' + e.message);
+  }
+});
+
+document.addEventListener('click', (ev) => {
+  const vinc = ev.target.closest('[data-orden-vincular]');
+  if(vinc){
+    const id = vinc.getAttribute('data-orden-vincular');
+    const o = __ordenesCompra.find(x => x.id === id);
+    if(!o) return;
+    __ordenVincularId = id;
+    document.getElementById('info-orden-vincular').textContent = (o.folio||'') + ' · ' + (o.proveedor||'');
+    document.getElementById('inp-vinc-folio').value = o.folioTraspaso || '';
+    document.getElementById('modal-vincular-folio').style.display = 'flex';
+  }
+});
+
+// ============================================================
+// MANEJO DE MÚLTIPLES COMPRAS POR ORDEN
+// ============================================================
+// Modelo nuevo: orden.compras = [{folio, fechaCompra, importeCompra, productosRecibidos[]}]
+// Modelo legacy: orden.folioCompra + orden.productosRecibidos (1 sola compra)
+// Esta función normaliza a array siempre
+
+function _getComprasOrden(o){
+  if(Array.isArray(o.compras) && o.compras.length > 0) return o.compras;
+  // Compatibilidad con modelo legacy
+  if(o.folioCompra && Array.isArray(o.productosRecibidos) && o.productosRecibidos.length > 0){
+    return [{
+      folio: o.folioCompra,
+      fechaCompra: o.fechaCompra,
+      importeCompra: o.importeCompra,
+      productosRecibidos: o.productosRecibidos
+    }];
+  }
+  return [];
+}
+
+// Suma cantidades e importes de todas las compras agrupadas por clave
+function _getAcumuladoRecibido(o){
+  const compras = _getComprasOrden(o);
+  const map = {};
+  for(const c of compras){
+    for(const p of (c.productosRecibidos || [])){
+      if(!map[p.clave]){
+        map[p.clave] = {
+          clave: p.clave,
+          descripcion: p.descripcion || '',
+          cantTotal: 0,
+          importeTotal: 0,
+          tieneBonificacion: false,
+          desgloseFacturas: []
+        };
+      }
+      const g = map[p.clave];
+      g.cantTotal += p.cantRecibida || 0;
+      g.importeTotal += p.importeTotal || 0;
+      if(p.tieneBonificacion) g.tieneBonificacion = true;
+      g.desgloseFacturas.push({
+        folio: c.folio,
+        fecha: c.fechaCompra,
+        cant: p.cantRecibida || 0,
+        importe: p.importeTotal || 0
+      });
+      if(!g.descripcion && p.descripcion) g.descripcion = p.descripcion;
+    }
+  }
+  return Object.values(map).map(g => ({
+    clave: g.clave,
+    descripcion: g.descripcion,
+    cantRecibida: g.cantTotal,
+    importeTotal: Math.round(g.importeTotal * 100) / 100,
+    costoPromedio: g.cantTotal > 0 ? Math.round((g.importeTotal / g.cantTotal) * 10000) / 10000 : 0,
+    tieneBonificacion: g.tieneBonificacion,
+    desgloseFacturas: g.desgloseFacturas
+  }));
+}
+
+// Calcula backorder y extras con base en acumulado de todas las compras
+function _calcularBackorderYExtras(o){
+  if(!Array.isArray(o.productos) || o.productos.length === 0) return {backorder: [], extras: []};
+  const acumulado = _getAcumuladoRecibido(o);
+  const mapAcum = {};
+  acumulado.forEach(a => mapAcum[a.clave] = a);
+  const mapPed = {};
+  o.productos.forEach(p => mapPed[p.clave] = p);
+  
+  const backorder = [];
+  for(const p of o.productos){
+    const recibido = mapAcum[p.clave];
+    const cantRec = recibido ? recibido.cantRecibida : 0;
+    if(cantRec < (p.cantPedida || 0)){
+      backorder.push({
+        clave: p.clave,
+        descripcion: p.descripcion,
+        cantPedida: p.cantPedida || 0,
+        cantRecibida: cantRec,
+        faltante: (p.cantPedida || 0) - cantRec,
+        costoUnit: p.costoUnit || 0
+      });
+    }
+  }
+  const extras = [];
+  for(const a of acumulado){
+    if(!mapPed[a.clave]){
+      extras.push({clave: a.clave, descripcion: a.descripcion, cantRecibida: a.cantRecibida});
+    }
+  }
+  return {backorder, extras};
+}
+
+// ============================================================
+// CATÁLOGO DE COSTOS
+// ============================================================
+// Colección "costos" en Firestore.
+// Cada doc: id = clave del producto, campos:
+//   { clave, descripcion, costoActual, fechaActualizacion, fuente, historial: [{costo, fecha, fuente}] }
+// Se actualiza automáticamente al guardar una orden, o manualmente desde el botón "Importar costos".
+
+async function _actualizarCatalogoCostos(productos, fuente){
+  if(!productos || productos.length === 0) return {actualizados: 0, nuevos: 0, sinCambio: 0};
+  const ahora = new Date().toISOString();
+  let actualizados = 0, nuevos = 0, sinCambio = 0;
+  // Hacer en batches de 400 para no saturar
+  const tamBatch = 400;
+  for(let i = 0; i < productos.length; i += tamBatch){
+    const lote = productos.slice(i, i + tamBatch);
+    const batch = writeBatch(db);
+    for(const p of lote){
+      if(!p.clave || !p.costoUnit || p.costoUnit <= 0) continue;
+      const refCosto = doc(db, 'costos', p.clave);
+      // Leer doc actual
+      let docActual = null;
+      try { 
+        const snap = await getDoc(refCosto); 
+        if(snap.exists()) docActual = snap.data(); 
+      } catch(e) {}
+      
+      if(!docActual){
+        // Producto nuevo en catálogo
+        batch.set(refCosto, {
+          clave: p.clave,
+          descripcion: p.descripcion || '',
+          costoActual: p.costoUnit,
+          fechaActualizacion: ahora,
+          fuente: fuente,
+          historial: [{costo: p.costoUnit, fecha: ahora, fuente: fuente}]
+        });
+        nuevos++;
+      } else if(Math.abs((docActual.costoActual || 0) - p.costoUnit) > 0.001){
+        // Costo cambió: actualizar y agregar al historial
+        const historial = Array.isArray(docActual.historial) ? docActual.historial : [];
+        historial.unshift({costo: p.costoUnit, fecha: ahora, fuente: fuente});
+        // Limitar a últimos 30 cambios
+        if(historial.length > 30) historial.length = 30;
+        batch.update(refCosto, {
+          costoAnterior: docActual.costoActual,
+          costoActual: p.costoUnit,
+          fechaActualizacion: ahora,
+          fuente: fuente,
+          historial: historial,
+          descripcion: p.descripcion || docActual.descripcion || ''
+        });
+        actualizados++;
+      } else {
+        sinCambio++;
+      }
+    }
+    await batch.commit();
+  }
+  return {actualizados, nuevos, sinCambio};
+}
+
+// ============================================================
+// MODAL "VER DETALLE DE PRODUCTOS"
+// ============================================================
+document.body.insertAdjacentHTML('beforeend', '<div id="modal-detalle-productos" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);z-index:1000;align-items:flex-start;justify-content:center;overflow-y:auto;padding:20px 0"><div style="background:#fff;border-radius:12px;padding:20px;max-width:780px;width:94%;max-height:90vh;overflow-y:auto;margin:auto"><div style="display:flex;justify-content:space-between;align-items:start;margin-bottom:12px;gap:8px"><div><h3 style="margin:0;font-size:17px" id="titulo-detalle-productos">Detalle de productos</h3><div id="subtitulo-detalle-productos" style="font-size:13px;color:var(--muted);margin-top:2px"></div></div><button id="btn-cerrar-detalle-productos" class="btn btn-sm" style="font-size:13px">Cerrar</button></div><div id="cuerpo-detalle-productos"></div></div></div>');
+
+function _abrirDetalleProductos(orden){
+  const productos = orden.productos || [];
+  const compras = _getComprasOrden(orden);
+  const recibidos = _getAcumuladoRecibido(orden); // ACUMULADO de TODAS las compras
+  const backorder = orden.backorder || [];
+  const tieneCompra = recibidos.length > 0;
+  
+  document.getElementById('titulo-detalle-productos').textContent = 'Detalle: ' + (orden.folio || '(sin folio)');
+  let subtit = (orden.proveedor || '') + ' · ' + productos.length + ' productos pedidos';
+  if(tieneCompra){
+    subtit += ' · ' + compras.length + ' factura' + (compras.length>1?'s':'') + ' vinculada' + (compras.length>1?'s':'');
+  }
+  document.getElementById('subtitulo-detalle-productos').textContent = subtit;
+  
+  const cuerpo = document.getElementById('cuerpo-detalle-productos');
+  
+  if(productos.length === 0 && recibidos.length === 0){
+    cuerpo.innerHTML = '<div style="padding:20px;text-align:center;color:var(--muted);background:#f9fafb;border-radius:8px">Esta orden no tiene detalle de productos.<br><span style="font-size:12px">Posiblemente se cargó antes de que la app extrajera productos automáticamente. Vuelve a cargar el PDF para obtener el detalle.</span></div>';
+    document.getElementById('modal-detalle-productos').style.display = 'flex';
+    return;
+  }
+  
+  let html = '';
+  
+  // Si hay compras: mostrar primero la lista de facturas vinculadas
+  if(tieneCompra){
+    const totalImporteCompras = compras.reduce((s,c) => s + (c.importeCompra||0), 0);
+    html += '<div style="background:#dbeafe;padding:10px 12px;border-radius:6px;margin-bottom:10px;font-size:13px;color:#1e40af">'
+      + '<div style="display:flex;justify-content:space-between;align-items:start;gap:8px;flex-wrap:wrap">'
+      + '<div><strong>📦 ' + compras.length + ' factura' + (compras.length>1?'s':'') + ' vinculada' + (compras.length>1?'s':'') + '</strong> · Total: ' + _fmtImporte(totalImporteCompras) + '</div>'
+      + '<button class="btn btn-sm" data-vincular-mas="' + orden.id + '" style="background:#1e40af;color:#fff;font-size:11px;padding:3px 10px">+ Vincular otra factura</button>'
+      + '</div>'
+      + '<div style="margin-top:6px;font-size:12px">'
+      + compras.map(c => '<div style="padding:3px 0;display:flex;justify-content:space-between;gap:8px;border-top:1px solid #93c5fd"><span><strong>' + (c.folio||'') + '</strong> · ' + (c.fechaCompra||'sin fecha') + ' · ' + (c.productosRecibidos?c.productosRecibidos.length:0) + ' productos</span><span>' + _fmtImporte(c.importeCompra||0) + '</span></div>').join('')
+      + '</div>'
+      + '</div>';
+    
+    const tienePedidos = productos.length > 0;
+    
+    if(!tienePedidos){
+      // Orden sin detalle de pedido: no podemos calcular backorder
+      html += '<div style="background:#fef3c7;padding:8px 12px;border-radius:6px;margin-bottom:10px;font-size:12px;color:#92400e">ℹ️ Esta orden fue creada sin detalle de productos pedidos. No se puede calcular backorder retroactivo. Solo se muestra lo recibido con costos reales.<br><span style="font-size:11px">Para tener backorder correcto: elimina esta orden y vuelve a cargar tanto el PDF de orden como los de compra.</span></div>';
+      // Tabla simple de recibidos (acumulado)
+      let sumaImp = 0;
+      html += '<div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse;font-size:12px"><thead><tr style="background:#f3e8ff;color:#6b21a8">'
+        + '<th style="padding:5px 6px;text-align:left">Clave</th>'
+        + '<th style="padding:5px 6px;text-align:left">Descripción</th>'
+        + '<th style="padding:5px 6px;text-align:right">Recibido</th>'
+        + '<th style="padding:5px 6px;text-align:right">Costo Real</th>'
+        + '<th style="padding:5px 6px;text-align:right">Importe</th>'
+        + '<th style="padding:5px 6px;text-align:center">Notas</th>'
+        + '</tr></thead><tbody>';
+      for(const rec of recibidos){
+        const bonifTag = rec.tieneBonificacion ? '<span title="Con bonificación del proveedor">🎁</span>' : '';
+        const multiTag = rec.desgloseFacturas.length > 1 ? ' <span style="font-size:10px;color:#6b21a8" title="' + rec.desgloseFacturas.map(f => f.folio + ': ' + f.cant).join(', ') + '">📑×' + rec.desgloseFacturas.length + '</span>' : '';
+        sumaImp += rec.importeTotal || 0;
+        html += '<tr style="border-bottom:1px solid #f3f4f6">'
+          + '<td style="padding:4px 6px;font-family:monospace;font-size:11px">' + (rec.clave||'') + '</td>'
+          + '<td style="padding:4px 6px">' + (rec.descripcion||'') + multiTag + '</td>'
+          + '<td style="padding:4px 6px;text-align:right">' + (rec.cantRecibida||0) + '</td>'
+          + '<td style="padding:4px 6px;text-align:right">' + _fmtImporte(rec.costoPromedio||0) + '</td>'
+          + '<td style="padding:4px 6px;text-align:right;font-weight:600">' + _fmtImporte(rec.importeTotal||0) + '</td>'
+          + '<td style="padding:4px 6px;text-align:center">' + bonifTag + '</td>'
+          + '</tr>';
+      }
+      html += '</tbody><tfoot><tr style="background:#faf5ff;font-weight:600">'
+        + '<td colspan="4" style="padding:6px 8px;text-align:right">Suma:</td>'
+        + '<td style="padding:6px 8px;text-align:right">' + _fmtImporte(sumaImp) + '</td>'
+        + '<td></td>'
+        + '</tr></tfoot></table></div>';
+      html += '<div style="margin-top:10px;font-size:11px;color:var(--muted)">🎁 = con bonificación · 📑×N = recibido en N facturas distintas (pasa cursor para ver desglose)</div>';
+    } else {
+      // Tabla comparativa completa
+      const mapPed = {};
+      productos.forEach(p => mapPed[p.clave] = p);
+      const mapRec = {};
+      recibidos.forEach(p => mapRec[p.clave] = p);
+      const todasClaves = Array.from(new Set([...Object.keys(mapPed), ...Object.keys(mapRec)]));
+      todasClaves.sort();
+      
+      let sumaPed = 0, sumaRec = 0;
+      
+      if(backorder.length > 0){
+        html += '<div style="background:#fef3c7;padding:8px 12px;border-radius:6px;margin-bottom:10px;font-size:13px;color:#92400e"><strong>⚠️ Backorder pendiente con proveedor: ' + backorder.length + ' producto(s)</strong></div>';
+      }
+      
+      html += '<div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse;font-size:12px"><thead><tr style="background:#f3e8ff;color:#6b21a8">'
+        + '<th style="padding:5px 6px;text-align:left">Clave</th>'
+        + '<th style="padding:5px 6px;text-align:left">Descripción</th>'
+        + '<th style="padding:5px 6px;text-align:right">Pedido</th>'
+        + '<th style="padding:5px 6px;text-align:right">Recibido</th>'
+        + '<th style="padding:5px 6px;text-align:right">Δ</th>'
+        + '<th style="padding:5px 6px;text-align:right">Costo Ped</th>'
+        + '<th style="padding:5px 6px;text-align:right">Costo Real</th>'
+        + '<th style="padding:5px 6px;text-align:right">Estado</th>'
+        + '</tr></thead><tbody>';
+      
+      for(const cl of todasClaves){
+        const ped = mapPed[cl];
+        const rec = mapRec[cl];
+        const cantPed = ped ? (ped.cantPedida || 0) : 0;
+        const cantRec = rec ? (rec.cantRecibida || 0) : 0;
+        const delta = cantRec - cantPed;
+        const costoPed = ped ? (ped.costoUnit || 0) : 0;
+        const costoReal = rec ? (rec.costoPromedio || 0) : 0;
+        
+        sumaPed += cantPed * costoPed;
+        sumaRec += rec ? (rec.importeTotal || 0) : 0;
+        
+        let estado = '';
+        let bgRow = '';
+        if(!ped && rec){
+          estado = '<span style="color:#7c3aed">✨ Extra</span>';
+          bgRow = 'background:#f3e8ff';
+        } else if(ped && !rec){
+          estado = '<span style="color:#dc2626">🚫 No llegó</span>';
+          bgRow = 'background:#fef2f2';
+        } else if(delta < 0){
+          estado = '<span style="color:#d97706">⚠️ Faltó ' + Math.abs(delta) + '</span>';
+          bgRow = 'background:#fef3c7';
+        } else if(delta > 0){
+          estado = '<span style="color:#7c3aed">+' + delta + ' extra</span>';
+        } else {
+          estado = '<span style="color:#16a34a">✓</span>';
+        }
+        
+        let cambioCosto = '';
+        if(costoPed > 0 && costoReal > 0){
+          const pct = ((costoReal - costoPed) / costoPed * 100);
+          if(Math.abs(pct) >= 1){
+            const signo = pct > 0 ? '+' : '';
+            const color = pct > 5 ? '#dc2626' : (pct > 0 ? '#d97706' : '#16a34a');
+            cambioCosto = ' <span style="color:' + color + ';font-size:10px">(' + signo + pct.toFixed(1) + '%)</span>';
+          }
+        }
+        
+        const bonifTag = rec && rec.tieneBonificacion ? ' 🎁' : '';
+        const multiTag = rec && rec.desgloseFacturas && rec.desgloseFacturas.length > 1 ? ' <span style="font-size:10px;color:#6b21a8" title="' + rec.desgloseFacturas.map(f => f.folio + ': ' + f.cant).join(', ') + '">📑×' + rec.desgloseFacturas.length + '</span>' : '';
+        
+        html += '<tr style="border-bottom:1px solid #f3f4f6;' + bgRow + '">'
+          + '<td style="padding:4px 6px;font-family:monospace;font-size:11px">' + cl + '</td>'
+          + '<td style="padding:4px 6px">' + ((ped&&ped.descripcion)||(rec&&rec.descripcion)||'') + bonifTag + multiTag + '</td>'
+          + '<td style="padding:4px 6px;text-align:right">' + cantPed + '</td>'
+          + '<td style="padding:4px 6px;text-align:right">' + cantRec + '</td>'
+          + '<td style="padding:4px 6px;text-align:right">' + (delta!==0 ? (delta>0?'+':'')+delta : '—') + '</td>'
+          + '<td style="padding:4px 6px;text-align:right">' + (costoPed>0?_fmtImporte(costoPed):'—') + '</td>'
+          + '<td style="padding:4px 6px;text-align:right">' + (costoReal>0?_fmtImporte(costoReal):'—') + cambioCosto + '</td>'
+          + '<td style="padding:4px 6px;text-align:right">' + estado + '</td>'
+          + '</tr>';
+      }
+      
+      html += '</tbody><tfoot><tr style="background:#faf5ff;font-weight:600">'
+        + '<td colspan="5" style="padding:6px 8px;text-align:right">Importe pedido vs real:</td>'
+        + '<td style="padding:6px 8px;text-align:right">' + _fmtImporte(sumaPed) + '</td>'
+        + '<td colspan="2" style="padding:6px 8px;text-align:right">' + _fmtImporte(sumaRec) + '</td>'
+        + '</tr></tfoot></table></div>';
+      html += '<div style="margin-top:10px;font-size:11px;color:var(--muted)">🎁 = con bonificación · 📑×N = recibido en N facturas distintas (pasa cursor para ver desglose) · costo real = promedio ponderado de TODAS las facturas</div>';
+    }
+  } else {
+    // Solo pedido (no ha llegado compra todavía)
+    const suma = productos.reduce((s,p) => s + (p.importe || (p.cantPedida * p.costoUnit) || 0), 0);
+    html = '<div style="background:#fed7aa;padding:8px 12px;border-radius:6px;margin-bottom:10px;font-size:13px;color:#9a3412"><strong>📋 Pedido al proveedor</strong> — pendiente de recepción de mercancía</div>';
+    html += '<div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse;font-size:13px"><thead><tr style="background:#f3e8ff;color:#6b21a8"><th style="padding:6px 8px;text-align:left">Clave</th><th style="padding:6px 8px;text-align:left">Descripción</th><th style="padding:6px 8px;text-align:right">Cant Ped</th><th style="padding:6px 8px;text-align:right">Costo</th><th style="padding:6px 8px;text-align:right">Importe</th></tr></thead><tbody>' + productos.map(p => '<tr style="border-bottom:1px solid #f3f4f6"><td style="padding:5px 8px;font-family:monospace;font-size:12px">' + (p.clave||'') + '</td><td style="padding:5px 8px">' + (p.descripcion||'') + '</td><td style="padding:5px 8px;text-align:right">' + (p.cantPedida||0) + '</td><td style="padding:5px 8px;text-align:right">' + _fmtImporte(p.costoUnit||0) + '</td><td style="padding:5px 8px;text-align:right;font-weight:600">' + _fmtImporte(p.importe || (p.cantPedida * p.costoUnit) || 0) + '</td></tr>').join('') + '</tbody><tfoot><tr style="background:#faf5ff;font-weight:600"><td colspan="4" style="padding:6px 8px;text-align:right">Suma:</td><td style="padding:6px 8px;text-align:right">' + _fmtImporte(suma) + '</td></tr></tfoot></table></div>';
+  }
+  
+  cuerpo.innerHTML = html;
+  document.getElementById('modal-detalle-productos').style.display = 'flex';
+}
+
+document.getElementById('btn-cerrar-detalle-productos').addEventListener('click', () => {
+  document.getElementById('modal-detalle-productos').style.display = 'none';
+});
+
+document.addEventListener('click', (ev) => {
+  const det = ev.target.closest('[data-orden-detalle]');
+  if(det){
+    const id = det.getAttribute('data-orden-detalle');
+    const o = __ordenesCompra.find(x => x.id === id);
+    if(o) _abrirDetalleProductos(o);
+  }
+  // Botón "+ Vincular otra factura" dentro del modal detalle
+  const vinMas = ev.target.closest('[data-vincular-mas]');
+  if(vinMas){
+    const id = vinMas.getAttribute('data-vincular-mas');
+    window.__ordenParaVincularMas = id;
+    document.getElementById('modal-detalle-productos').style.display = 'none';
+    // Disparar el file picker de PDFs
+    const fileInput = document.getElementById('file-pdf-ordenes');
+    if(fileInput) fileInput.click();
+  }
+});
+
+// ============================================================
+// IMPORTAR COSTOS DESDE EXCEL (botón en panel Admin)
+// ============================================================
+// Inyectar botón en sección "Órdenes de compra" del admin
+(function inyectarBtnImportarCostos(){
+  // Buscar contenedor de lista de órdenes admin e insertar arriba
+  const listaOrdenes = document.getElementById('lista-ordenes-admin');
+  if(!listaOrdenes) return;
+  const cont = document.createElement('div');
+  cont.style.cssText = 'margin:0 0 14px 0;padding:10px;background:#faf5ff;border:1px solid #e9d5ff;border-radius:8px';
+  cont.innerHTML = '<div style="display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap"><div><div style="font-weight:600;font-size:13px;color:#6b21a8">📊 Catálogo de costos</div><div style="font-size:12px;color:#7c3aed;margin-top:2px" id="info-catalogo-costos">El catálogo se actualiza con cada PDF cargado.</div></div><label class="btn btn-sm" style="background:#6b21a8;color:#fff;cursor:pointer;font-size:12px;padding:6px 12px;margin:0">📥 Importar desde Excel<input type="file" id="file-importar-costos" accept=".xlsx,.xls,.csv" style="display:none"></label></div>';
+  listaOrdenes.parentNode.insertBefore(cont, listaOrdenes);
+})();
+
+// Cargar SheetJS bajo demanda
+async function _cargarSheetJS(){
+  if(window.XLSX) return window.XLSX;
+  await new Promise((resolve, reject) => {
+    const s = document.createElement('script');
+    s.src = 'https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js';
+    s.onload = resolve;
+    s.onerror = () => reject(new Error('No se pudo cargar SheetJS'));
+    document.head.appendChild(s);
+  });
+  if(!window.XLSX) throw new Error('XLSX no apareció');
+  return window.XLSX;
+}
+
+document.addEventListener('change', async (ev) => {
+  if(ev.target.id !== 'file-importar-costos') return;
+  const file = ev.target.files[0];
+  if(!file) return;
+  const info = document.getElementById('info-catalogo-costos');
+  const setInfo = (t) => { if(info) info.textContent = t; };
+  setInfo('Procesando archivo...');
+  try{
+    const xlsx = await _cargarSheetJS();
+    const buf = await file.arrayBuffer();
+    const wb = xlsx.read(buf, {type: 'array'});
+    const ws = wb.Sheets[wb.SheetNames[0]];
+    const rows = xlsx.utils.sheet_to_json(ws, {header: 1, defval: ''});
+    // Buscar fila de encabezados (busca "Clave" o "clave")
+    let headerRow = -1;
+    let colClave = -1, colDesc = -1, colCosto = -1, colExist = -1;
+    for(let r = 0; r < Math.min(rows.length, 20); r++){
+      const row = (rows[r] || []).map(x => String(x).toLowerCase().trim());
+      const idxClave = row.findIndex(c => c === 'clave');
+      if(idxClave >= 0){
+        headerRow = r;
+        colClave = idxClave;
+        colDesc = row.findIndex(c => c.includes('descrip'));
+        colCosto = row.findIndex(c => c.includes('ultimo costo') || c.includes('último costo') || c.includes('costo unitario') || c === 'costo');
+        colExist = row.findIndex(c => c.includes('existencia'));
+        break;
+      }
+    }
+    if(headerRow < 0 || colClave < 0){
+      alert('No se encontró columna "Clave" en el archivo. Verifica el formato.');
+      setInfo('El catálogo se actualiza con cada PDF cargado.');
+      ev.target.value = '';
+      return;
+    }
+    if(colCosto < 0){
+      alert('No se encontró columna de costo (Ultimo Costo / Costo). Verifica el formato.');
+      setInfo('El catálogo se actualiza con cada PDF cargado.');
+      ev.target.value = '';
+      return;
+    }
+    // Extraer productos
+    const productos = [];
+    for(let r = headerRow + 1; r < rows.length; r++){
+      const row = rows[r] || [];
+      const clave = String(row[colClave] || '').trim();
+      const costo = parseFloat(row[colCosto]) || 0;
+      if(!clave || costo <= 0) continue;
+      const prod = {
+        clave: clave.toUpperCase(),
+        descripcion: colDesc >= 0 ? String(row[colDesc] || '').trim() : '',
+        costoUnit: costo,
+        cantPedida: 0,
+        importe: 0
+      };
+      if(colExist >= 0){
+        prod._existencia = parseFloat(row[colExist]) || 0;
+      }
+      productos.push(prod);
+    }
+    if(productos.length === 0){
+      alert('No se detectaron productos con costo válido.');
+      setInfo('El catálogo se actualiza con cada PDF cargado.');
+      ev.target.value = '';
+      return;
+    }
+    if(!confirm('Se cargarán ' + productos.length + ' productos al catálogo de costos. ¿Continuar?')){
+      setInfo('El catálogo se actualiza con cada PDF cargado.');
+      ev.target.value = '';
+      return;
+    }
+    setInfo('Subiendo ' + productos.length + ' productos al catálogo...');
+    const fuente = 'Importación Excel ' + new Date().toLocaleDateString('es-MX');
+    const res = await _actualizarCatalogoCostos(productos, fuente);
+    setInfo('✓ Importación: ' + res.nuevos + ' nuevos · ' + res.actualizados + ' actualizados · ' + res.sinCambio + ' sin cambio');
+    alert('Importación completa:\n• ' + res.nuevos + ' productos nuevos\n• ' + res.actualizados + ' costos actualizados\n• ' + res.sinCambio + ' sin cambio');
+  }catch(e){
+    alert('Error procesando archivo: ' + e.message);
+    setInfo('El catálogo se actualiza con cada PDF cargado.');
+  }
+  ev.target.value = '';
+});
+
+// ============================================================
+// AJUSTES DE INVENTARIO (entradas EA#### / salidas SA####)
+// ============================================================
+// Colección "ajustesInventario" en Firestore. Cada doc:
+//   { folio, tipo: 'entrada'|'salida', fecha (ISO), sucursal, sucursalNum,
+//     productos: [{clave, descripcion, cantidad, costoUnit, costoTotal, precioUnit, precioTotal}],
+//     totalCosto, totalPrecio, numPiezas, nombreArchivo, ts }
+// Un solo PDF "Movimientos al inventario" puede traer VARIOS documentos
+// (cada uno con su Fecha: y su folio). Se separan y guardan individualmente.
+// Los ajustes NO actualizan el catálogo de costos (traen costo actual, no costo de compra).
+
+let __ajustes = [];
+let __ajustesDetectados = [];
+let __ajusteDetId = null;
+let tabAjSuc = 0;
+let tabAjTipo = 0;
+
+onSnapshot(collection(db, 'ajustesInventario'), (snap) => {
+  __ajustes = snap.docs.map(d => ({...d.data(), id: d.id}))
+    .sort((a,b) => (b.fecha||'').localeCompare(a.fecha||'') || (b.ts||0)-(a.ts||0));
+  if(document.getElementById('s-ajustes').classList.contains('active')) renderAjustes();
+});
+
+function _parsearMovimientosPDF(datosPDF, nombreArchivo){
+  const lineas = datosPDF.lineas || [];
+  const num = s => parseFloat(String(s).replace(/,/g,'')) || 0;
+  const RE_FECHA = /Fecha:\s*(\d{1,2})-([A-Za-z]+)-(\d{4})/;
+  const RE_FOLIO = /(?:^|\s)((?:SA|EA)\d{2,6})(?:\s|$)/i;
+  const RE_SUC = /^(\d{1,2})\s+SUC\.?\s+(.+)$/i;
+  // Línea de producto: cantidad | clave | descripción | costoUnit | costoTotal | precioUnit | precioTotal
+  const RE_PROD = /^\s*([\d,]+\.\d{2})\s+(\S+)\s+(.+?)\s+([\d,]+\.\d{2})\s+([\d,]+\.\d{2})\s+([\d,]+\.\d{2})\s+([\d,]+\.\d{2})\s*$/;
+  
+  const docs = [];
+  let actual = null;
+  let fechaActual = '';
+  
+  const cerrar = () => { if(actual && actual.productos.length > 0) docs.push(actual); actual = null; };
+  
+  for(const ln of lineas){
+    const mF = ln.match(RE_FECHA);
+    if(mF){
+      const mes = _mesANum(mF[2]);
+      fechaActual = (mes !== undefined)
+        ? mF[3] + '-' + String(mes+1).padStart(2,'0') + '-' + String(parseInt(mF[1])).padStart(2,'0')
+        : '';
+      // En el reporte real la fecha viene DESPUES de la linea Documento: si hay
+      // un documento abierto sin productos aun, esta fecha le pertenece.
+      if(actual && actual.productos.length === 0) actual.fecha = fechaActual;
+      continue;
+    }
+    if(/Cantidad\s+Art[ií]culo/i.test(ln)) continue;
+    if(/^Totales\s*:/i.test(ln)) { cerrar(); continue; }
+    
+    const esProd = RE_PROD.test(ln);
+    const mFolio = ln.match(RE_FOLIO);
+    if(mFolio && !esProd){
+      cerrar();
+      const folio = mFolio[1].toUpperCase();
+      actual = {
+        folio,
+        tipo: folio.startsWith('EA') ? 'entrada' : 'salida',
+        fecha: fechaActual,
+        sucursal: '',
+        sucursalNum: '',
+        productos: []
+      };
+      continue;
+    }
+    if(!actual) continue;
+    
+    const mSuc = ln.match(RE_SUC);
+    if(mSuc && !actual.sucursal && !esProd){
+      actual.sucursalNum = mSuc[1];
+      actual.sucursal = mSuc[2].trim().replace(/\s+/g,' ');
+      continue;
+    }
+    if(esProd){
+      const mP = ln.match(RE_PROD);
+      actual.productos.push({
+        clave: mP[2].trim().toUpperCase(),
+        descripcion: mP[3].trim().replace(/\s+/g,' '),
+        cantidad: num(mP[1]),
+        costoUnit: num(mP[4]),
+        costoTotal: num(mP[5]),
+        precioUnit: num(mP[6]),
+        precioTotal: num(mP[7])
+      });
+      continue;
+    }
+    // Subtotal del documento: linea con exactamente dos montos (costo y precio).
+    // Es el total oficial de SAIT (suma interna sin redondeo por linea).
+    const mSub = ln.match(/^\s*([\d,]+\.\d{2})\s+([\d,]+\.\d{2})\s*$/);
+    if(mSub && actual.productos.length > 0){
+      actual.totalCostoSAIT = num(mSub[1]);
+      actual.totalPrecioSAIT = num(mSub[2]);
+    }
+  }
+  cerrar();
+  
+  for(const d of docs){
+    const sumCosto = Math.round(d.productos.reduce((s,p)=>s+p.costoTotal,0)*100)/100;
+    const sumPrecio = Math.round(d.productos.reduce((s,p)=>s+p.precioTotal,0)*100)/100;
+    // Preferir el subtotal impreso por SAIT; si difiere mucho de la suma (>2%), algo fallo: usar la suma
+    d.totalCosto = (d.totalCostoSAIT != null && Math.abs(d.totalCostoSAIT - sumCosto) <= Math.max(2, sumCosto*0.02)) ? d.totalCostoSAIT : sumCosto;
+    d.totalPrecio = (d.totalPrecioSAIT != null && Math.abs(d.totalPrecioSAIT - sumPrecio) <= Math.max(2, sumPrecio*0.02)) ? d.totalPrecioSAIT : sumPrecio;
+    d.numPiezas = Math.round(d.productos.reduce((s,p)=>s+p.cantidad,0)*100)/100;
+    d.nombreArchivo = nombreArchivo;
+  }
+  return docs;
+}
+
+// Modal de ajustes detectados
+document.body.insertAdjacentHTML('beforeend', '<div id="modal-ajustes-detectados" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);z-index:1000;align-items:flex-start;justify-content:center;overflow-y:auto;padding:20px 0"><div style="background:#fff;border-radius:12px;padding:20px;max-width:520px;width:92%;max-height:90vh;overflow-y:auto;margin:auto"><h3 style="margin:0 0 6px 0;font-size:18px">Ajustes detectados</h3><p style="font-size:13px;color:var(--muted);margin:0 0 14px 0">Cada documento del reporte se guarda como un ajuste individual. Revisa antes de guardar.</p><div id="lista-ajustes-detectados" style="display:flex;flex-direction:column;gap:10px"></div><div style="display:flex;gap:8px;margin-top:16px"><button id="btn-ajustes-cancelar" class="btn" style="flex:1">Cancelar</button><button id="btn-ajustes-guardar" class="btn btn-primary" style="flex:1">Guardar todos</button></div></div></div>');
+
+function _fmtMoney(n){
+  return PESO_SYM + (n||0).toLocaleString('es-MX', {minimumFractionDigits:2, maximumFractionDigits:2});
+}
+
+function _abrirAjustesPendientes(){
+  if(__ajustesDetectados.length === 0) return;
+  _renderAjustesDetectados();
+  document.getElementById('modal-ajustes-detectados').style.display = 'flex';
+}
+
+function _renderAjustesDetectados(){
+  const cont = document.getElementById('lista-ajustes-detectados');
+  if(!cont) return;
+  cont.innerHTML = __ajustesDetectados.map((d, i) => {
+    const esEnt = d.tipo === 'entrada';
+    const badge = esEnt
+      ? '<span style="display:inline-block;background:#d1fae5;color:#065f46;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:600;margin-right:6px">📥 ENTRADA</span>'
+      : '<span style="display:inline-block;background:#fee2e2;color:#991b1b;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:600;margin-right:6px">📤 SALIDA</span>';
+    const dup = __ajustes.find(a => a.folio === d.folio);
+    const advert = dup ? '<div style="background:#fef2f2;color:#991b1b;padding:6px 10px;border-radius:6px;font-size:12px;margin-top:6px">⚠️ Ya existe un ajuste con folio ' + d.folio + ' — se omitirá</div>' : '';
+    const precioStr = d.totalPrecio > 0 ? ' · precio ' + _fmtMoney(d.totalPrecio) : '';
+    return '<div style="border:1px solid #e5e7eb;border-radius:8px;padding:10px;background:#fff">' +
+      '<div style="display:flex;justify-content:space-between;align-items:start;gap:8px">' +
+        '<div style="flex:1;min-width:0">' +
+          '<div style="font-size:11px;color:var(--muted);margin-bottom:2px">' + (d.nombreArchivo||'') + '</div>' +
+          '<div style="font-weight:600">' + badge + d.folio + '</div>' +
+          '<div style="font-size:13px;margin-top:2px">' + (d.sucursal ? (d.sucursalNum + ' · ' + d.sucursal) : '(sin sucursal)') + '</div>' +
+          '<div style="font-size:13px;color:var(--muted)">Fecha: ' + (d.fecha || 'sin fecha') + '</div>' +
+          '<div style="font-size:12px;color:#16a34a;margin-top:4px">📦 ' + d.productos.length + ' productos · ' + d.numPiezas + ' piezas · costo ' + _fmtMoney(d.totalCosto) + precioStr + '</div>' +
+        '</div>' +
+        '<button class="btn btn-sm" data-quitar-ajuste="' + i + '" style="font-size:11px;padding:2px 8px">✕</button>' +
+      '</div>' + advert +
+    '</div>';
+  }).join('');
+}
+
+document.addEventListener('click', (ev) => {
+  const quitar = ev.target.closest('[data-quitar-ajuste]');
+  if(quitar){
+    const idx = parseInt(quitar.getAttribute('data-quitar-ajuste'));
+    __ajustesDetectados.splice(idx, 1);
+    if(__ajustesDetectados.length === 0){
+      document.getElementById('modal-ajustes-detectados').style.display = 'none';
+    } else {
+      _renderAjustesDetectados();
+    }
+  }
+});
+
+document.getElementById('file-pdf-ajustes')?.addEventListener('change', async (ev) => {
+  const files = Array.from(ev.target.files || []);
+  if(files.length === 0) return;
+  const dropzone = document.getElementById('pdf-dropzone-ajustes');
+  const originalHTML = dropzone.innerHTML;
+  dropzone.innerHTML = '<div style="font-size:13px;color:var(--muted);padding:8px">Procesando ' + files.length + ' PDF' + (files.length>1?'s':'') + '...</div>';
+  __ajustesDetectados = [];
+  for(const f of files){
+    try{
+      const txt = await _extraerTextoPDF(f);
+      if(!/Movimientos al inventario/i.test(txt.texto)){
+        alert(f.name + ' no parece ser un reporte "Movimientos al inventario" de SAIT.');
+        continue;
+      }
+      const docs = _parsearMovimientosPDF(txt, f.name);
+      if(docs.length === 0){
+        alert('No se detectaron documentos con productos en ' + f.name);
+        continue;
+      }
+      __ajustesDetectados.push(...docs);
+    }catch(e){
+      alert('Error procesando ' + f.name + ': ' + e.message);
+    }
+  }
+  dropzone.innerHTML = originalHTML;
+  document.getElementById('file-pdf-ajustes').value = '';
+  if(__ajustesDetectados.length === 0) return;
+  _renderAjustesDetectados();
+  document.getElementById('modal-ajustes-detectados').style.display = 'flex';
+});
+
+document.getElementById('btn-ajustes-cancelar')?.addEventListener('click', () => {
+  document.getElementById('modal-ajustes-detectados').style.display = 'none';
+  __ajustesDetectados = [];
+});
+
+document.getElementById('btn-ajustes-guardar')?.addEventListener('click', async () => {
+  const btn = document.getElementById('btn-ajustes-guardar');
+  btn.disabled = true;
+  let guardados = 0, omitidos = 0, errores = 0;
+  for(const d of __ajustesDetectados){
+    try{
+      if(__ajustes.find(a => a.folio === d.folio)){ omitidos++; continue; }
+      await addDoc(collection(db, 'ajustesInventario'), {
+        folio: d.folio,
+        tipo: d.tipo,
+        fecha: d.fecha,
+        sucursal: d.sucursal,
+        sucursalNum: d.sucursalNum,
+        productos: d.productos,
+        totalCosto: d.totalCosto,
+        totalPrecio: d.totalPrecio,
+        numPiezas: d.numPiezas,
+        nombreArchivo: d.nombreArchivo || '',
+        ts: Date.now()
+      });
+      guardados++;
+    }catch(e){
+      console.error('Error guardando ajuste ' + d.folio, e);
+      errores++;
+    }
+  }
+  btn.disabled = false;
+  document.getElementById('modal-ajustes-detectados').style.display = 'none';
+  __ajustesDetectados = [];
+  const partes = [];
+  if(guardados > 0) partes.push('✓ ' + guardados + ' ajustes guardados');
+  if(omitidos > 0) partes.push(omitidos + ' omitidos (folio ya existía)');
+  if(errores > 0) partes.push(errores + ' con error');
+  alert(partes.join('\n') || 'Sin cambios');
+});
+
+// ── HISTORIAL DE AJUSTES ──
+function renderAjustes(){
+  const stats = document.getElementById('aj-stats');
+  const tabsSuc = document.getElementById('aj-tabs');
+  const tabsTipo = document.getElementById('aj-tabs-tipo');
+  const lista = document.getElementById('aj-lista');
+  
+  const entradas = __ajustes.filter(a => a.tipo === 'entrada');
+  const salidas = __ajustes.filter(a => a.tipo === 'salida');
+  const costoEnt = entradas.reduce((s,a) => s + (a.totalCosto||0), 0);
+  const costoSal = salidas.reduce((s,a) => s + (a.totalCosto||0), 0);
+  stats.innerHTML =
+    '<div class="stat"><div class="stat-n">' + entradas.length + '</div><div class="stat-l">Entradas</div></div>' +
+    '<div class="stat"><div class="stat-n">' + salidas.length + '</div><div class="stat-l">Salidas</div></div>' +
+    '<div class="stat"><div class="stat-n" style="font-size:15px;padding-top:6px">' + _fmtMoney(costoEnt) + '</div><div class="stat-l">$ Entradas</div></div>' +
+    '<div class="stat"><div class="stat-n" style="font-size:15px;padding-top:6px">' + _fmtMoney(costoSal) + '</div><div class="stat-l">$ Salidas</div></div>';
+  
+  const sucs = [...new Set(__ajustes.map(a => a.sucursal).filter(Boolean))];
+  const tabsS = ['Todas', ...sucs];
+  if(tabAjSuc >= tabsS.length) tabAjSuc = 0;
+  tabsSuc.innerHTML = tabsS.map((s,i) => '<div class="tab' + (i===tabAjSuc?' active':'') + '" onclick="tabAjSucSel(' + i + ')">' + s + '</div>').join('');
+  
+  const tabsT = ['Todos', '📥 Entradas', '📤 Salidas'];
+  tabsTipo.innerHTML = tabsT.map((t,i) => '<div class="tab' + (i===tabAjTipo?' active':'') + '" onclick="tabAjTipoSel(' + i + ')">' + t + '</div>').join('');
+  
+  let fil = __ajustes;
+  if(tabAjSuc > 0) fil = fil.filter(a => a.sucursal === tabsS[tabAjSuc]);
+  if(tabAjTipo === 1) fil = fil.filter(a => a.tipo === 'entrada');
+  if(tabAjTipo === 2) fil = fil.filter(a => a.tipo === 'salida');
+  
+  if(fil.length === 0){
+    lista.innerHTML = '<div class="empty"><div class="empty-icon">📥</div>Sin ajustes registrados.<br>Sube un PDF de "Movimientos al inventario" desde Admin.</div>';
+    return;
+  }
+  lista.innerHTML = fil.map(a => {
+    const esEnt = a.tipo === 'entrada';
+    const badge = esEnt ? '<span class="badge b-ok">📥 Entrada</span>' : '<span class="badge b-falt">📤 Salida</span>';
+    const precioStr = (a.totalPrecio||0) > 0 ? ' · precio ' + _fmtMoney(a.totalPrecio) : '';
+    return '<div class="card" style="cursor:pointer" onclick="verAjuste(\'' + a.id + '\')">' +
+      '<div style="display:flex;justify-content:space-between;align-items:center;gap:8px">' +
+        '<div><span class="folio">' + a.folio + '</span> ' + badge + '</div>' +
+        '<div style="font-size:12px;color:var(--muted)">' + (a.fecha||'') + '</div>' +
+      '</div>' +
+      '<div style="font-size:13px;margin-top:6px">' + (a.sucursal||'') + '</div>' +
+      '<div style="font-size:12px;color:var(--muted);margin-top:2px">' + (a.productos||[]).length + ' productos · ' + (a.numPiezas||0) + ' pzas · costo <strong>' + _fmtMoney(a.totalCosto) + '</strong>' + precioStr + '</div>' +
+    '</div>';
+  }).join('');
+}
+window.renderAjustes = renderAjustes;
+window.tabAjSucSel = function(i){ tabAjSuc = i; renderAjustes(); };
+window.tabAjTipoSel = function(i){ tabAjTipo = i; renderAjustes(); };
+
+window.verAjuste = function(id){
+  const a = __ajustes.find(x => x.id === id);
+  if(!a) return;
+  __ajusteDetId = id;
+  const esEnt = a.tipo === 'entrada';
+  document.getElementById('ajdet-titulo').textContent = a.folio + ' · ' + (esEnt ? 'Entrada' : 'Salida');
+  document.getElementById('ajdet-meta').innerHTML =
+    '<div style="display:flex;justify-content:space-between;flex-wrap:wrap;gap:4px">' +
+    '<span>' + (esEnt ? '<span class="badge b-ok">📥 Entrada por ajuste</span>' : '<span class="badge b-falt">📤 Salida por ajuste</span>') + '</span>' +
+    '<span style="font-size:13px;color:var(--muted)">' + (a.fecha||'') + '</span></div>' +
+    '<div style="font-size:13px;margin-top:6px">' + (a.sucursalNum ? a.sucursalNum + ' · ' : '') + (a.sucursal||'') + '</div>';
+  const mostrarPrecio = (a.totalPrecio||0) > 0;
+  document.getElementById('ajdet-stats').innerHTML =
+    '<div class="stat"><div class="stat-n">' + (a.productos||[]).length + '</div><div class="stat-l">Productos</div></div>' +
+    '<div class="stat"><div class="stat-n">' + (a.numPiezas||0) + '</div><div class="stat-l">Piezas</div></div>' +
+    '<div class="stat"><div class="stat-n" style="font-size:15px;padding-top:6px">' + _fmtMoney(a.totalCosto) + '</div><div class="stat-l">Costo</div></div>' +
+    (mostrarPrecio ? '<div class="stat"><div class="stat-n" style="font-size:15px;padding-top:6px">' + _fmtMoney(a.totalPrecio) + '</div><div class="stat-l">Precio</div></div>' : '');
+  document.getElementById('ajdet-productos').innerHTML =
+    '<table class="falt-table"><thead><tr><th>Clave</th><th>Descripción</th><th style="text-align:right">Cant</th><th style="text-align:right">Costo U</th><th style="text-align:right">Costo Tot</th></tr></thead><tbody>' +
+    (a.productos||[]).map(p =>
+      '<tr><td class="mono">' + p.clave + '</td><td style="font-size:12px">' + p.descripcion + '</td>' +
+      '<td style="text-align:right">' + p.cantidad + '</td>' +
+      '<td style="text-align:right">' + _fmtMoney(p.costoUnit) + '</td>' +
+      '<td style="text-align:right">' + _fmtMoney(p.costoTotal) + '</td></tr>'
+    ).join('') + '</tbody></table>';
+  show('s-ajuste-det');
+};
+
+window.exportarAjusteCSV = function(){
+  const a = __ajustes.find(x => x.id === __ajusteDetId);
+  if(!a) return;
+  const header = ['Folio','Tipo','Fecha','Sucursal','Clave','Descripcion','Cantidad','CostoUnit','CostoTotal','PrecioUnit','PrecioTotal'];
+  const filas = (a.productos||[]).map(p => [a.folio, a.tipo, a.fecha||'', a.sucursal||'', p.clave, p.descripcion, p.cantidad, p.costoUnit, p.costoTotal, p.precioUnit, p.precioTotal]);
+  const csv = [header, ...filas].map(row => row.map(v => '"' + String(v).replace(/"/g,'""') + '"').join(',')).join('\n');
+  const blob = new Blob(['\ufeff' + csv], {type: 'text/csv;charset=utf-8'});
+  const url = URL.createObjectURL(blob);
+  const el = document.createElement('a');
+  el.href = url; el.download = 'ajuste_' + a.folio + '.csv'; el.click();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+};
+
+window.eliminarAjuste = async function(){
+  const a = __ajustes.find(x => x.id === __ajusteDetId);
+  if(!a) return;
+  if(!confirm('¿Eliminar el ajuste ' + a.folio + ' (' + (a.productos||[]).length + ' productos)? Esta acción no se puede deshacer.')) return;
+  try{
+    await deleteDoc(doc(db, 'ajustesInventario', a.id));
+    __ajusteDetId = null;
+    show('s-ajustes');
+    renderAjustes();
+  }catch(e){
+    alert('Error: ' + e.message);
+  }
+};
+
+</script>
+</body>
+</html>
