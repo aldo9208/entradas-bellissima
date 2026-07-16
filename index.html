@@ -142,6 +142,16 @@ input:focus,select:focus{outline:none;border-color:var(--text)}
     <div id="lista-ordenes-admin" style="display:flex;flex-direction:column;gap:8px"></div>
   </div>
 
+  <p style="font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:10px;margin-top:18px">Ajustes de inventario</p>
+  <div class="card">
+    <label id="pdf-dropzone-ajustes" style="display:block;border:2px dashed #cbd5e1;border-radius:10px;padding:16px;text-align:center;cursor:pointer;background:#f8fafc;margin-bottom:10px">
+      <input type="file" id="file-pdf-ajustes" accept=".pdf" multiple style="display:none" />
+      <div style="font-size:14px;font-weight:600;color:#1e293b">📥 Subir PDF de movimientos (SAIT)</div>
+      <p style="font-size:11px;color:var(--muted);margin:4px 0 0 0">Reporte "Movimientos al inventario" — entradas (EA) y salidas (SA) por ajuste</p>
+    </label>
+    <button class="btn btn-s" onclick="show('s-ajustes');renderAjustes()" style="margin-bottom:0">📋 Ver historial de ajustes</button>
+  </div>
+
   <div id="form-orden-modal" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);z-index:1000;align-items:center;justify-content:center">
     <div style="background:#fff;border-radius:12px;padding:20px;max-width:420px;width:92%;max-height:90vh;overflow-y:auto">
       <h3 id="form-orden-titulo" style="margin:0 0 14px 0;font-size:18px">Nueva orden de compra</h3>
@@ -257,6 +267,31 @@ input:focus,select:focus{outline:none;border-color:var(--text)}
   <div class="card" id="det-productos"></div>
   <button class="btn btn-s" onclick="exportar()" style="margin-top:4px">↓ Exportar CSV</button>
   <button class="btn btn-danger" id="btn-corregir" style="margin-top:4px">✏ Corregir cantidades</button>
+</div>
+
+<!-- AJUSTES DE INVENTARIO -->
+<div id="s-ajustes" class="screen">
+  <div class="topbar">
+    <button class="btn-ico" onclick="show('s-admin');renderAdminLista()">←</button>
+    <h2>Ajustes de inventario</h2>
+  </div>
+  <div id="aj-stats" class="stat-grid"></div>
+  <div class="tabs" id="aj-tabs"></div>
+  <div class="tabs" id="aj-tabs-tipo"></div>
+  <div id="aj-lista"></div>
+</div>
+
+<!-- DETALLE DE AJUSTE -->
+<div id="s-ajuste-det" class="screen">
+  <div class="topbar">
+    <button class="btn-ico" onclick="show('s-ajustes');renderAjustes()">←</button>
+    <h2 id="ajdet-titulo">Ajuste</h2>
+  </div>
+  <div id="ajdet-meta" class="card-flat" style="margin-bottom:1rem"></div>
+  <div class="stat-grid" id="ajdet-stats"></div>
+  <div class="card" id="ajdet-productos" style="overflow-x:auto"></div>
+  <button class="btn btn-s" onclick="exportarAjusteCSV()" style="margin-top:4px">↓ Exportar CSV</button>
+  <button class="btn btn-danger" onclick="eliminarAjuste()" style="margin-top:4px">🗑 Eliminar este ajuste</button>
 </div>
 
 </div>
@@ -1638,9 +1673,17 @@ document.getElementById('file-pdf-ordenes')?.addEventListener('change', async (e
   const originalHTML = dropzone.innerHTML;
   dropzone.innerHTML = '<div style="font-size:13px;color:var(--muted);padding:8px">Procesando ' + files.length + ' PDF' + (files.length>1?'s':'') + '...</div>';
   __pdfsDetectados = [];
+  let _ajustesEnZonaOrdenes = 0;
   for(const f of files){
     try{
       const txt = await _extraerTextoPDF(f);
+      if(/Movimientos al inventario/i.test(txt.texto)){
+        // Es un reporte de ajustes: enrutar al flujo de ajustes
+        const docs = _parsearMovimientosPDF(txt, f.name);
+        __ajustesDetectados.push(...docs);
+        _ajustesEnZonaOrdenes += docs.length;
+        continue;
+      }
       const datos = _parsearOrdenPDF(txt, f.name);
       __pdfsDetectados.push(datos);
     }catch(e){
@@ -1649,6 +1692,15 @@ document.getElementById('file-pdf-ordenes')?.addEventListener('change', async (e
   }
   dropzone.innerHTML = originalHTML;
   document.getElementById('file-pdf-ordenes').value = '';
+  if(_ajustesEnZonaOrdenes > 0 && __pdfsDetectados.length === 0){
+    _renderAjustesDetectados();
+    document.getElementById('modal-ajustes-detectados').style.display = 'flex';
+    return;
+  }
+  if(_ajustesEnZonaOrdenes > 0){
+    alert('Se detectaron ' + _ajustesEnZonaOrdenes + ' movimientos de ajuste. Se abrirán después de guardar o cancelar las órdenes.');
+  }
+  if(__pdfsDetectados.length === 0 && __ajustesDetectados.length === 0) return;
   if(__pdfsDetectados.length === 0) return;
   _renderPdfsDetectados();
   document.getElementById('modal-pdfs-detectados').style.display = 'flex';
@@ -1657,6 +1709,7 @@ document.getElementById('file-pdf-ordenes')?.addEventListener('change', async (e
 document.getElementById('btn-pdfs-cancelar')?.addEventListener('click', () => {
   document.getElementById('modal-pdfs-detectados').style.display = 'none';
   __pdfsDetectados = [];
+  _abrirAjustesPendientes();
 });
 
 document.getElementById('btn-pdfs-guardar')?.addEventListener('click', async () => {
@@ -1796,6 +1849,7 @@ document.getElementById('btn-pdfs-guardar')?.addEventListener('click', async () 
   if(omitidas > 0) partes.push(omitidas + ' omitidas (ya existían)');
   if(errores > 0) partes.push(errores + ' con error');
   alert(partes.join('\n'));
+  _abrirAjustesPendientes();
 });
 
 document.addEventListener('click', (ev) => {
@@ -2422,6 +2476,348 @@ document.addEventListener('change', async (ev) => {
   }
   ev.target.value = '';
 });
+
+// ============================================================
+// AJUSTES DE INVENTARIO (entradas EA#### / salidas SA####)
+// ============================================================
+// Colección "ajustesInventario" en Firestore. Cada doc:
+//   { folio, tipo: 'entrada'|'salida', fecha (ISO), sucursal, sucursalNum,
+//     productos: [{clave, descripcion, cantidad, costoUnit, costoTotal, precioUnit, precioTotal}],
+//     totalCosto, totalPrecio, numPiezas, nombreArchivo, ts }
+// Un solo PDF "Movimientos al inventario" puede traer VARIOS documentos
+// (cada uno con su Fecha: y su folio). Se separan y guardan individualmente.
+// Los ajustes NO actualizan el catálogo de costos (traen costo actual, no costo de compra).
+
+let __ajustes = [];
+let __ajustesDetectados = [];
+let __ajusteDetId = null;
+let tabAjSuc = 0;
+let tabAjTipo = 0;
+
+onSnapshot(collection(db, 'ajustesInventario'), (snap) => {
+  __ajustes = snap.docs.map(d => ({...d.data(), id: d.id}))
+    .sort((a,b) => (b.fecha||'').localeCompare(a.fecha||'') || (b.ts||0)-(a.ts||0));
+  if(document.getElementById('s-ajustes').classList.contains('active')) renderAjustes();
+});
+
+function _parsearMovimientosPDF(datosPDF, nombreArchivo){
+  const lineas = datosPDF.lineas || [];
+  const num = s => parseFloat(String(s).replace(/,/g,'')) || 0;
+  const RE_FECHA = /Fecha:\s*(\d{1,2})-([A-Za-z]+)-(\d{4})/;
+  const RE_FOLIO = /(?:^|\s)((?:SA|EA)\d{2,6})(?:\s|$)/i;
+  const RE_SUC = /^(\d{1,2})\s+SUC\.?\s+(.+)$/i;
+  // Línea de producto: cantidad | clave | descripción | costoUnit | costoTotal | precioUnit | precioTotal
+  const RE_PROD = /^\s*([\d,]+\.\d{2})\s+(\S+)\s+(.+?)\s+([\d,]+\.\d{2})\s+([\d,]+\.\d{2})\s+([\d,]+\.\d{2})\s+([\d,]+\.\d{2})\s*$/;
+  
+  const docs = [];
+  let actual = null;
+  let fechaActual = '';
+  
+  const cerrar = () => { if(actual && actual.productos.length > 0) docs.push(actual); actual = null; };
+  
+  for(const ln of lineas){
+    const mF = ln.match(RE_FECHA);
+    if(mF){
+      const mes = _mesANum(mF[2]);
+      fechaActual = (mes !== undefined)
+        ? mF[3] + '-' + String(mes+1).padStart(2,'0') + '-' + String(parseInt(mF[1])).padStart(2,'0')
+        : '';
+      // En el reporte real la fecha viene DESPUES de la linea Documento: si hay
+      // un documento abierto sin productos aun, esta fecha le pertenece.
+      if(actual && actual.productos.length === 0) actual.fecha = fechaActual;
+      continue;
+    }
+    if(/Cantidad\s+Art[ií]culo/i.test(ln)) continue;
+    if(/^Totales\s*:/i.test(ln)) { cerrar(); continue; }
+    
+    const esProd = RE_PROD.test(ln);
+    const mFolio = ln.match(RE_FOLIO);
+    if(mFolio && !esProd){
+      cerrar();
+      const folio = mFolio[1].toUpperCase();
+      actual = {
+        folio,
+        tipo: folio.startsWith('EA') ? 'entrada' : 'salida',
+        fecha: fechaActual,
+        sucursal: '',
+        sucursalNum: '',
+        productos: []
+      };
+      continue;
+    }
+    if(!actual) continue;
+    
+    const mSuc = ln.match(RE_SUC);
+    if(mSuc && !actual.sucursal && !esProd){
+      actual.sucursalNum = mSuc[1];
+      actual.sucursal = mSuc[2].trim().replace(/\s+/g,' ');
+      continue;
+    }
+    if(esProd){
+      const mP = ln.match(RE_PROD);
+      actual.productos.push({
+        clave: mP[2].trim().toUpperCase(),
+        descripcion: mP[3].trim().replace(/\s+/g,' '),
+        cantidad: num(mP[1]),
+        costoUnit: num(mP[4]),
+        costoTotal: num(mP[5]),
+        precioUnit: num(mP[6]),
+        precioTotal: num(mP[7])
+      });
+      continue;
+    }
+    // Subtotal del documento: linea con exactamente dos montos (costo y precio).
+    // Es el total oficial de SAIT (suma interna sin redondeo por linea).
+    const mSub = ln.match(/^\s*([\d,]+\.\d{2})\s+([\d,]+\.\d{2})\s*$/);
+    if(mSub && actual.productos.length > 0){
+      actual.totalCostoSAIT = num(mSub[1]);
+      actual.totalPrecioSAIT = num(mSub[2]);
+    }
+  }
+  cerrar();
+  
+  for(const d of docs){
+    const sumCosto = Math.round(d.productos.reduce((s,p)=>s+p.costoTotal,0)*100)/100;
+    const sumPrecio = Math.round(d.productos.reduce((s,p)=>s+p.precioTotal,0)*100)/100;
+    // Preferir el subtotal impreso por SAIT; si difiere mucho de la suma (>2%), algo fallo: usar la suma
+    d.totalCosto = (d.totalCostoSAIT != null && Math.abs(d.totalCostoSAIT - sumCosto) <= Math.max(2, sumCosto*0.02)) ? d.totalCostoSAIT : sumCosto;
+    d.totalPrecio = (d.totalPrecioSAIT != null && Math.abs(d.totalPrecioSAIT - sumPrecio) <= Math.max(2, sumPrecio*0.02)) ? d.totalPrecioSAIT : sumPrecio;
+    d.numPiezas = Math.round(d.productos.reduce((s,p)=>s+p.cantidad,0)*100)/100;
+    d.nombreArchivo = nombreArchivo;
+  }
+  return docs;
+}
+
+// Modal de ajustes detectados
+document.body.insertAdjacentHTML('beforeend', '<div id="modal-ajustes-detectados" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);z-index:1000;align-items:flex-start;justify-content:center;overflow-y:auto;padding:20px 0"><div style="background:#fff;border-radius:12px;padding:20px;max-width:520px;width:92%;max-height:90vh;overflow-y:auto;margin:auto"><h3 style="margin:0 0 6px 0;font-size:18px">Ajustes detectados</h3><p style="font-size:13px;color:var(--muted);margin:0 0 14px 0">Cada documento del reporte se guarda como un ajuste individual. Revisa antes de guardar.</p><div id="lista-ajustes-detectados" style="display:flex;flex-direction:column;gap:10px"></div><div style="display:flex;gap:8px;margin-top:16px"><button id="btn-ajustes-cancelar" class="btn" style="flex:1">Cancelar</button><button id="btn-ajustes-guardar" class="btn btn-primary" style="flex:1">Guardar todos</button></div></div></div>');
+
+function _fmtMoney(n){
+  return PESO_SYM + (n||0).toLocaleString('es-MX', {minimumFractionDigits:2, maximumFractionDigits:2});
+}
+
+function _abrirAjustesPendientes(){
+  if(__ajustesDetectados.length === 0) return;
+  _renderAjustesDetectados();
+  document.getElementById('modal-ajustes-detectados').style.display = 'flex';
+}
+
+function _renderAjustesDetectados(){
+  const cont = document.getElementById('lista-ajustes-detectados');
+  if(!cont) return;
+  cont.innerHTML = __ajustesDetectados.map((d, i) => {
+    const esEnt = d.tipo === 'entrada';
+    const badge = esEnt
+      ? '<span style="display:inline-block;background:#d1fae5;color:#065f46;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:600;margin-right:6px">📥 ENTRADA</span>'
+      : '<span style="display:inline-block;background:#fee2e2;color:#991b1b;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:600;margin-right:6px">📤 SALIDA</span>';
+    const dup = __ajustes.find(a => a.folio === d.folio);
+    const advert = dup ? '<div style="background:#fef2f2;color:#991b1b;padding:6px 10px;border-radius:6px;font-size:12px;margin-top:6px">⚠️ Ya existe un ajuste con folio ' + d.folio + ' — se omitirá</div>' : '';
+    const precioStr = d.totalPrecio > 0 ? ' · precio ' + _fmtMoney(d.totalPrecio) : '';
+    return '<div style="border:1px solid #e5e7eb;border-radius:8px;padding:10px;background:#fff">' +
+      '<div style="display:flex;justify-content:space-between;align-items:start;gap:8px">' +
+        '<div style="flex:1;min-width:0">' +
+          '<div style="font-size:11px;color:var(--muted);margin-bottom:2px">' + (d.nombreArchivo||'') + '</div>' +
+          '<div style="font-weight:600">' + badge + d.folio + '</div>' +
+          '<div style="font-size:13px;margin-top:2px">' + (d.sucursal ? (d.sucursalNum + ' · ' + d.sucursal) : '(sin sucursal)') + '</div>' +
+          '<div style="font-size:13px;color:var(--muted)">Fecha: ' + (d.fecha || 'sin fecha') + '</div>' +
+          '<div style="font-size:12px;color:#16a34a;margin-top:4px">📦 ' + d.productos.length + ' productos · ' + d.numPiezas + ' piezas · costo ' + _fmtMoney(d.totalCosto) + precioStr + '</div>' +
+        '</div>' +
+        '<button class="btn btn-sm" data-quitar-ajuste="' + i + '" style="font-size:11px;padding:2px 8px">✕</button>' +
+      '</div>' + advert +
+    '</div>';
+  }).join('');
+}
+
+document.addEventListener('click', (ev) => {
+  const quitar = ev.target.closest('[data-quitar-ajuste]');
+  if(quitar){
+    const idx = parseInt(quitar.getAttribute('data-quitar-ajuste'));
+    __ajustesDetectados.splice(idx, 1);
+    if(__ajustesDetectados.length === 0){
+      document.getElementById('modal-ajustes-detectados').style.display = 'none';
+    } else {
+      _renderAjustesDetectados();
+    }
+  }
+});
+
+document.getElementById('file-pdf-ajustes')?.addEventListener('change', async (ev) => {
+  const files = Array.from(ev.target.files || []);
+  if(files.length === 0) return;
+  const dropzone = document.getElementById('pdf-dropzone-ajustes');
+  const originalHTML = dropzone.innerHTML;
+  dropzone.innerHTML = '<div style="font-size:13px;color:var(--muted);padding:8px">Procesando ' + files.length + ' PDF' + (files.length>1?'s':'') + '...</div>';
+  __ajustesDetectados = [];
+  for(const f of files){
+    try{
+      const txt = await _extraerTextoPDF(f);
+      if(!/Movimientos al inventario/i.test(txt.texto)){
+        alert(f.name + ' no parece ser un reporte "Movimientos al inventario" de SAIT.');
+        continue;
+      }
+      const docs = _parsearMovimientosPDF(txt, f.name);
+      if(docs.length === 0){
+        alert('No se detectaron documentos con productos en ' + f.name);
+        continue;
+      }
+      __ajustesDetectados.push(...docs);
+    }catch(e){
+      alert('Error procesando ' + f.name + ': ' + e.message);
+    }
+  }
+  dropzone.innerHTML = originalHTML;
+  document.getElementById('file-pdf-ajustes').value = '';
+  if(__ajustesDetectados.length === 0) return;
+  _renderAjustesDetectados();
+  document.getElementById('modal-ajustes-detectados').style.display = 'flex';
+});
+
+document.getElementById('btn-ajustes-cancelar')?.addEventListener('click', () => {
+  document.getElementById('modal-ajustes-detectados').style.display = 'none';
+  __ajustesDetectados = [];
+});
+
+document.getElementById('btn-ajustes-guardar')?.addEventListener('click', async () => {
+  const btn = document.getElementById('btn-ajustes-guardar');
+  btn.disabled = true;
+  let guardados = 0, omitidos = 0, errores = 0;
+  for(const d of __ajustesDetectados){
+    try{
+      if(__ajustes.find(a => a.folio === d.folio)){ omitidos++; continue; }
+      await addDoc(collection(db, 'ajustesInventario'), {
+        folio: d.folio,
+        tipo: d.tipo,
+        fecha: d.fecha,
+        sucursal: d.sucursal,
+        sucursalNum: d.sucursalNum,
+        productos: d.productos,
+        totalCosto: d.totalCosto,
+        totalPrecio: d.totalPrecio,
+        numPiezas: d.numPiezas,
+        nombreArchivo: d.nombreArchivo || '',
+        ts: Date.now()
+      });
+      guardados++;
+    }catch(e){
+      console.error('Error guardando ajuste ' + d.folio, e);
+      errores++;
+    }
+  }
+  btn.disabled = false;
+  document.getElementById('modal-ajustes-detectados').style.display = 'none';
+  __ajustesDetectados = [];
+  const partes = [];
+  if(guardados > 0) partes.push('✓ ' + guardados + ' ajustes guardados');
+  if(omitidos > 0) partes.push(omitidos + ' omitidos (folio ya existía)');
+  if(errores > 0) partes.push(errores + ' con error');
+  alert(partes.join('\n') || 'Sin cambios');
+});
+
+// ── HISTORIAL DE AJUSTES ──
+function renderAjustes(){
+  const stats = document.getElementById('aj-stats');
+  const tabsSuc = document.getElementById('aj-tabs');
+  const tabsTipo = document.getElementById('aj-tabs-tipo');
+  const lista = document.getElementById('aj-lista');
+  
+  const entradas = __ajustes.filter(a => a.tipo === 'entrada');
+  const salidas = __ajustes.filter(a => a.tipo === 'salida');
+  const costoEnt = entradas.reduce((s,a) => s + (a.totalCosto||0), 0);
+  const costoSal = salidas.reduce((s,a) => s + (a.totalCosto||0), 0);
+  stats.innerHTML =
+    '<div class="stat"><div class="stat-n">' + entradas.length + '</div><div class="stat-l">Entradas</div></div>' +
+    '<div class="stat"><div class="stat-n">' + salidas.length + '</div><div class="stat-l">Salidas</div></div>' +
+    '<div class="stat"><div class="stat-n" style="font-size:15px;padding-top:6px">' + _fmtMoney(costoEnt) + '</div><div class="stat-l">$ Entradas</div></div>' +
+    '<div class="stat"><div class="stat-n" style="font-size:15px;padding-top:6px">' + _fmtMoney(costoSal) + '</div><div class="stat-l">$ Salidas</div></div>';
+  
+  const sucs = [...new Set(__ajustes.map(a => a.sucursal).filter(Boolean))];
+  const tabsS = ['Todas', ...sucs];
+  if(tabAjSuc >= tabsS.length) tabAjSuc = 0;
+  tabsSuc.innerHTML = tabsS.map((s,i) => '<div class="tab' + (i===tabAjSuc?' active':'') + '" onclick="tabAjSucSel(' + i + ')">' + s + '</div>').join('');
+  
+  const tabsT = ['Todos', '📥 Entradas', '📤 Salidas'];
+  tabsTipo.innerHTML = tabsT.map((t,i) => '<div class="tab' + (i===tabAjTipo?' active':'') + '" onclick="tabAjTipoSel(' + i + ')">' + t + '</div>').join('');
+  
+  let fil = __ajustes;
+  if(tabAjSuc > 0) fil = fil.filter(a => a.sucursal === tabsS[tabAjSuc]);
+  if(tabAjTipo === 1) fil = fil.filter(a => a.tipo === 'entrada');
+  if(tabAjTipo === 2) fil = fil.filter(a => a.tipo === 'salida');
+  
+  if(fil.length === 0){
+    lista.innerHTML = '<div class="empty"><div class="empty-icon">📥</div>Sin ajustes registrados.<br>Sube un PDF de "Movimientos al inventario" desde Admin.</div>';
+    return;
+  }
+  lista.innerHTML = fil.map(a => {
+    const esEnt = a.tipo === 'entrada';
+    const badge = esEnt ? '<span class="badge b-ok">📥 Entrada</span>' : '<span class="badge b-falt">📤 Salida</span>';
+    const precioStr = (a.totalPrecio||0) > 0 ? ' · precio ' + _fmtMoney(a.totalPrecio) : '';
+    return '<div class="card" style="cursor:pointer" onclick="verAjuste(\'' + a.id + '\')">' +
+      '<div style="display:flex;justify-content:space-between;align-items:center;gap:8px">' +
+        '<div><span class="folio">' + a.folio + '</span> ' + badge + '</div>' +
+        '<div style="font-size:12px;color:var(--muted)">' + (a.fecha||'') + '</div>' +
+      '</div>' +
+      '<div style="font-size:13px;margin-top:6px">' + (a.sucursal||'') + '</div>' +
+      '<div style="font-size:12px;color:var(--muted);margin-top:2px">' + (a.productos||[]).length + ' productos · ' + (a.numPiezas||0) + ' pzas · costo <strong>' + _fmtMoney(a.totalCosto) + '</strong>' + precioStr + '</div>' +
+    '</div>';
+  }).join('');
+}
+window.renderAjustes = renderAjustes;
+window.tabAjSucSel = function(i){ tabAjSuc = i; renderAjustes(); };
+window.tabAjTipoSel = function(i){ tabAjTipo = i; renderAjustes(); };
+
+window.verAjuste = function(id){
+  const a = __ajustes.find(x => x.id === id);
+  if(!a) return;
+  __ajusteDetId = id;
+  const esEnt = a.tipo === 'entrada';
+  document.getElementById('ajdet-titulo').textContent = a.folio + ' · ' + (esEnt ? 'Entrada' : 'Salida');
+  document.getElementById('ajdet-meta').innerHTML =
+    '<div style="display:flex;justify-content:space-between;flex-wrap:wrap;gap:4px">' +
+    '<span>' + (esEnt ? '<span class="badge b-ok">📥 Entrada por ajuste</span>' : '<span class="badge b-falt">📤 Salida por ajuste</span>') + '</span>' +
+    '<span style="font-size:13px;color:var(--muted)">' + (a.fecha||'') + '</span></div>' +
+    '<div style="font-size:13px;margin-top:6px">' + (a.sucursalNum ? a.sucursalNum + ' · ' : '') + (a.sucursal||'') + '</div>';
+  const mostrarPrecio = (a.totalPrecio||0) > 0;
+  document.getElementById('ajdet-stats').innerHTML =
+    '<div class="stat"><div class="stat-n">' + (a.productos||[]).length + '</div><div class="stat-l">Productos</div></div>' +
+    '<div class="stat"><div class="stat-n">' + (a.numPiezas||0) + '</div><div class="stat-l">Piezas</div></div>' +
+    '<div class="stat"><div class="stat-n" style="font-size:15px;padding-top:6px">' + _fmtMoney(a.totalCosto) + '</div><div class="stat-l">Costo</div></div>' +
+    (mostrarPrecio ? '<div class="stat"><div class="stat-n" style="font-size:15px;padding-top:6px">' + _fmtMoney(a.totalPrecio) + '</div><div class="stat-l">Precio</div></div>' : '');
+  document.getElementById('ajdet-productos').innerHTML =
+    '<table class="falt-table"><thead><tr><th>Clave</th><th>Descripción</th><th style="text-align:right">Cant</th><th style="text-align:right">Costo U</th><th style="text-align:right">Costo Tot</th></tr></thead><tbody>' +
+    (a.productos||[]).map(p =>
+      '<tr><td class="mono">' + p.clave + '</td><td style="font-size:12px">' + p.descripcion + '</td>' +
+      '<td style="text-align:right">' + p.cantidad + '</td>' +
+      '<td style="text-align:right">' + _fmtMoney(p.costoUnit) + '</td>' +
+      '<td style="text-align:right">' + _fmtMoney(p.costoTotal) + '</td></tr>'
+    ).join('') + '</tbody></table>';
+  show('s-ajuste-det');
+};
+
+window.exportarAjusteCSV = function(){
+  const a = __ajustes.find(x => x.id === __ajusteDetId);
+  if(!a) return;
+  const header = ['Folio','Tipo','Fecha','Sucursal','Clave','Descripcion','Cantidad','CostoUnit','CostoTotal','PrecioUnit','PrecioTotal'];
+  const filas = (a.productos||[]).map(p => [a.folio, a.tipo, a.fecha||'', a.sucursal||'', p.clave, p.descripcion, p.cantidad, p.costoUnit, p.costoTotal, p.precioUnit, p.precioTotal]);
+  const csv = [header, ...filas].map(row => row.map(v => '"' + String(v).replace(/"/g,'""') + '"').join(',')).join('\n');
+  const blob = new Blob(['\ufeff' + csv], {type: 'text/csv;charset=utf-8'});
+  const url = URL.createObjectURL(blob);
+  const el = document.createElement('a');
+  el.href = url; el.download = 'ajuste_' + a.folio + '.csv'; el.click();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+};
+
+window.eliminarAjuste = async function(){
+  const a = __ajustes.find(x => x.id === __ajusteDetId);
+  if(!a) return;
+  if(!confirm('¿Eliminar el ajuste ' + a.folio + ' (' + (a.productos||[]).length + ' productos)? Esta acción no se puede deshacer.')) return;
+  try{
+    await deleteDoc(doc(db, 'ajustesInventario', a.id));
+    __ajusteDetId = null;
+    show('s-ajustes');
+    renderAjustes();
+  }catch(e){
+    alert('Error: ' + e.message);
+  }
+};
 
 </script>
 </body>
