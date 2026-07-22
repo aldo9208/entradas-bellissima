@@ -92,19 +92,19 @@ function construirOfertas(promo, precioMap, catMap){
   const of={}; // clave -> {c,d,p,of,pct,sucs}
   const aplicar=(clave,pct,sucs)=>{
     const pm=precioMap[clave]; if(!pm) return;
-    const precio=pm.p, oferta=Math.round(precio*(1-pct/100)*100)/100;
-    const ex=of[clave];
-    if(!ex || pct>ex.pct){ of[clave]={c:clave, d:pm.d, p:precio, of:oferta, pct, sucs:sucs.slice()}; }
-    else if(ex){ ex.sucs=Array.from(new Set(ex.sucs.concat(sucs))); }
+    let ex=of[clave];
+    if(!ex){ ex=of[clave]={c:clave, d:pm.d, p:pm.p, pct:0, sucs:[]}; }
+    ex.pct=Math.max(ex.pct, pct);
+    ex.sucs=Array.from(new Set(ex.sucs.concat(sucs)));
+    ex.of=Math.round(pm.p*(1-ex.pct/100)*100)/100;
   };
   promo.prod.forEach(o=>aplicar(o.clave, o.pct, o.sucs));
   if(catMap && Object.keys(catMap).length && promo.lin.length){
-    // expandir ofertas de línea a sus productos
-    const porLinea={}; promo.lin.forEach(o=>{ porLinea[o.numlin]=o; });
-    for(const clave in precioMap){
-      const nl=catMap[clave]; if(!nl) continue;
-      const o=porLinea[nl]; if(o) aplicar(clave, o.pct, o.sucs);
-    }
+    // expandir TODAS las ofertas de línea a sus productos (una línea puede tener
+    // varias filas activas con distintas sucursales: se unen todas)
+    const prodsPorLinea={};
+    for(const clave in precioMap){ const nl=catMap[clave]; if(nl){ (prodsPorLinea[nl]=prodsPorLinea[nl]||[]).push(clave); } }
+    promo.lin.forEach(o=>{ const cs=prodsPorLinea[o.numlin]; if(cs){ cs.forEach(clave=>aplicar(clave, o.pct, o.sucs)); } });
   }
   return Object.values(of);
 }
