@@ -669,7 +669,7 @@ window.iniciarRecepcion = function(id){
         </div>
         <div style="text-align:center">
           <p style="font-size:10px;color:var(--muted);margin-bottom:2px">Recibido</p>
-          <input type="number" class="tr-input" id="rec-${i}" min="0" value="${item.cant}"
+          <input type="number" class="tr-input" id="rec-${i}" min="0" value="" placeholder="0"
             oninput="actualizarFila(${i},${item.cant})" onchange="actualizarFila(${i},${item.cant})">
         </div>
         <div id="fs-${i}" style="min-width:30px;text-align:center;font-size:13px"></div>
@@ -685,6 +685,7 @@ window.actualizarFila = function(i, esperado){
   const inp = document.getElementById('rec-'+i);
   const st = document.getElementById('fs-'+i);
   if(!inp||!st) return;
+  if(String(inp.value).trim()===''){ st.innerHTML='<span style="color:#9ca3af">&bull;</span>'; return; }
   const val = parseInt(inp.value)||0;
   const falt = esperado-val;
   if(falt>0) st.innerHTML=`<span style="font-weight:600;color:var(--danger)">-${falt}</span>`;
@@ -705,6 +706,8 @@ window.confirmarRecepcion = async function(){
   btn.textContent = 'Guardando...'; btn.disabled = true;
   const sucDest = document.getElementById('rec-suc-dest').value;
   if(!sucDest){ alert('Selecciona tu sucursal antes de confirmar'); btn.textContent='Confirmar recepción'; btn.disabled=false; return; }
+  var _sinCapturar = t.items.filter((_,i)=>{ var e=document.getElementById('rec-'+i); return !e || String(e.value).trim()===''; }).length;
+  if(_sinCapturar>0 && !confirm('Faltan '+_sinCapturar+' producto(s) por capturar. Se guardarán como recibido 0 (faltante total). ¿Continuar?')){ btn.textContent='Confirmar recepción'; btn.disabled=false; return; }
   const items = t.items.map((item,i)=>{
     const recibido = parseInt(document.getElementById('rec-'+i)?.value)||0;
     return {...item, esperado:item.cant, recibido, faltante:Math.max(0,item.cant-recibido), sobrante:Math.max(0,recibido-item.cant)};

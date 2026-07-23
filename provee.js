@@ -28,6 +28,8 @@ const SCREENS_HTML = `
     #s-provee .pv-chip.on{background:var(--brand,#6b21a8);border-color:var(--brand,#6b21a8);color:#fff;font-weight:600}
     #s-provee-det .pv-row{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:8px 10px;border-bottom:1px solid var(--line,#eee)}
     #s-provee-det .pv-row.pv-rfalt{background:#fef2f2}#s-provee-det .pv-row.pv-rsob{background:#fffbeb}
+    #s-provee-det .pv-row.pv-rpend{background:#fff}
+    #s-provee-det .pv-row.pv-rpend .pv-desc{color:#6b7280}
     #s-provee-det .pv-desc{font-size:12.5px;flex:1;min-width:0}
     #s-provee-det .pv-nums{display:flex;align-items:center;gap:8px;white-space:nowrap}
     #s-provee-det .pv-nums input{width:64px;padding:6px 8px;border:1px solid var(--line,#ccc);border-radius:8px;font-size:14px;text-align:right}
@@ -186,7 +188,10 @@ async function abrirRevisionProveedor(folioE){
   const prefill={};
   PROV_FOTOS=[];
   try{ const d=await getDoc(doc(db,'recibosProveedor',folioE)); if(d.exists()){ const dd=d.data(); (dd.items||[]).forEach(it=>{ prefill[String(it.clave)]=it.recibido; }); (dd.fotos||[]).forEach(ft=>{ PROV_FOTOS.push({id:ft.id, nombre:ft.nombre||'foto.jpg'}); }); } }catch(e){}
-  const items=Object.keys(byClave).map(k=>{ const b=byClave[k]; return {clave:b.clave, desc:b.desc, facturado:b.facturado, costo:b.costo, recibido:(prefill[k]!=null?prefill[k]:b.facturado)}; });
+  // Arranca en CERO: quien revisa debe capturar lo que realmente contó.
+  // (si la factura ya se revisó antes, se conserva lo capturado)
+  const items=Object.keys(byClave).map(k=>{ const b=byClave[k]; const ya=prefill[k]!=null;
+    return {clave:b.clave, desc:b.desc, facturado:b.facturado, costo:b.costo, recibido:(ya?prefill[k]:0), _tocado:ya}; });
   items.sort((a,b)=> a.desc<b.desc?-1:(a.desc>b.desc?1:0));
   PROV_ACTUAL={folioE:f.folioE, folioS:f.folioS, prov:f.prov, fecha:f.fecha, items};
   document.getElementById('prov-det-titulo').textContent=f.folioE;
@@ -199,10 +204,19 @@ async function abrirRevisionProveedor(folioE){
 }
 
 function pvResumen(){
-  let totFalt=0,nFalt=0;
-  for(const it of PROV_ACTUAL.items){ const falta=Math.max(0,it.facturado-it.recibido); if(falta>0){ totFalt+=falta*it.costo; nFalt++; } }
+  let totFalt=0,nFalt=0,capturados=0;
+  for(const it of PROV_ACTUAL.items){
+    if(it._tocado) capturados++;
+    const falta=Math.max(0,it.facturado-it.recibido);
+    if(falta>0 && it._tocado){ totFalt+=falta*it.costo; nFalt++; }
+  }
+  const tot=PROV_ACTUAL.items.length;
   const el=document.getElementById('prov-det-resumen');
-  if(el) el.innerHTML = nFalt>0 ? '<span class="pv-b pv-falt">'+nFalt+' con faltante · '+money(totFalt)+'</span>' : '<span class="pv-b pv-ok">Todo completo</span>';
+  if(!el) return;
+  let h='<span class="pv-b '+(capturados===tot?'pv-ok':'pv-pend')+'">Capturados '+capturados+' de '+tot+'</span> ';
+  if(nFalt>0) h+='<span class="pv-b pv-falt">'+nFalt+' con faltante · '+money(totFalt)+'</span>';
+  else if(capturados===tot) h+='<span class="pv-b pv-ok">Todo completo</span>';
+  el.innerHTML=h;
 }
 
 function renderProveeDet(){
@@ -214,14 +228,16 @@ function renderProveeDet(){
   for(let i=0;i<PROV_ACTUAL.items.length;i++){ const it=PROV_ACTUAL.items[i];
     if(q && (it.clave+' '+it.desc).toLowerCase().indexOf(q)<0) continue;
     const falta=it.facturado-it.recibido;
-    const cls=falta>0?'pv-row pv-rfalt':(falta<0?'pv-row pv-rsob':'pv-row');
-    const marca=falta>0?('−'+falta):(falta<0?('+'+(-falta)):'✓');
-    const col=falta>0?'#dc2626':(falta<0?'#d97706':'#16a34a');
+    let cls, marca, col;
+    if(!it._tocado){ cls='pv-row pv-rpend'; marca='•'; col='#9ca3af'; }
+    else { cls=falta>0?'pv-row pv-rfalt':(falta<0?'pv-row pv-rsob':'pv-row');
+      marca=falta>0?('−'+falta):(falta<0?('+'+(-falta)):'✓');
+      col=falta>0?'#dc2626':(falta<0?'#d97706':'#16a34a'); }
     h+='<div class="'+cls+'">'+
       '<div class="pv-desc"><b>'+it.clave+'</b> '+it.desc+'</div>'+
       '<div class="pv-nums">'+
         '<span style="font-size:11px;color:var(--muted,#777)">fact. '+it.facturado+'</span>'+
-        '<input type="number" min="0" value="'+it.recibido+'" onchange="proveeSet('+i+',this.value)">'+
+        '<input type="number" min="0" value="'+(it._tocado?it.recibido:'')+'" placeholder="0" onchange="proveeSet('+i+',this.value)">'+
         '<span class="pv-f" style="color:'+col+'">'+marca+'</span>'+
       '</div></div>';
     shown++; if(shown>=300) break;
@@ -234,16 +250,21 @@ function proveeSet(idx,val){
   if(!PROV_ACTUAL||!PROV_ACTUAL.items[idx]) return;
   let v=parseInt(val,10); if(isNaN(v)||v<0) v=0;
   PROV_ACTUAL.items[idx].recibido=v;
+  PROV_ACTUAL.items[idx]._tocado=true;
   renderProveeDet();
 }
 function proveeMarcarCompleto(){
   if(!PROV_ACTUAL) return;
-  for(const it of PROV_ACTUAL.items) it.recibido=it.facturado;
+  for(const it of PROV_ACTUAL.items){ it.recibido=it.facturado; it._tocado=true; }
   renderProveeDet();
 }
 
 async function guardarRecepcionProveedor(){
   if(!PROV_ACTUAL) return;
+  const sinCapturar=PROV_ACTUAL.items.filter(x=>!x._tocado).length;
+  if(sinCapturar>0){
+    if(!confirm('Faltan '+sinCapturar+' producto(s) por capturar. Se guardarán como recibido 0 (faltante total). ¿Continuar de todos modos?')) return;
+  }
   const st=document.getElementById('prov-det-status'); st.textContent='Guardando…';
   const items=[]; let totFalt=0;
   for(const it of PROV_ACTUAL.items){
