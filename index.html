@@ -1505,20 +1505,20 @@ function _parsearOrdenPDF(datosPDF, nombreArchivo){
   }
   
   // Extraer líneas de productos
-  const LINE_RE = /^\s*([\d,]+\.\d{2})\s+([A-Za-z0-9]+)\s+(.+?)\s{2,}([\d,]+\.\d{2})(?:\s+[\d,]+\.\d{2})?\s+([\d,]+\.\d{2})\s*$/;
+  const LINE_RE = /^\s*([\d,]+\.\d{2})\s+([A-Za-z0-9]+)\s+(.+?)\s+([\d,]+\.\d{2})(?:\s+([\d,]+\.\d{2}))?\s+([\d,]+\.\d{2})\s*$/;
   const num = s => parseFloat(s.replace(/,/g, ''));
   const lineasProductos = [];
   for(const linea of lineas){
     const m = linea.match(LINE_RE);
     if(!m) continue;
-    const [, cant, clave, desc, costoUnit, importe] = m;
+    const cant=m[1], clave=m[2], desc=m[3], costoUnit=(m[5]!=null?m[5]:m[4]); const _cn=num(cant), _cu=num(costoUnit), _lt=num(m[6]); const importe=(Math.abs(_lt-_cn*_cu)<=Math.max(1,_cn*0.02))?String(_lt):"0";
     if(clave.length < 2) continue;
     lineasProductos.push({
       clave: clave.trim().toUpperCase(),
       descripcion: desc.trim().replace(/\s+/g,' '),
       cantidad: num(cant),
       costoUnit: num(costoUnit),
-      importe: (num(costoUnit) <= 0.05 ? 0 : num(importe)) /* bonificacion: precio ~0 => el ultimo numero es %desc(100), no importe */
+      importe: num(importe) /* bonificacion: precio ~0 => el ultimo numero es %desc(100), no importe */
     });
   }
   
