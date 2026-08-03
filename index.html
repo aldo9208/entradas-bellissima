@@ -732,52 +732,52 @@ window.confirmarRecepcion = async function(){
 
 // ── FALTANTES ──
 function renderFaltantes(){
-  const todos = [];
-  recepciones.forEach(r=>{
-    r.items.forEach(i=>{ if(i.faltante>0) todos.push({sucOrig:r.sucOrig||'—',sucDest:r.sucDest,folio:r.folio,fecha:r.fecha,numart:i.numart,desc:i.desc,esperado:i.esperado,recibido:i.recibido,faltante:i.faltante}); });
+  var todos=[], sobras=[];
+  recepciones.forEach(function(r){
+    r.items.forEach(function(i){
+      var base={sucOrig:r.sucOrig||'—',sucDest:r.sucDest,folio:r.folio,fecha:r.fecha,numart:i.numart,desc:i.desc,esperado:i.esperado,recibido:i.recibido};
+      if(i.faltante>0) todos.push(Object.assign({},base,{tipo:'falta',cant:i.faltante}));
+      if(i.sobrante>0) sobras.push(Object.assign({},base,{tipo:'sobra',cant:i.sobrante}));
+    });
   });
-  const totalFalt=todos.length, totalPzas=todos.reduce((a,x)=>a+x.faltante,0), sucsAfect=[...new Set(todos.map(x=>x.sucDest))];
-  document.getElementById('falt-stats').innerHTML=`
-    <div class="stat"><div class="stat-n" style="color:var(--danger)">${totalFalt}</div><div class="stat-l">Registros</div></div>
-    <div class="stat"><div class="stat-n" style="color:var(--danger)">${totalPzas}</div><div class="stat-l">Piezas faltantes</div></div>
-    <div class="stat"><div class="stat-n">${sucsAfect.length}</div><div class="stat-l">Sucursales</div></div>`;
-  const tabsEl=document.getElementById('falt-tabs'), listaEl=document.getElementById('falt-lista');
-  if(!todos.length){ tabsEl.innerHTML=''; listaEl.innerHTML='<div class="empty"><div class="empty-icon">✓</div><p style="font-size:14px">Sin faltantes pendientes.</p></div>'; return; }
-  const tabOpts = ['Todas',...sucsAfect];
+  var combos=todos.concat(sobras);
+  var totalPzasF=todos.reduce(function(a,x){return a+x.cant;},0);
+  var totalPzasS=sobras.reduce(function(a,x){return a+x.cant;},0);
+  var sucsAfect=[]; combos.forEach(function(x){ if(sucsAfect.indexOf(x.sucDest)<0) sucsAfect.push(x.sucDest); });
+  document.getElementById('falt-stats').innerHTML=
+    '<div class="stat"><div class="stat-n" style="color:var(--danger)">'+totalPzasF+'</div><div class="stat-l">Piezas faltantes</div></div>'+
+    '<div class="stat"><div class="stat-n" style="color:#d97706">'+totalPzasS+'</div><div class="stat-l">Piezas sobrantes</div></div>'+
+    '<div class="stat"><div class="stat-n">'+sucsAfect.length+'</div><div class="stat-l">Sucursales</div></div>';
+  var tabsEl=document.getElementById('falt-tabs'), listaEl=document.getElementById('falt-lista');
+  if(!combos.length){ tabsEl.innerHTML=''; listaEl.innerHTML='<div class="empty"><div class="empty-icon">✅</div><p style="font-size:14px">Sin faltantes ni sobrantes pendientes.</p></div>'; return; }
+  var tabOpts=['Todas'].concat(sucsAfect);
   if(tabFalt>=tabOpts.length) tabFalt=0;
-  tabsEl.innerHTML = tabOpts.map((s,i)=>`<button class="tab ${i===tabFalt?'active':''}" onclick="tabFalt=${i};renderFaltantes()">${s}</button>`).join('');
-  const filtrados = tabFalt===0 ? todos : todos.filter(x=>x.sucDest===tabOpts[tabFalt]);
-  if(!filtrados.length){ listaEl.innerHTML='<p style="font-size:13px;color:var(--muted)">Sin faltantes para esta sucursal.</p>'; return; }
+  tabsEl.innerHTML=tabOpts.map(function(s,i){ return '<button class="tab '+(i===tabFalt?'active':'')+'" onclick="tabFalt='+i+';renderFaltantes()">'+s+'</button>'; }).join('');
+  var filtrados = tabFalt===0 ? combos : combos.filter(function(x){ return x.sucDest===tabOpts[tabFalt]; });
+  if(!filtrados.length){ listaEl.innerHTML='<p style="font-size:13px;color:var(--muted)">Sin registros para esta sucursal.</p>'; return; }
+  function pill(x){ var c=x.tipo==='falta'?'var(--danger)':'#d97706'; var s=x.tipo==='falta'?('▼ '+x.cant):('▲ '+x.cant); return '<td style="text-align:right;font-weight:600;color:'+c+'">'+s+'</td>'; }
+  function fila(x){ return '<tr><td class="numart">'+x.numart+'</td>'+
+    '<td style="max-width:150px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+x.desc+'</td>'+
+    '<td><span class="folio">'+x.folio+'</span></td>'+
+    '<td style="color:var(--muted)">'+x.esperado+'</td><td style="color:var(--muted)">'+x.recibido+'</td>'+
+    pill(x)+'</tr>'; }
   if(tabFalt===0){
-    const bySuc={};
-    filtrados.forEach(x=>{ if(!bySuc[x.sucDest]) bySuc[x.sucDest]=[]; bySuc[x.sucDest].push(x); });
-    listaEl.innerHTML = Object.entries(bySuc).map(([suc,items])=>`
-      <div class="card" style="margin-bottom:12px">
-        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
-          <p style="font-weight:600;font-size:14px">${suc}</p>
-          <span class="badge b-falt">${items.reduce((a,x)=>a+x.faltante,0)} pzas</span>
-        </div>
-        <table class="falt-table">
-          <thead><tr><th>Numart</th><th>Descripción</th><th>Folio</th><th style="text-align:right">Faltante</th></tr></thead>
-          <tbody>${items.map(i=>`<tr>
-            <td class="numart">${i.numart}</td>
-            <td style="max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${i.desc}</td>
-            <td><span class="folio">${i.folio}</span></td>
-            <td style="text-align:right;font-weight:600;color:var(--danger)">${i.faltante}</td>
-          </tr>`).join('')}</tbody>
-        </table>
-      </div>`).join('');
+    var bySuc={}; filtrados.forEach(function(x){ if(!bySuc[x.sucDest]) bySuc[x.sucDest]=[]; bySuc[x.sucDest].push(x); });
+    listaEl.innerHTML=Object.keys(bySuc).map(function(suc){
+      var items=bySuc[suc];
+      var nf=items.filter(function(x){return x.tipo==='falta';}).reduce(function(a,x){return a+x.cant;},0);
+      var ns=items.filter(function(x){return x.tipo==='sobra';}).reduce(function(a,x){return a+x.cant;},0);
+      var badges=''; if(nf>0) badges+='<span class="badge b-falt">'+nf+' falt</span> '; if(ns>0) badges+='<span class="badge" style="background:#fef3c7;color:#d97706">'+ns+' sob</span>';
+      return '<div class="card" style="margin-bottom:12px">'+
+        '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">'+
+        '<p style="font-weight:600;font-size:14px">'+suc+'</p><span>'+badges+'</span></div>'+
+        '<table class="falt-table"><thead><tr><th>Numart</th><th>Descripción</th><th>Folio</th><th>Esp</th><th>Rec</th><th style="text-align:right">Dif</th></tr></thead>'+
+        '<tbody>'+items.map(fila).join('')+'</tbody></table></div>';
+    }).join('');
   } else {
-    listaEl.innerHTML=`<div class="card"><table class="falt-table">
-      <thead><tr><th>Numart</th><th>Descripción</th><th>Folio</th><th>Esp</th><th>Rec</th><th style="text-align:right">Falta</th></tr></thead>
-      <tbody>${filtrados.map(i=>`<tr>
-        <td class="numart">${i.numart}</td>
-        <td style="max-width:130px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${i.desc}</td>
-        <td><span class="folio">${i.folio}</span></td>
-        <td style="color:var(--muted)">${i.esperado}</td><td style="color:var(--muted)">${i.recibido}</td>
-        <td style="text-align:right;font-weight:600;color:var(--danger)">${i.faltante}</td>
-      </tr>`).join('')}</tbody>
-    </table></div>`;
+    listaEl.innerHTML='<div class="card"><table class="falt-table">'+
+      '<thead><tr><th>Numart</th><th>Descripción</th><th>Folio</th><th>Esp</th><th>Rec</th><th style="text-align:right">Dif</th></tr></thead>'+
+      '<tbody>'+filtrados.map(fila).join('')+'</tbody></table></div>';
   }
 }
 window.renderFaltantes = renderFaltantes;
