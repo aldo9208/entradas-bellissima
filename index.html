@@ -735,9 +735,12 @@ function renderFaltantes(){
   var todos=[], sobras=[];
   recepciones.forEach(function(r){
     (r.items||[]).forEach(function(i,idx){
+      var falta=Math.max(0,(i.esperado||0)-(i.recibido||0));
+      var sobra=Math.max(0,(i.recibido||0)-(i.esperado||0));
+      if(falta===0 && sobra===0) return;
       var base={sucOrig:r.sucOrig||'—',sucDest:r.sucDest,folio:r.folio,fecha:r.fecha,numart:i.numart,desc:i.desc,esperado:i.esperado,recibido:i.recibido,_docId:r._docId,_idx:idx,resuelto:!!i.resuelto};
-      if(i.faltante>0) todos.push(Object.assign({},base,{tipo:'falta',cant:i.faltante}));
-      if(i.sobrante>0) sobras.push(Object.assign({},base,{tipo:'sobra',cant:i.sobrante}));
+      if(falta>0) todos.push(Object.assign({},base,{tipo:'falta',cant:falta}));
+      if(sobra>0) sobras.push(Object.assign({},base,{tipo:'sobra',cant:sobra}));
     });
   });
   var combos=todos.concat(sobras);
