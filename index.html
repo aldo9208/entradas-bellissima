@@ -733,7 +733,7 @@ window.confirmarRecepcion = async function(){
 // ── FALTANTES ──
 function renderFaltantes(){
   var todos=[], sobras=[];
-  recepciones.forEach(function(r){
+  recepciones.forEach(function(r){ if(r.corregido) return;
     r.items.forEach(function(i){
       var base={sucOrig:r.sucOrig||'—',sucDest:r.sucDest,folio:r.folio,fecha:r.fecha,numart:i.numart,desc:i.desc,esperado:i.esperado,recibido:i.recibido};
       if(i.faltante>0) todos.push(Object.assign({},base,{tipo:'falta',cant:i.faltante}));
