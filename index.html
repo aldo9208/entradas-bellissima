@@ -733,52 +733,71 @@ window.confirmarRecepcion = async function(){
 // ── FALTANTES ──
 function renderFaltantes(){
   var todos=[], sobras=[];
-  recepciones.forEach(function(r){ if(r.corregido) return;
-    r.items.forEach(function(i){
-      var base={sucOrig:r.sucOrig||'—',sucDest:r.sucDest,folio:r.folio,fecha:r.fecha,numart:i.numart,desc:i.desc,esperado:i.esperado,recibido:i.recibido};
+  recepciones.forEach(function(r){
+    (r.items||[]).forEach(function(i,idx){
+      var base={sucOrig:r.sucOrig||'—',sucDest:r.sucDest,folio:r.folio,fecha:r.fecha,numart:i.numart,desc:i.desc,esperado:i.esperado,recibido:i.recibido,_docId:r._docId,_idx:idx,resuelto:!!i.resuelto};
       if(i.faltante>0) todos.push(Object.assign({},base,{tipo:'falta',cant:i.faltante}));
       if(i.sobrante>0) sobras.push(Object.assign({},base,{tipo:'sobra',cant:i.sobrante}));
     });
   });
   var combos=todos.concat(sobras);
-  var totalPzasF=todos.reduce(function(a,x){return a+x.cant;},0);
-  var totalPzasS=sobras.reduce(function(a,x){return a+x.cant;},0);
-  var sucsAfect=[]; combos.forEach(function(x){ if(sucsAfect.indexOf(x.sucDest)<0) sucsAfect.push(x.sucDest); });
+  var pendF=todos.filter(function(x){return !x.resuelto;}).reduce(function(a,x){return a+x.cant;},0);
+  var pendS=sobras.filter(function(x){return !x.resuelto;}).reduce(function(a,x){return a+x.cant;},0);
+  var sucsPend=[]; combos.forEach(function(x){ if(!x.resuelto && sucsPend.indexOf(x.sucDest)<0) sucsPend.push(x.sucDest); });
   document.getElementById('falt-stats').innerHTML=
-    '<div class="stat"><div class="stat-n" style="color:var(--danger)">'+totalPzasF+'</div><div class="stat-l">Piezas faltantes</div></div>'+
-    '<div class="stat"><div class="stat-n" style="color:#d97706">'+totalPzasS+'</div><div class="stat-l">Piezas sobrantes</div></div>'+
-    '<div class="stat"><div class="stat-n">'+sucsAfect.length+'</div><div class="stat-l">Sucursales</div></div>';
+    '<div class="stat"><div class="stat-n" style="color:var(--danger)">'+pendF+'</div><div class="stat-l">Piezas faltantes</div></div>'+
+    '<div class="stat"><div class="stat-n" style="color:#d97706">'+pendS+'</div><div class="stat-l">Piezas sobrantes</div></div>'+
+    '<div class="stat"><div class="stat-n">'+sucsPend.length+'</div><div class="stat-l">Sucursales</div></div>';
   var tabsEl=document.getElementById('falt-tabs'), listaEl=document.getElementById('falt-lista');
   if(!combos.length){ tabsEl.innerHTML=''; listaEl.innerHTML='<div class="empty"><div class="empty-icon">✅</div><p style="font-size:14px">Sin faltantes ni sobrantes pendientes.</p></div>'; return; }
-  var tabOpts=['Todas'].concat(sucsAfect);
+  var sucsAll=[]; combos.forEach(function(x){ if(sucsAll.indexOf(x.sucDest)<0) sucsAll.push(x.sucDest); });
+  var tabOpts=['Todas'].concat(sucsAll);
   if(tabFalt>=tabOpts.length) tabFalt=0;
   tabsEl.innerHTML=tabOpts.map(function(s,i){ return '<button class="tab '+(i===tabFalt?'active':'')+'" onclick="tabFalt='+i+';renderFaltantes()">'+s+'</button>'; }).join('');
   var filtrados = tabFalt===0 ? combos : combos.filter(function(x){ return x.sucDest===tabOpts[tabFalt]; });
   if(!filtrados.length){ listaEl.innerHTML='<p style="font-size:13px;color:var(--muted)">Sin registros para esta sucursal.</p>'; return; }
-  function pill(x){ var c=x.tipo==='falta'?'var(--danger)':'#d97706'; var s=x.tipo==='falta'?('▼ '+x.cant):('▲ '+x.cant); return '<td style="text-align:right;font-weight:600;color:'+c+'">'+s+'</td>'; }
-  function fila(x){ return '<tr><td class="numart" style="vertical-align:top">'+x.numart+'</td>'+
-    '<td style="max-width:220px;white-space:normal;line-height:1.3;vertical-align:top">'+x.desc+'</td>'+
-    '<td style="vertical-align:top"><span class="folio">'+x.folio+'</span><div style="font-size:10.5px;color:var(--muted);margin-top:3px;white-space:nowrap">'+(x.fecha||'')+'</div></td>'+
-    '<td style="color:var(--muted);vertical-align:top">'+x.esperado+'</td><td style="color:var(--muted);vertical-align:top">'+x.recibido+'</td>'+
-    '<td style="text-align:right;font-weight:600;vertical-align:top;color:'+(x.tipo==='falta'?'var(--danger)':'#d97706')+'">'+(x.tipo==='falta'?('▼ '+x.cant):('▲ '+x.cant))+'</td></tr>'; }
+  function fila(x){
+    var q=String.fromCharCode(39);
+    var col=x.tipo==='falta'?'var(--danger)':'#d97706';
+    var dif=x.tipo==='falta'?('▼ '+x.cant):('▲ '+x.cant);
+    var g=x.resuelto;
+    var onclk='toggleResuelto('+q+(x._docId||'')+q+','+x._idx+')';
+    var btn = g
+      ? '<button onclick="'+onclk+'" title="Deshacer" style="border:1px solid #ddd;background:#fff;border-radius:6px;padding:2px 7px;cursor:pointer;color:#888">↩</button>'
+      : '<button onclick="'+onclk+'" title="Marcar resuelto" style="border:1px solid #16a34a;background:#16a34a;color:#fff;border-radius:6px;padding:2px 8px;cursor:pointer;font-weight:700">✓</button>';
+    var descStyle='max-width:210px;white-space:normal;line-height:1.3;vertical-align:top'+(g?';text-decoration:line-through':'');
+    return '<tr style="'+(g?'opacity:.5':'')+'"><td class="numart" style="vertical-align:top">'+x.numart+'</td>'+
+      '<td style="'+descStyle+'">'+x.desc+'</td>'+
+      '<td style="vertical-align:top"><span class="folio">'+x.folio+'</span><div style="font-size:10.5px;color:var(--muted);margin-top:3px;white-space:nowrap">'+(x.fecha||'')+'</div></td>'+
+      '<td style="color:var(--muted);vertical-align:top">'+x.esperado+'</td><td style="color:var(--muted);vertical-align:top">'+x.recibido+'</td>'+
+      '<td style="text-align:right;font-weight:600;vertical-align:top;color:'+col+'">'+dif+'</td>'+
+      '<td style="text-align:center;vertical-align:top">'+btn+'</td></tr>';
+  }
+  function tabla(items){
+    return '<table class="falt-table"><thead><tr><th>Numart</th><th>Descripción</th><th>Folio y fecha</th><th>Esp</th><th>Rec</th><th style="text-align:right">Dif</th><th></th></tr></thead><tbody>'+items.map(fila).join('')+'</tbody></table>';
+  }
   if(tabFalt===0){
     var bySuc={}; filtrados.forEach(function(x){ if(!bySuc[x.sucDest]) bySuc[x.sucDest]=[]; bySuc[x.sucDest].push(x); });
     listaEl.innerHTML=Object.keys(bySuc).map(function(suc){
       var items=bySuc[suc];
-      var nf=items.filter(function(x){return x.tipo==='falta';}).reduce(function(a,x){return a+x.cant;},0);
-      var ns=items.filter(function(x){return x.tipo==='sobra';}).reduce(function(a,x){return a+x.cant;},0);
-      var badges=''; if(nf>0) badges+='<span class="badge b-falt">'+nf+' falt</span> '; if(ns>0) badges+='<span class="badge" style="background:#fef3c7;color:#d97706">'+ns+' sob</span>';
-      return '<div class="card" style="margin-bottom:12px">'+
-        '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">'+
-        '<p style="font-weight:600;font-size:14px">'+suc+'</p><span>'+badges+'</span></div>'+
-        '<table class="falt-table"><thead><tr><th>Numart</th><th>Descripción</th><th>Folio y fecha</th><th>Esp</th><th>Rec</th><th style="text-align:right">Dif</th></tr></thead>'+
-        '<tbody>'+items.map(fila).join('')+'</tbody></table></div>';
+      var nf=items.filter(function(x){return x.tipo==='falta'&&!x.resuelto;}).reduce(function(a,x){return a+x.cant;},0);
+      var ns=items.filter(function(x){return x.tipo==='sobra'&&!x.resuelto;}).reduce(function(a,x){return a+x.cant;},0);
+      var nr=items.filter(function(x){return x.resuelto;}).length;
+      var badges=''; if(nf>0) badges+='<span class="badge b-falt">'+nf+' falt</span> '; if(ns>0) badges+='<span class="badge" style="background:#fef3c7;color:#d97706">'+ns+' sob</span> '; if(nr>0) badges+='<span class="badge b-ok">'+nr+' ✓</span>';
+      return '<div class="card" style="margin-bottom:12px"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px"><p style="font-weight:600;font-size:14px">'+suc+'</p><span>'+badges+'</span></div>'+tabla(items)+'</div>';
     }).join('');
   } else {
-    listaEl.innerHTML='<div class="card"><table class="falt-table">'+
-      '<thead><tr><th>Numart</th><th>Descripción</th><th>Folio y fecha</th><th>Esp</th><th>Rec</th><th style="text-align:right">Dif</th></tr></thead>'+
-      '<tbody>'+filtrados.map(fila).join('')+'</tbody></table></div>';
+    listaEl.innerHTML='<div class="card">'+tabla(filtrados)+'</div>';
   }
+}
+window.toggleResuelto = async function(docId, idx){
+  try{
+    var r = recepciones.find(function(x){ return x._docId===docId; });
+    if(!r || !r.items || !r.items[idx]) return;
+    r.items[idx].resuelto = !r.items[idx].resuelto;
+    renderFaltantes();
+    await updateDoc(doc(db,'recepciones',docId), { items: r.items });
+  }catch(e){ alert('Error al guardar: '+e.message); renderFaltantes(); }
 }
 window.renderFaltantes = renderFaltantes;
 window.tabFalt = tabFalt;
