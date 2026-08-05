@@ -144,7 +144,8 @@ async function cargarFacturas(){
     (o.compras||[]).forEach(c=>{ if(!c.folio) return;
       const prods=c.productosRecibidos||[];
       const r=revisados[c.folio];
-      out.push({folioE:String(c.folio), folioS:o.folio||'', prov:o.proveedor||'', fecha:c.fechaCompra||o.fechaLlegada||'', nProd:prods.length, revisado:!!r, totalFalt:r?(r.totalFaltante||0):0, prods});
+      let pzFalt=0; if(r&&r.items){ r.items.forEach(it=>{ if(it.faltante>0) pzFalt+=it.faltante; }); }
+      out.push({folioE:String(c.folio), folioS:o.folio||'', prov:o.proveedor||'', fecha:c.fechaCompra||o.fechaLlegada||'', nProd:prods.length, revisado:!!r, totalFalt:r?(r.totalFaltante||0):0, pzFalt:pzFalt, prods});
     });
   });
   out.sort((a,b)=>String(b.fecha).localeCompare(String(a.fecha)));
@@ -167,7 +168,7 @@ async function renderProveeList(){
   if(!filt.length){ cont.innerHTML='<p style="color:var(--muted,#777);padding:16px">No hay facturas '+(PROV_FILTRO==='pend'?'por revisar':(PROV_FILTRO==='rev'?'revisadas':''))+'.</p>'; return; }
   let h='';
   for(const x of filt){
-    const badge = x.revisado ? (x.totalFalt>0?'<span class="pv-b pv-falt">Faltó '+money(x.totalFalt)+'</span>':'<span class="pv-b pv-ok">Completo</span>') : '<span class="pv-b pv-pend">Por revisar</span>';
+    const badge = x.revisado ? (x.pzFalt>0?'<span class="pv-b pv-falt">Faltó '+(x.totalFalt>0?money(x.totalFalt):(x.pzFalt+' pz'))+'</span>':'<span class="pv-b pv-ok">Completo</span>') : '<span class="pv-b pv-pend">Por revisar</span>';
     h+='<div class="pv-card" onclick="abrirRevisionProveedor(\''+x.folioE+'\')">'+
       '<div style="min-width:0"><b>'+x.folioE+'</b> · '+x.prov+
       '<div style="font-size:12px;color:var(--muted,#777)">'+x.fecha+' · '+x.nProd+' productos</div></div>'+
@@ -204,17 +205,17 @@ async function abrirRevisionProveedor(folioE){
 }
 
 function pvResumen(){
-  let totFalt=0,nFalt=0,capturados=0;
+  let totFalt=0,nFalt=0,capturados=0,pzFalt=0;
   for(const it of PROV_ACTUAL.items){
     if(it._tocado) capturados++;
     const falta=Math.max(0,it.facturado-it.recibido);
-    if(falta>0 && it._tocado){ totFalt+=falta*it.costo; nFalt++; }
+    if(falta>0 && it._tocado){ totFalt+=falta*it.costo; nFalt++; pzFalt+=falta; }
   }
   const tot=PROV_ACTUAL.items.length;
   const el=document.getElementById('prov-det-resumen');
   if(!el) return;
   let h='<span class="pv-b '+(capturados===tot?'pv-ok':'pv-pend')+'">Capturados '+capturados+' de '+tot+'</span> ';
-  if(nFalt>0) h+='<span class="pv-b pv-falt">'+nFalt+' con faltante · '+money(totFalt)+'</span>';
+  if(nFalt>0) h+='<span class="pv-b pv-falt">'+nFalt+' con faltante · '+pzFalt+' pz'+(totFalt>0?' · '+money(totFalt):'')+'</span>';
   else if(capturados===tot) h+='<span class="pv-b pv-ok">Todo completo</span>';
   el.innerHTML=h;
 }
