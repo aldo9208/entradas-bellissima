@@ -1,8 +1,10 @@
 /* ===== Evidencias por caja (surtido a sucursales) — módulo autónomo =====
    <script type="module" src="./cajas.js"></script>
-   Se engancha al modal "Marcar como surtido". Como se surte a varias sucursales,
-   las cajas se organizan POR SUCURSAL, cada una con su consecutivo (Caja 1, 2, 3…).
-   Fotos comprimidas, ligadas a la orden de surtido. Incluye pantalla para verlas. */
+   - Cajas organizadas POR SUCURSAL, cada una con su consecutivo (Caja 1, 2, 3…).
+   - Se pueden capturar en el modal "Marcar como surtido" (al surtir), o reabrir
+     desde la lista de órdenes con el botón "📦 Cajas" para GUARDAR AVANCE sin
+     marcar surtido y seguir después.
+   - Pantalla "Evidencias de surtido" para verlas. */
 import { getApps, initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
 import { getFirestore, collection, getDocs, getDoc, doc, setDoc, addDoc } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
 
@@ -16,9 +18,9 @@ let CAJAS = [];          // [{sucursal, fotos:[{dataUrl?,id?,nombre}]}]
 let ordenIdActual = null;
 let lastSuc = '';
 let SUCS = [];
+let activeCont = null;   // contenedor donde se renderiza la UI de cajas
 let hookPuesto = false;
 
-/* ---------- sucursales (dinámico) ---------- */
 async function cargarSucursales(){
   if(SUCS.length) return SUCS;
   try{
@@ -26,7 +28,7 @@ async function cargarSucursales(){
     const set=new Set(); s.forEach(d=>{ const x=d.data().sucDest; if(x) set.add(x); });
     SUCS=[...set].sort((a,b)=>{ const na=parseInt(a)||99, nb=parseInt(b)||99; return na-nb; });
   }catch(e){ SUCS=[]; }
-  if(SUCS.length) lastSuc=lastSuc||SUCS[0];
+  if(SUCS.length && !lastSuc) lastSuc=SUCS[0];
   return SUCS;
 }
 
@@ -60,25 +62,24 @@ async function abrirFotoGuardada(id){
     const url=URL.createObjectURL(new Blob([arr],{type:m.tipo||'image/jpeg'})); window.open(url,'_blank'); setTimeout(()=>URL.revokeObjectURL(url),60000);
   }catch(e){ alert('Error: '+e.message); }
 }
+function setStatus(txt){ if(activeCont){ const s=activeCont.querySelector('[data-cajas-status]'); if(s) s.textContent=txt||''; } }
 
 /* ---------- handlers ---------- */
 window.cajaSetSuc = function(v){ lastSuc=v; };
 window.cajaAgregar = function(){
-  const sel=document.getElementById('caja-suc');
+  const sel=activeCont && activeCont.querySelector('[data-caja-suc]');
   const suc = sel ? sel.value : (lastSuc||SUCS[0]||'');
   if(!suc){ alert('No hay sucursales cargadas.'); return; }
-  lastSuc=suc;
-  CAJAS.push({sucursal:suc, fotos:[]});
-  renderCajas();
+  lastSuc=suc; CAJAS.push({sucursal:suc, fotos:[]}); renderCajas();
 };
 window.cajaBorrar = function(ci){ if(!confirm('¿Quitar esta caja y sus fotos?')) return; CAJAS.splice(ci,1); renderCajas(); };
 window.cajaFotoAdd = async function(ci, files){
   if(!files||!files.length||!CAJAS[ci]) return;
-  const st=document.getElementById('cajas-status'); if(st) st.textContent='Procesando foto(s)…';
+  setStatus('Procesando foto(s)…');
   for(const f of files){ if(!/^image\//.test(f.type)) continue;
     try{ const dataUrl=await comprimirImagen(f); CAJAS[ci].fotos.push({dataUrl, nombre:f.name||'caja.jpg'}); }catch(e){}
   }
-  if(st) st.textContent='';
+  setStatus('');
   renderCajas();
 };
 window.cajaFotoDel = function(ci, fi){ if(CAJAS[ci]) CAJAS[ci].fotos.splice(fi,1); renderCajas(); };
@@ -105,12 +106,11 @@ function cardCaja(caja, ci, numLocal){
 }
 
 function renderCajas(){
-  const cont=document.getElementById('cajas-cont'); if(!cont) return;
+  const cont=activeCont; if(!cont) return;
   let h='<div style="display:flex;gap:8px;margin-bottom:10px">'+
-    '<select id="caja-suc" onchange="cajaSetSuc(this.value)" style="flex:1;padding:8px 10px;border:1px solid #ccc;border-radius:8px;font-size:13px">'+
+    '<select data-caja-suc onchange="cajaSetSuc(this.value)" style="flex:1;padding:8px 10px;border:1px solid #ccc;border-radius:8px;font-size:13px">'+
     SUCS.map(s=>'<option value="'+esc(s)+'"'+(s===lastSuc?' selected':'')+'>'+esc(s)+'</option>').join('')+'</select>'+
     '<button type="button" onclick="cajaAgregar()" style="padding:8px 14px;border:1px solid #a855f7;background:#a855f7;color:#fff;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;white-space:nowrap">➕ Caja</button></div>';
-  // agrupar por sucursal, en el orden de SUCS
   const groups={}; CAJAS.forEach((c,gi)=>{ (groups[c.sucursal]=groups[c.sucursal]||[]).push(gi); });
   const ordenSucs = SUCS.filter(s=>groups[s]).concat(Object.keys(groups).filter(s=>SUCS.indexOf(s)<0));
   if(!CAJAS.length){ h+='<div style="font-size:12.5px;color:#94a3b8;padding:8px 0">Elige una sucursal y agrega sus cajas.</div>'; }
@@ -118,7 +118,7 @@ function renderCajas(){
     h+='<div style="font-weight:700;font-size:12.5px;color:#334155;margin:10px 0 5px;padding-bottom:3px;border-bottom:1px solid #eee">'+esc(suc)+' <span style="color:#94a3b8;font-weight:500">('+groups[suc].length+' cajas)</span></div>';
     groups[suc].forEach((ci,localIdx)=>{ h+=cardCaja(CAJAS[ci], ci, localIdx+1); });
   });
-  h+='<div id="cajas-status" style="font-size:12px;color:#a855f7;margin-top:6px;min-height:16px"></div>';
+  h+='<div data-cajas-status style="font-size:12px;color:#a855f7;margin-top:6px;min-height:16px"></div>';
   cont.innerHTML=h;
 }
 
@@ -129,20 +129,8 @@ async function cargarCajasDeOrden(ordenId){
   }catch(e){}
 }
 
-function injectIntoModal(){
-  const modal=document.getElementById('modal-surtir-orden'); if(!modal) return;
-  const cancelar=modal.querySelector('#btn-sur-cancelar'); if(!cancelar) return;
-  if(!modal.querySelector('#cajas-sec')){
-    const row=cancelar.parentNode;
-    const sec=document.createElement('div'); sec.id='cajas-sec'; sec.style.margin='4px 0';
-    sec.innerHTML='<label class="lbl" style="display:block;margin-bottom:6px">Evidencias por caja (por sucursal)</label><div id="cajas-cont"></div>';
-    row.parentNode.insertBefore(sec, row);
-  }
-  renderCajas();
-}
-
-async function guardarEvidenciaCajas(){
-  const ordenId = window.__ordenAccionId || ordenIdActual;
+async function guardarEvidenciaCajas(ordenId){
+  ordenId = ordenId || window.__ordenAccionId || ordenIdActual;
   if(!ordenId || !CAJAS.length) return;
   const cajasGuardar=[];
   for(const caja of CAJAS){
@@ -158,8 +146,67 @@ async function guardarEvidenciaCajas(){
   await setDoc(doc(db,'evidenciaSurtido',ordenId), Object.assign({ordenId, cajas:cajasGuardar, ts:Date.now()}, info));
 }
 
+/* ---------- modal en surtir ---------- */
+function injectIntoModal(){
+  const modal=document.getElementById('modal-surtir-orden'); if(!modal) return;
+  const cancelar=modal.querySelector('#btn-sur-cancelar'); if(!cancelar) return;
+  if(!modal.querySelector('#cajas-sec')){
+    const row=cancelar.parentNode;
+    const sec=document.createElement('div'); sec.id='cajas-sec'; sec.style.margin='4px 0';
+    sec.innerHTML='<label class="lbl" style="display:block;margin-bottom:6px">Evidencias por caja (por sucursal)</label><div id="cajas-cont"></div>';
+    row.parentNode.insertBefore(sec, row);
+  }
+  activeCont = modal.querySelector('#cajas-cont');
+  renderCajas();
+}
+
+/* ---------- editor independiente (reabrir desde la lista) ---------- */
+function ensureEditorModal(){
+  if(document.getElementById('m-cajas-editor')) return;
+  const d=document.createElement('div');
+  d.id='m-cajas-editor';
+  d.style.cssText='display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:1002;align-items:center;justify-content:center';
+  d.innerHTML='<div style="background:#fff;border-radius:12px;padding:20px;max-width:440px;width:92%;max-height:90vh;overflow-y:auto">'+
+    '<h3 style="margin:0 0 4px;font-size:18px;color:#6b21a8">Cajas del surtido</h3>'+
+    '<div id="cajas-ed-info" style="font-size:12.5px;color:#777;margin-bottom:12px"></div>'+
+    '<div id="cajas-cont-ed"></div>'+
+    '<div style="display:flex;gap:8px;margin-top:14px">'+
+      '<button type="button" onclick="cajasCerrarEditor()" class="btn" style="flex:1">Cerrar</button>'+
+      '<button type="button" onclick="cajasGuardarAvance()" class="btn btn-primary" style="flex:1;background:#a855f7">Guardar avance</button>'+
+    '</div>'+
+    '<div data-cajas-ed-status style="font-size:12.5px;color:#16a34a;margin-top:8px;min-height:16px;text-align:center"></div>'+
+  '</div>';
+  d.addEventListener('click', e=>{ if(e.target.id==='m-cajas-editor') cajasCerrarEditor(); });
+  document.body.appendChild(d);
+}
+window.cajasCerrarEditor = function(){ const m=document.getElementById('m-cajas-editor'); if(m) m.style.display='none'; activeCont=null; };
+window.cajasGuardarAvance = async function(){
+  const st=document.querySelector('#m-cajas-editor [data-cajas-ed-status]');
+  if(st) st.textContent='Guardando…';
+  try{
+    await guardarEvidenciaCajas(ordenIdActual);
+    if(st){ st.textContent='✓ Avance guardado. Puedes seguir después.'; }
+  }catch(e){ if(st){ st.style.color='#dc2626'; st.textContent='Error: '+e.message; } }
+};
+async function openCajasEditor(ordenId){
+  ordenIdActual = ordenId;
+  ensureEditorModal();
+  await cargarSucursales();
+  await cargarCajasDeOrden(ordenId);
+  let info='';
+  try{ const o=(window.__ordenesCompra||[]).find(x=>x.id===ordenId); if(o) info=(o.folio||'')+(o.proveedor?' · '+o.proveedor:''); }catch(e){}
+  const m=document.getElementById('m-cajas-editor');
+  m.querySelector('#cajas-ed-info').textContent = info || 'Agrega o completa las cajas por sucursal. Guarda tu avance cuando quieras.';
+  activeCont = m.querySelector('#cajas-cont-ed');
+  m.style.display='flex';
+  renderCajas();
+}
+
+/* ---------- enganches ---------- */
 function hookSurtir(){
   document.addEventListener('click', function(ev){
+    const cajasBtn = ev.target.closest && ev.target.closest('[data-orden-cajas]');
+    if(cajasBtn){ ev.preventDefault(); ev.stopPropagation(); openCajasEditor(cajasBtn.getAttribute('data-orden-cajas')); return; }
     const b = ev.target.closest && ev.target.closest('[data-orden-surtir]');
     if(b){
       ordenIdActual = b.getAttribute('data-orden-surtir');
@@ -167,7 +214,7 @@ function hookSurtir(){
       return;
     }
     const g = ev.target.closest && ev.target.closest('#btn-sur-guardar');
-    if(g){ setTimeout(()=>{ guardarEvidenciaCajas().catch(()=>{}); }, 30); }
+    if(g){ setTimeout(()=>{ guardarEvidenciaCajas(window.__ordenAccionId).catch(()=>{}); }, 30); }
   }, true);
 }
 
@@ -199,7 +246,6 @@ window.renderCajasLista = async function(){
     const nFotos=(ev.cajas||[]).reduce((a,c)=>a+((c.fotos||[]).length),0);
     h+='<div class="cj-card"><div style="margin-bottom:6px"><b>'+esc(ev.folio||ev.ordenId||'Surtido')+'</b>'+
        '<div style="font-size:11.5px;color:var(--muted,#777)">'+esc(ev.fecha||'')+' · '+nCajas+' cajas · '+nFotos+' fotos</div></div>';
-    // agrupar por sucursal
     const groups={}; (ev.cajas||[]).forEach(c=>{ (groups[c.sucursal||'(sin sucursal)']=groups[c.sucursal||'(sin sucursal)']||[]).push(c); });
     Object.keys(groups).forEach(suc=>{
       h+='<div style="font-weight:700;font-size:12.5px;color:#334155;margin:8px 0 4px">'+esc(suc)+'</div>';

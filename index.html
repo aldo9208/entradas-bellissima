@@ -1281,6 +1281,7 @@ function renderOrdenesAdmin(){
     if(o.status === 'transito') botonAccion = '<button class="btn btn-sm btn-primary" data-orden-llegar="' + o.id + '" style="font-size:12px;padding:4px 10px">Marcar llegada</button>';
     else if(o.status === 'llegada') botonAccion = '<button class="btn btn-sm btn-primary" data-orden-revisar="' + o.id + '" style="font-size:12px;padding:4px 10px;background:#3b82f6">Marcar revisado</button>';
     else if(o.status === 'revisado') botonAccion = '<button class="btn btn-sm btn-primary" data-orden-surtir="' + o.id + '" style="font-size:12px;padding:4px 10px;background:#a855f7">Marcar surtido</button>';
+    if(o.status==='revisado'||o.status==='surtido') botonAccion += ' <button class="btn btn-sm" data-orden-cajas="' + o.id + '" style="font-size:12px;padding:4px 10px;background:#6b21a8;color:#fff">📦 Cajas</button>';
     return '<div style="border:1px solid #e5e7eb;border-radius:10px;padding:10px;background:#fff">' +
       '<div style="display:flex;justify-content:space-between;align-items:start;gap:8px">' +
         '<div style="flex:1;min-width:0">' +
