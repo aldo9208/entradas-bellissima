@@ -1,8 +1,8 @@
 /* ===== Evidencias por caja (surtido a sucursales) — módulo autónomo =====
    <script type="module" src="./cajas.js"></script>
-   Se engancha al modal "Marcar como surtido": permite agregar cajas (Caja 1, Caja 2…)
-   y tomar fotos por caja (comprimidas). Se guardan ligadas a la orden de surtido.
-   Además agrega una pantalla para ver las evidencias después. */
+   Se engancha al modal "Marcar como surtido". Como se surte a varias sucursales,
+   las cajas se organizan POR SUCURSAL, cada una con su consecutivo (Caja 1, 2, 3…).
+   Fotos comprimidas, ligadas a la orden de surtido. Incluye pantalla para verlas. */
 import { getApps, initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
 import { getFirestore, collection, getDocs, getDoc, doc, setDoc, addDoc } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
 
@@ -12,9 +12,23 @@ const db = getFirestore(_app);
 
 const CH = 700000;
 const esc = s => String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
-let CAJAS = [];          // caja actual en el modal: [{fotos:[{dataUrl?,id?,nombre}]}]
+let CAJAS = [];          // [{sucursal, fotos:[{dataUrl?,id?,nombre}]}]
 let ordenIdActual = null;
-let hookGuardarPuesto = false;
+let lastSuc = '';
+let SUCS = [];
+let hookPuesto = false;
+
+/* ---------- sucursales (dinámico) ---------- */
+async function cargarSucursales(){
+  if(SUCS.length) return SUCS;
+  try{
+    const s=await getDocs(collection(db,'traspasos'));
+    const set=new Set(); s.forEach(d=>{ const x=d.data().sucDest; if(x) set.add(x); });
+    SUCS=[...set].sort((a,b)=>{ const na=parseInt(a)||99, nb=parseInt(b)||99; return na-nb; });
+  }catch(e){ SUCS=[]; }
+  if(SUCS.length) lastSuc=lastSuc||SUCS[0];
+  return SUCS;
+}
 
 /* ---------- fotos ---------- */
 function comprimirImagen(file){
@@ -47,9 +61,17 @@ async function abrirFotoGuardada(id){
   }catch(e){ alert('Error: '+e.message); }
 }
 
-/* ---------- UI dentro del modal de surtir ---------- */
-window.cajaAgregar = function(){ CAJAS.push({fotos:[]}); renderCajas(); };
-window.cajaBorrar = function(ci){ if(!confirm('¿Quitar la Caja '+(ci+1)+' y sus fotos?')) return; CAJAS.splice(ci,1); renderCajas(); };
+/* ---------- handlers ---------- */
+window.cajaSetSuc = function(v){ lastSuc=v; };
+window.cajaAgregar = function(){
+  const sel=document.getElementById('caja-suc');
+  const suc = sel ? sel.value : (lastSuc||SUCS[0]||'');
+  if(!suc){ alert('No hay sucursales cargadas.'); return; }
+  lastSuc=suc;
+  CAJAS.push({sucursal:suc, fotos:[]});
+  renderCajas();
+};
+window.cajaBorrar = function(ci){ if(!confirm('¿Quitar esta caja y sus fotos?')) return; CAJAS.splice(ci,1); renderCajas(); };
 window.cajaFotoAdd = async function(ci, files){
   if(!files||!files.length||!CAJAS[ci]) return;
   const st=document.getElementById('cajas-status'); if(st) st.textContent='Procesando foto(s)…';
@@ -66,24 +88,36 @@ window.cajaVerFoto = function(ci, fi){
   else if(f.id){ abrirFotoGuardada(f.id); }
 };
 
+function cardCaja(caja, ci, numLocal){
+  let h='<div style="border:1px solid #e5e5e5;border-radius:10px;padding:10px;margin-bottom:8px">';
+  h+='<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px"><b style="font-size:13px;color:#6b21a8">Caja '+numLocal+'</b>'+
+     '<button type="button" onclick="cajaBorrar('+ci+')" style="border:none;background:none;color:#dc2626;font-size:12px;cursor:pointer">Quitar</button></div>';
+  h+='<div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">';
+  caja.fotos.forEach((f,fi)=>{
+    const inner = f.dataUrl ? '<img src="'+f.dataUrl+'" style="width:100%;height:100%;object-fit:cover">' : '<div style="display:flex;align-items:center;justify-content:center;height:100%;font-size:20px;color:#6b21a8">📷</div>';
+    h+='<div style="position:relative;width:64px;height:64px;border-radius:8px;overflow:hidden;border:1px solid #ddd;background:#f6f6f6;cursor:pointer" onclick="cajaVerFoto('+ci+','+fi+')">'+inner+
+       '<button type="button" onclick="event.stopPropagation();cajaFotoDel('+ci+','+fi+')" style="position:absolute;top:1px;right:1px;background:rgba(0,0,0,.6);color:#fff;border:none;border-radius:99px;width:18px;height:18px;font-size:11px;line-height:1;cursor:pointer">✕</button></div>';
+  });
+  h+='<label style="display:inline-flex;align-items:center;gap:5px;padding:7px 12px;border:1px dashed #a855f7;color:#a855f7;border-radius:8px;font-size:12.5px;font-weight:600;cursor:pointer;background:#faf5ff">📷 Foto'+
+     '<input type="file" accept="image/*" multiple style="display:none" onchange="cajaFotoAdd('+ci+',this.files)"></label>';
+  h+='</div></div>';
+  return h;
+}
+
 function renderCajas(){
   const cont=document.getElementById('cajas-cont'); if(!cont) return;
-  let h='';
-  CAJAS.forEach((caja,ci)=>{
-    h+='<div style="border:1px solid #e5e5e5;border-radius:10px;padding:10px;margin-bottom:8px">';
-    h+='<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px"><b style="font-size:13px;color:#6b21a8">Caja '+(ci+1)+'</b>'+
-       '<button type="button" onclick="cajaBorrar('+ci+')" style="border:none;background:none;color:#dc2626;font-size:12px;cursor:pointer">Quitar</button></div>';
-    h+='<div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">';
-    caja.fotos.forEach((f,fi)=>{
-      const inner = f.dataUrl ? '<img src="'+f.dataUrl+'" style="width:100%;height:100%;object-fit:cover">' : '<div style="display:flex;align-items:center;justify-content:center;height:100%;font-size:20px;color:#6b21a8">📷</div>';
-      h+='<div style="position:relative;width:64px;height:64px;border-radius:8px;overflow:hidden;border:1px solid #ddd;background:#f6f6f6;cursor:pointer" onclick="cajaVerFoto('+ci+','+fi+')">'+inner+
-         '<button type="button" onclick="event.stopPropagation();cajaFotoDel('+ci+','+fi+')" style="position:absolute;top:1px;right:1px;background:rgba(0,0,0,.6);color:#fff;border:none;border-radius:99px;width:18px;height:18px;font-size:11px;line-height:1;cursor:pointer">✕</button></div>';
-    });
-    h+='<label style="display:inline-flex;align-items:center;gap:5px;padding:7px 12px;border:1px dashed #a855f7;color:#a855f7;border-radius:8px;font-size:12.5px;font-weight:600;cursor:pointer;background:#faf5ff">📷 Foto'+
-       '<input type="file" accept="image/*" multiple style="display:none" onchange="cajaFotoAdd('+ci+',this.files)"></label>';
-    h+='</div></div>';
+  let h='<div style="display:flex;gap:8px;margin-bottom:10px">'+
+    '<select id="caja-suc" onchange="cajaSetSuc(this.value)" style="flex:1;padding:8px 10px;border:1px solid #ccc;border-radius:8px;font-size:13px">'+
+    SUCS.map(s=>'<option value="'+esc(s)+'"'+(s===lastSuc?' selected':'')+'>'+esc(s)+'</option>').join('')+'</select>'+
+    '<button type="button" onclick="cajaAgregar()" style="padding:8px 14px;border:1px solid #a855f7;background:#a855f7;color:#fff;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;white-space:nowrap">➕ Caja</button></div>';
+  // agrupar por sucursal, en el orden de SUCS
+  const groups={}; CAJAS.forEach((c,gi)=>{ (groups[c.sucursal]=groups[c.sucursal]||[]).push(gi); });
+  const ordenSucs = SUCS.filter(s=>groups[s]).concat(Object.keys(groups).filter(s=>SUCS.indexOf(s)<0));
+  if(!CAJAS.length){ h+='<div style="font-size:12.5px;color:#94a3b8;padding:8px 0">Elige una sucursal y agrega sus cajas.</div>'; }
+  ordenSucs.forEach(suc=>{
+    h+='<div style="font-weight:700;font-size:12.5px;color:#334155;margin:10px 0 5px;padding-bottom:3px;border-bottom:1px solid #eee">'+esc(suc)+' <span style="color:#94a3b8;font-weight:500">('+groups[suc].length+' cajas)</span></div>';
+    groups[suc].forEach((ci,localIdx)=>{ h+=cardCaja(CAJAS[ci], ci, localIdx+1); });
   });
-  h+='<button type="button" onclick="cajaAgregar()" style="width:100%;padding:9px;border:1px dashed #cbd5e1;background:#f8fafc;border-radius:10px;font-size:13px;font-weight:600;color:#475569;cursor:pointer">➕ Agregar caja</button>';
   h+='<div id="cajas-status" style="font-size:12px;color:#a855f7;margin-top:6px;min-height:16px"></div>';
   cont.innerHTML=h;
 }
@@ -91,7 +125,7 @@ function renderCajas(){
 async function cargarCajasDeOrden(ordenId){
   CAJAS=[];
   try{ const d=await getDoc(doc(db,'evidenciaSurtido',ordenId));
-    if(d.exists()){ (d.data().cajas||[]).forEach(c=>{ CAJAS.push({fotos:(c.fotos||[]).map(ft=>({id:ft.id,nombre:ft.nombre||'caja.jpg'}))}); }); }
+    if(d.exists()){ (d.data().cajas||[]).forEach(c=>{ CAJAS.push({sucursal:c.sucursal||'', fotos:(c.fotos||[]).map(ft=>({id:ft.id,nombre:ft.nombre||'caja.jpg'}))}); }); }
   }catch(e){}
 }
 
@@ -101,7 +135,7 @@ function injectIntoModal(){
   if(!modal.querySelector('#cajas-sec')){
     const row=cancelar.parentNode;
     const sec=document.createElement('div'); sec.id='cajas-sec'; sec.style.margin='4px 0';
-    sec.innerHTML='<label class="lbl" style="display:block;margin-bottom:6px">Evidencias por caja (fotos)</label><div id="cajas-cont"></div>';
+    sec.innerHTML='<label class="lbl" style="display:block;margin-bottom:6px">Evidencias por caja (por sucursal)</label><div id="cajas-cont"></div>';
     row.parentNode.insertBefore(sec, row);
   }
   renderCajas();
@@ -109,8 +143,7 @@ function injectIntoModal(){
 
 async function guardarEvidenciaCajas(){
   const ordenId = window.__ordenAccionId || ordenIdActual;
-  if(!ordenId) return;
-  if(!CAJAS.length) return; // nada que guardar
+  if(!ordenId || !CAJAS.length) return;
   const cajasGuardar=[];
   for(const caja of CAJAS){
     const fotos=[];
@@ -118,28 +151,23 @@ async function guardarEvidenciaCajas(){
       if(f.id) fotos.push({id:f.id, nombre:f.nombre||'caja.jpg'});
       else if(f.dataUrl){ const id=await guardarFoto(f.dataUrl, f.nombre); fotos.push({id, nombre:f.nombre||'caja.jpg'}); }
     }
-    cajasGuardar.push({fotos});
+    cajasGuardar.push({sucursal:caja.sucursal||'', fotos});
   }
-  // datos de la orden para poder mostrarla luego
   let info={};
-  try{ const o=(window.__ordenesCompra||[]).find(x=>x.id===ordenId); if(o){ info={folio:o.folio||'', sucursal:o.sucursal||o.sucDest||'', proveedor:o.proveedor||'', fecha:o.fecha||''}; } }catch(e){}
+  try{ const o=(window.__ordenesCompra||[]).find(x=>x.id===ordenId); if(o){ info={folio:o.folio||'', proveedor:o.proveedor||'', fecha:o.fecha||''}; } }catch(e){}
   await setDoc(doc(db,'evidenciaSurtido',ordenId), Object.assign({ordenId, cajas:cajasGuardar, ts:Date.now()}, info));
 }
 
-/* enganche: al abrir el modal de surtir y al guardar */
 function hookSurtir(){
   document.addEventListener('click', function(ev){
     const b = ev.target.closest && ev.target.closest('[data-orden-surtir]');
     if(b){
       ordenIdActual = b.getAttribute('data-orden-surtir');
-      setTimeout(async()=>{ await cargarCajasDeOrden(ordenIdActual); injectIntoModal(); }, 60);
+      setTimeout(async()=>{ await cargarSucursales(); await cargarCajasDeOrden(ordenIdActual); injectIntoModal(); }, 60);
       return;
     }
     const g = ev.target.closest && ev.target.closest('#btn-sur-guardar');
-    if(g){
-      // guardar las cajas en paralelo al guardado base (no bloquea)
-      setTimeout(()=>{ guardarEvidenciaCajas().catch(()=>{}); }, 30);
-    }
+    if(g){ setTimeout(()=>{ guardarEvidenciaCajas().catch(()=>{}); }, 30); }
   }, true);
 }
 
@@ -148,13 +176,13 @@ const SCREEN_HTML = `
 <div id="s-cajas" class="screen">
   <style>
     #s-cajas .cj-card{background:#fff;border:1px solid var(--line,#e5e5e5);border-radius:12px;padding:12px 14px;margin-bottom:10px}
-    #s-cajas .cj-foto{width:80px;height:80px;border-radius:8px;overflow:hidden;border:1px solid #ddd;background:#f6f6f6;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;font-size:22px;color:#6b21a8}
+    #s-cajas .cj-foto{width:78px;height:78px;border-radius:8px;overflow:hidden;border:1px solid #ddd;background:#f6f6f6;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;font-size:22px;color:#6b21a8}
   </style>
   <div class="topbar">
     <button class="btn-ico" onclick="show('s-home');window.renderHome&&window.renderHome()">←</button>
     <h2>Evidencias de surtido</h2>
   </div>
-  <p style="font-size:13px;color:var(--muted,#777);margin-bottom:12px">Fotos de las cajas tomadas al surtir a las sucursales.</p>
+  <p style="font-size:13px;color:var(--muted,#777);margin-bottom:12px">Fotos de las cajas tomadas al surtir, organizadas por sucursal.</p>
   <div id="cajas-lista"></div>
 </div>`;
 
@@ -169,13 +197,17 @@ window.renderCajasLista = async function(){
   arr.forEach(ev=>{
     const nCajas=(ev.cajas||[]).length;
     const nFotos=(ev.cajas||[]).reduce((a,c)=>a+((c.fotos||[]).length),0);
-    h+='<div class="cj-card"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">'+
-       '<div><b>'+esc(ev.folio||ev.sucursal||ev.ordenId||'Surtido')+'</b>'+(ev.sucursal?' · '+esc(ev.sucursal):'')+
-       '<div style="font-size:11.5px;color:var(--muted,#777)">'+esc(ev.fecha||'')+' · '+nCajas+' cajas · '+nFotos+' fotos</div></div></div>';
-    (ev.cajas||[]).forEach((c,ci)=>{
-      h+='<div style="margin-top:6px"><div style="font-size:12px;font-weight:600;color:#6b21a8;margin-bottom:4px">Caja '+(ci+1)+'</div><div style="display:flex;gap:6px;flex-wrap:wrap">';
-      (c.fotos||[]).forEach(ft=>{ h+='<div class="cj-foto" onclick="cajasVerId(\''+ft.id+'\')">📷</div>'; });
-      h+='</div></div>';
+    h+='<div class="cj-card"><div style="margin-bottom:6px"><b>'+esc(ev.folio||ev.ordenId||'Surtido')+'</b>'+
+       '<div style="font-size:11.5px;color:var(--muted,#777)">'+esc(ev.fecha||'')+' · '+nCajas+' cajas · '+nFotos+' fotos</div></div>';
+    // agrupar por sucursal
+    const groups={}; (ev.cajas||[]).forEach(c=>{ (groups[c.sucursal||'(sin sucursal)']=groups[c.sucursal||'(sin sucursal)']||[]).push(c); });
+    Object.keys(groups).forEach(suc=>{
+      h+='<div style="font-weight:700;font-size:12.5px;color:#334155;margin:8px 0 4px">'+esc(suc)+'</div>';
+      groups[suc].forEach((c,ci)=>{
+        h+='<div style="margin:4px 0 6px 8px"><div style="font-size:11.5px;color:#6b21a8;margin-bottom:3px">Caja '+(ci+1)+'</div><div style="display:flex;gap:6px;flex-wrap:wrap">';
+        (c.fotos||[]).forEach(ft=>{ h+='<div class="cj-foto" onclick="cajasVerId(\''+ft.id+'\')">📷</div>'; });
+        h+='</div></div>';
+      });
     });
     h+='</div>';
   });
@@ -201,7 +233,7 @@ function initUI(intentos){
     if(ref && ref.parentNode) ref.parentNode.insertBefore(nb, ref.nextSibling);
     else home.insertBefore(nb, home.firstChild);
   }
-  if(!hookGuardarPuesto){ hookSurtir(); hookGuardarPuesto=true; }
+  if(!hookPuesto){ hookSurtir(); cargarSucursales(); hookPuesto=true; }
 }
 if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',()=>initUI());
 else initUI();
