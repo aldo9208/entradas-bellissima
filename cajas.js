@@ -1,9 +1,10 @@
 /* ===== Evidencias por caja (surtido a sucursales) — módulo autónomo =====
    <script type="module" src="./cajas.js"></script>
-   - Cajas organizadas POR SUCURSAL, cada una con su consecutivo (Caja 1, 2, 3…).
-   - Se pueden capturar en el modal "Marcar como surtido" (al surtir), o reabrir
-     desde la lista de órdenes con el botón "📦 Cajas" para GUARDAR AVANCE sin
-     marcar surtido y seguir después.
+   - Cajas organizadas por PERSONA y por SUCURSAL, cada combinación con su propio
+     consecutivo (Caja 1, 2, 3…). Dos personas pueden surtir la misma orden sin encimarse.
+   - Foto directa desde la cámara del celular o desde galería.
+   - Captura en el modal "Marcar como surtido" o reabriendo desde la lista de órdenes
+     con "📦 Cajas" (Guardar avance sin marcar surtido).
    - Pantalla "Evidencias de surtido" para verlas. */
 import { getApps, initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
 import { getFirestore, collection, getDocs, getDoc, doc, setDoc, addDoc } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
@@ -14,11 +15,12 @@ const db = getFirestore(_app);
 
 const CH = 700000;
 const esc = s => String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
-let CAJAS = [];          // [{sucursal, fotos:[{dataUrl?,id?,nombre}]}]
+let CAJAS = [];          // [{persona, sucursal, fotos:[{dataUrl?,id?,nombre}]}]
 let ordenIdActual = null;
 let lastSuc = '';
+let lastPersona = '';
 let SUCS = [];
-let activeCont = null;   // contenedor donde se renderiza la UI de cajas
+let activeCont = null;
 let hookPuesto = false;
 
 async function cargarSucursales(){
@@ -66,11 +68,16 @@ function setStatus(txt){ if(activeCont){ const s=activeCont.querySelector('[data
 
 /* ---------- handlers ---------- */
 window.cajaSetSuc = function(v){ lastSuc=v; };
+window.cajaSetPersona = function(v){ lastPersona=v; };
 window.cajaAgregar = function(){
-  const sel=activeCont && activeCont.querySelector('[data-caja-suc]');
-  const suc = sel ? sel.value : (lastSuc||SUCS[0]||'');
+  const selP = activeCont && activeCont.querySelector('[data-caja-persona]');
+  const selS = activeCont && activeCont.querySelector('[data-caja-suc]');
+  const persona = (selP ? selP.value : lastPersona).trim();
+  const suc = selS ? selS.value : (lastSuc||SUCS[0]||'');
+  if(!persona){ alert('Escribe quién surte (nombre) antes de agregar la caja.'); if(selP) selP.focus(); return; }
   if(!suc){ alert('No hay sucursales cargadas.'); return; }
-  lastSuc=suc; CAJAS.push({sucursal:suc, fotos:[]}); renderCajas();
+  lastPersona=persona; lastSuc=suc;
+  CAJAS.push({persona:persona, sucursal:suc, fotos:[]}); renderCajas();
 };
 window.cajaBorrar = function(ci){ if(!confirm('¿Quitar esta caja y sus fotos?')) return; CAJAS.splice(ci,1); renderCajas(); };
 window.cajaFotoAdd = async function(ci, files){
@@ -99,7 +106,10 @@ function cardCaja(caja, ci, numLocal){
     h+='<div style="position:relative;width:64px;height:64px;border-radius:8px;overflow:hidden;border:1px solid #ddd;background:#f6f6f6;cursor:pointer" onclick="cajaVerFoto('+ci+','+fi+')">'+inner+
        '<button type="button" onclick="event.stopPropagation();cajaFotoDel('+ci+','+fi+')" style="position:absolute;top:1px;right:1px;background:rgba(0,0,0,.6);color:#fff;border:none;border-radius:99px;width:18px;height:18px;font-size:11px;line-height:1;cursor:pointer">✕</button></div>';
   });
-  h+='<label style="display:inline-flex;align-items:center;gap:5px;padding:7px 12px;border:1px dashed #a855f7;color:#a855f7;border-radius:8px;font-size:12.5px;font-weight:600;cursor:pointer;background:#faf5ff">📷 Foto'+
+  // Cámara directa + Galería
+  h+='<label style="display:inline-flex;align-items:center;gap:5px;padding:7px 12px;border:1px solid #a855f7;color:#fff;background:#a855f7;border-radius:8px;font-size:12.5px;font-weight:600;cursor:pointer">📷 Cámara'+
+     '<input type="file" accept="image/*" capture="environment" style="display:none" onchange="cajaFotoAdd('+ci+',this.files)"></label>';
+  h+='<label style="display:inline-flex;align-items:center;gap:5px;padding:7px 12px;border:1px dashed #a855f7;color:#a855f7;border-radius:8px;font-size:12.5px;font-weight:600;cursor:pointer;background:#faf5ff">🖼️ Galería'+
      '<input type="file" accept="image/*" multiple style="display:none" onchange="cajaFotoAdd('+ci+',this.files)"></label>';
   h+='</div></div>';
   return h;
@@ -107,16 +117,29 @@ function cardCaja(caja, ci, numLocal){
 
 function renderCajas(){
   const cont=activeCont; if(!cont) return;
-  let h='<div style="display:flex;gap:8px;margin-bottom:10px">'+
-    '<select data-caja-suc onchange="cajaSetSuc(this.value)" style="flex:1;padding:8px 10px;border:1px solid #ccc;border-radius:8px;font-size:13px">'+
-    SUCS.map(s=>'<option value="'+esc(s)+'"'+(s===lastSuc?' selected':'')+'>'+esc(s)+'</option>').join('')+'</select>'+
-    '<button type="button" onclick="cajaAgregar()" style="padding:8px 14px;border:1px solid #a855f7;background:#a855f7;color:#fff;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;white-space:nowrap">➕ Caja</button></div>';
-  const groups={}; CAJAS.forEach((c,gi)=>{ (groups[c.sucursal]=groups[c.sucursal]||[]).push(gi); });
-  const ordenSucs = SUCS.filter(s=>groups[s]).concat(Object.keys(groups).filter(s=>SUCS.indexOf(s)<0));
-  if(!CAJAS.length){ h+='<div style="font-size:12.5px;color:#94a3b8;padding:8px 0">Elige una sucursal y agrega sus cajas.</div>'; }
-  ordenSucs.forEach(suc=>{
-    h+='<div style="font-weight:700;font-size:12.5px;color:#334155;margin:10px 0 5px;padding-bottom:3px;border-bottom:1px solid #eee">'+esc(suc)+' <span style="color:#94a3b8;font-weight:500">('+groups[suc].length+' cajas)</span></div>';
-    groups[suc].forEach((ci,localIdx)=>{ h+=cardCaja(CAJAS[ci], ci, localIdx+1); });
+  let h='<div style="display:flex;flex-direction:column;gap:8px;margin-bottom:10px">'+
+    '<input data-caja-persona value="'+esc(lastPersona)+'" oninput="cajaSetPersona(this.value)" placeholder="¿Quién surte? (nombre)" style="padding:8px 10px;border:1px solid #ccc;border-radius:8px;font-size:13px">'+
+    '<div style="display:flex;gap:8px">'+
+      '<select data-caja-suc onchange="cajaSetSuc(this.value)" style="flex:1;padding:8px 10px;border:1px solid #ccc;border-radius:8px;font-size:13px">'+
+      SUCS.map(s=>'<option value="'+esc(s)+'"'+(s===lastSuc?' selected':'')+'>'+esc(s)+'</option>').join('')+'</select>'+
+      '<button type="button" onclick="cajaAgregar()" style="padding:8px 14px;border:1px solid #a855f7;background:#a855f7;color:#fff;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;white-space:nowrap">➕ Caja</button>'+
+    '</div></div>';
+  // agrupar por persona -> sucursal
+  const porPersona={}; const ordenP=[];
+  CAJAS.forEach((c,gi)=>{
+    const p=c.persona||'(sin nombre)';
+    if(!porPersona[p]){ porPersona[p]={}; ordenP.push(p); }
+    (porPersona[p][c.sucursal]=porPersona[p][c.sucursal]||[]).push(gi);
+  });
+  if(!CAJAS.length){ h+='<div style="font-size:12.5px;color:#94a3b8;padding:8px 0">Escribe quién surte, elige sucursal y agrega sus cajas.</div>'; }
+  ordenP.forEach(persona=>{
+    h+='<div style="font-weight:700;font-size:13px;color:#6b21a8;margin:12px 0 4px">👤 '+esc(persona)+'</div>';
+    const sucs=porPersona[persona];
+    const ordenS=SUCS.filter(s=>sucs[s]).concat(Object.keys(sucs).filter(s=>SUCS.indexOf(s)<0));
+    ordenS.forEach(suc=>{
+      h+='<div style="font-weight:600;font-size:12px;color:#334155;margin:6px 0 4px;padding-bottom:2px;border-bottom:1px solid #eee">'+esc(suc)+' <span style="color:#94a3b8;font-weight:500">('+sucs[suc].length+' cajas)</span></div>';
+      sucs[suc].forEach((ci,localIdx)=>{ h+=cardCaja(CAJAS[ci], ci, localIdx+1); });
+    });
   });
   h+='<div data-cajas-status style="font-size:12px;color:#a855f7;margin-top:6px;min-height:16px"></div>';
   cont.innerHTML=h;
@@ -125,7 +148,7 @@ function renderCajas(){
 async function cargarCajasDeOrden(ordenId){
   CAJAS=[];
   try{ const d=await getDoc(doc(db,'evidenciaSurtido',ordenId));
-    if(d.exists()){ (d.data().cajas||[]).forEach(c=>{ CAJAS.push({sucursal:c.sucursal||'', fotos:(c.fotos||[]).map(ft=>({id:ft.id,nombre:ft.nombre||'caja.jpg'}))}); }); }
+    if(d.exists()){ (d.data().cajas||[]).forEach(c=>{ CAJAS.push({persona:c.persona||'', sucursal:c.sucursal||'', fotos:(c.fotos||[]).map(ft=>({id:ft.id,nombre:ft.nombre||'caja.jpg'}))}); }); }
   }catch(e){}
 }
 
@@ -139,7 +162,7 @@ async function guardarEvidenciaCajas(ordenId){
       if(f.id) fotos.push({id:f.id, nombre:f.nombre||'caja.jpg'});
       else if(f.dataUrl){ const id=await guardarFoto(f.dataUrl, f.nombre); fotos.push({id, nombre:f.nombre||'caja.jpg'}); }
     }
-    cajasGuardar.push({sucursal:caja.sucursal||'', fotos});
+    cajasGuardar.push({persona:caja.persona||'', sucursal:caja.sucursal||'', fotos});
   }
   let info={};
   try{ const o=(window.__ordenesCompra||[]).find(x=>x.id===ordenId); if(o){ info={folio:o.folio||'', proveedor:o.proveedor||'', fecha:o.fecha||''}; } }catch(e){}
@@ -153,14 +176,14 @@ function injectIntoModal(){
   if(!modal.querySelector('#cajas-sec')){
     const row=cancelar.parentNode;
     const sec=document.createElement('div'); sec.id='cajas-sec'; sec.style.margin='4px 0';
-    sec.innerHTML='<label class="lbl" style="display:block;margin-bottom:6px">Evidencias por caja (por sucursal)</label><div id="cajas-cont"></div>';
+    sec.innerHTML='<label class="lbl" style="display:block;margin-bottom:6px">Evidencias por caja (por persona y sucursal)</label><div id="cajas-cont"></div>';
     row.parentNode.insertBefore(sec, row);
   }
   activeCont = modal.querySelector('#cajas-cont');
   renderCajas();
 }
 
-/* ---------- editor independiente (reabrir desde la lista) ---------- */
+/* ---------- editor independiente ---------- */
 function ensureEditorModal(){
   if(document.getElementById('m-cajas-editor')) return;
   const d=document.createElement('div');
@@ -182,10 +205,10 @@ function ensureEditorModal(){
 window.cajasCerrarEditor = function(){ const m=document.getElementById('m-cajas-editor'); if(m) m.style.display='none'; activeCont=null; };
 window.cajasGuardarAvance = async function(){
   const st=document.querySelector('#m-cajas-editor [data-cajas-ed-status]');
-  if(st) st.textContent='Guardando…';
+  if(st){ st.style.color='#16a34a'; st.textContent='Guardando…'; }
   try{
     await guardarEvidenciaCajas(ordenIdActual);
-    if(st){ st.textContent='✓ Avance guardado. Puedes seguir después.'; }
+    if(st) st.textContent='✓ Avance guardado. Puedes seguir después.';
   }catch(e){ if(st){ st.style.color='#dc2626'; st.textContent='Error: '+e.message; } }
 };
 async function openCajasEditor(ordenId){
@@ -196,7 +219,7 @@ async function openCajasEditor(ordenId){
   let info='';
   try{ const o=(window.__ordenesCompra||[]).find(x=>x.id===ordenId); if(o) info=(o.folio||'')+(o.proveedor?' · '+o.proveedor:''); }catch(e){}
   const m=document.getElementById('m-cajas-editor');
-  m.querySelector('#cajas-ed-info').textContent = info || 'Agrega o completa las cajas por sucursal. Guarda tu avance cuando quieras.';
+  m.querySelector('#cajas-ed-info').textContent = info || 'Agrega o completa las cajas. Guarda tu avance cuando quieras.';
   activeCont = m.querySelector('#cajas-cont-ed');
   m.style.display='flex';
   renderCajas();
@@ -229,7 +252,7 @@ const SCREEN_HTML = `
     <button class="btn-ico" onclick="show('s-home');window.renderHome&&window.renderHome()">←</button>
     <h2>Evidencias de surtido</h2>
   </div>
-  <p style="font-size:13px;color:var(--muted,#777);margin-bottom:12px">Fotos de las cajas tomadas al surtir, organizadas por sucursal.</p>
+  <p style="font-size:13px;color:var(--muted,#777);margin-bottom:12px">Fotos de las cajas al surtir, por persona y sucursal.</p>
   <div id="cajas-lista"></div>
 </div>`;
 
@@ -246,13 +269,18 @@ window.renderCajasLista = async function(){
     const nFotos=(ev.cajas||[]).reduce((a,c)=>a+((c.fotos||[]).length),0);
     h+='<div class="cj-card"><div style="margin-bottom:6px"><b>'+esc(ev.folio||ev.ordenId||'Surtido')+'</b>'+
        '<div style="font-size:11.5px;color:var(--muted,#777)">'+esc(ev.fecha||'')+' · '+nCajas+' cajas · '+nFotos+' fotos</div></div>';
-    const groups={}; (ev.cajas||[]).forEach(c=>{ (groups[c.sucursal||'(sin sucursal)']=groups[c.sucursal||'(sin sucursal)']||[]).push(c); });
-    Object.keys(groups).forEach(suc=>{
-      h+='<div style="font-weight:700;font-size:12.5px;color:#334155;margin:8px 0 4px">'+esc(suc)+'</div>';
-      groups[suc].forEach((c,ci)=>{
-        h+='<div style="margin:4px 0 6px 8px"><div style="font-size:11.5px;color:#6b21a8;margin-bottom:3px">Caja '+(ci+1)+'</div><div style="display:flex;gap:6px;flex-wrap:wrap">';
-        (c.fotos||[]).forEach(ft=>{ h+='<div class="cj-foto" onclick="cajasVerId(\''+ft.id+'\')">📷</div>'; });
-        h+='</div></div>';
+    // agrupar persona -> sucursal
+    const porP={}; const ordenP=[];
+    (ev.cajas||[]).forEach(c=>{ const p=c.persona||'(sin nombre)'; if(!porP[p]){porP[p]={};ordenP.push(p);} (porP[p][c.sucursal||'(sin sucursal)']=porP[p][c.sucursal||'(sin sucursal)']||[]).push(c); });
+    ordenP.forEach(persona=>{
+      h+='<div style="font-weight:700;font-size:12.5px;color:#6b21a8;margin:8px 0 3px">👤 '+esc(persona)+'</div>';
+      Object.keys(porP[persona]).forEach(suc=>{
+        h+='<div style="font-weight:600;font-size:12px;color:#334155;margin:4px 0 3px 6px">'+esc(suc)+'</div>';
+        porP[persona][suc].forEach((c,ci)=>{
+          h+='<div style="margin:3px 0 6px 12px"><div style="font-size:11.5px;color:#6b21a8;margin-bottom:3px">Caja '+(ci+1)+'</div><div style="display:flex;gap:6px;flex-wrap:wrap">';
+          (c.fotos||[]).forEach(ft=>{ h+='<div class="cj-foto" onclick="cajasVerId(\''+ft.id+'\')">📷</div>'; });
+          h+='</div></div>';
+        });
       });
     });
     h+='</div>';
