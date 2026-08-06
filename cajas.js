@@ -311,3 +311,4 @@ function initUI(intentos){
 }
 if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',()=>initUI());
 else initUI();
+
