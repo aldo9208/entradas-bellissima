@@ -63,7 +63,7 @@ input:focus,select:focus{outline:none;border-color:var(--text)}
       <h1>Bellissima</h1>
     </div>
     <div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px">
-      <button class="btn btn-sm btn-s" onclick="show('s-admin');renderAdminLista()">⚙ Admin</button>
+      <button class="btn btn-sm btn-s" onclick="__gate(function(){show('s-admin');renderAdminLista()})">⚙ Admin</button>
       <span id="conn-status" style="font-size:11px;color:var(--muted)">● Conectando...</span>
     </div>
   </div>
@@ -1178,6 +1178,8 @@ function _hoyISO(){
   const dd = String(d.getDate()).padStart(2,'0');
   return d.getFullYear() + '-' + mm + '-' + dd;
 }
+window.__adminOK=false;
+window.__gate=function(cb){ if(window.__adminOK){ cb(); return; } var c=prompt('Contrase\u00f1a de administrador:'); if(c===null) return; if(c==='bellissima2026'){ window.__adminOK=true; cb(); } else alert('Contrase\u00f1a incorrecta.'); };
 function _hace7dias(fechaISO){
   if(!fechaISO) return false;
   const f = new Date(fechaISO);

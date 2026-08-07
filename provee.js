@@ -316,7 +316,7 @@ function initUI(intentos){
     nb.id='pv-navbtn';
     nb.className=adminBtn?adminBtn.className:'btn btn-sm btn-s';
     nb.textContent='📦 De proveedor';
-    nb.setAttribute('onclick',"show('s-provee');renderProveeList()");
+    nb.setAttribute('onclick',"(window.__gate?window.__gate:function(f){f()})(function(){show('s-provee');renderProveeList()})");
     if(adminBtn && adminBtn.parentNode) adminBtn.parentNode.insertBefore(nb, adminBtn.nextSibling);
     else home.insertBefore(nb, home.firstChild);
   }
