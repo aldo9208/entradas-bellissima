@@ -79,7 +79,7 @@ window.cajaAgregar = function(){
   lastPersona=persona; lastSuc=suc;
   CAJAS.push({persona:persona, sucursal:suc, fotos:[]}); renderCajas();
 };
-window.cajaBorrar = function(ci){ if(!confirm('¿Quitar esta caja y sus fotos?')) return; CAJAS.splice(ci,1); renderCajas(); };
+window.cajaBorrar = function(ci){ CAJAS.splice(ci,1); renderCajas(); };
 window.cajaFotoAdd = async function(ci, files){
   if(!files||!files.length||!CAJAS[ci]) return;
   setStatus('Procesando foto(s)…');
@@ -263,29 +263,48 @@ window.renderCajasLista = async function(){
   try{ const s=await getDocs(collection(db,'evidenciaSurtido')); s.forEach(d=>arr.push(d.data())); }catch(e){}
   arr.sort((a,b)=>(b.ts||0)-(a.ts||0));
   if(!arr.length){ cont.innerHTML='<div style="padding:24px;text-align:center;color:var(--muted,#777)">Aún no hay evidencias de surtido.</div>'; return; }
+  const ordenes = window.__ordenesCompra||[];
   let h='';
-  arr.forEach(ev=>{
+  arr.forEach(function(ev, ei){
     const nCajas=(ev.cajas||[]).length;
-    const nFotos=(ev.cajas||[]).reduce((a,c)=>a+((c.fotos||[]).length),0);
-    h+='<div class="cj-card"><div style="margin-bottom:6px"><b>'+esc(ev.folio||ev.ordenId||'Surtido')+'</b>'+
-       '<div style="font-size:11.5px;color:var(--muted,#777)">'+esc(ev.fecha||'')+' · '+nCajas+' cajas · '+nFotos+' fotos</div></div>';
-    // agrupar persona -> sucursal
+    const nFotos=(ev.cajas||[]).reduce(function(a,c){return a+((c.fotos||[]).length);},0);
+    const o = ordenes.find(function(x){ return x.id===ev.ordenId; });
+    const folio = ev.folio || (o&&o.folio) || (ev.ordenId? ('#'+String(ev.ordenId).slice(-6)) : 'Surtido');
+    const prov = ev.proveedor || (o&&o.proveedor) || '';
+    h+='<div class="cj-card">';
+    h+='<div style="margin-bottom:8px"><div style="font-size:15px;font-weight:700;color:#6b21a8">Orden '+esc(folio)+'</div>';
+    h+='<div style="font-size:11.5px;color:var(--muted,#777)">'+(prov?esc(prov)+' · ':'')+esc(ev.fecha||'')+' · '+nCajas+' cajas · '+nFotos+' fotos</div></div>';
     const porP={}; const ordenP=[];
-    (ev.cajas||[]).forEach(c=>{ const p=c.persona||'(sin nombre)'; if(!porP[p]){porP[p]={};ordenP.push(p);} (porP[p][c.sucursal||'(sin sucursal)']=porP[p][c.sucursal||'(sin sucursal)']||[]).push(c); });
-    ordenP.forEach(persona=>{
-      h+='<div style="font-weight:700;font-size:12.5px;color:#6b21a8;margin:8px 0 3px">👤 '+esc(persona)+'</div>';
-      Object.keys(porP[persona]).forEach(suc=>{
-        h+='<div style="font-weight:600;font-size:12px;color:#334155;margin:4px 0 3px 6px">'+esc(suc)+'</div>';
-        porP[persona][suc].forEach((c,ci)=>{
-          h+='<div style="margin:3px 0 6px 12px"><div style="font-size:11.5px;color:#6b21a8;margin-bottom:3px">Caja '+(ci+1)+'</div><div style="display:flex;gap:6px;flex-wrap:wrap">';
-          (c.fotos||[]).forEach(ft=>{ h+='<div class="cj-foto" onclick="cajasVerId(\''+ft.id+'\')">📷</div>'; });
+    (ev.cajas||[]).forEach(function(c){ const p=c.persona||'(sin nombre)'; if(!porP[p]){porP[p]={};ordenP.push(p);} (porP[p][c.sucursal||'(sin sucursal)']=porP[p][c.sucursal||'(sin sucursal)']||[]).push(c); });
+    ordenP.forEach(function(persona, pi){
+      h+='<div style="font-weight:700;font-size:12.5px;color:#334155;margin:8px 0 3px">👤 '+esc(persona)+'</div>';
+      Object.keys(porP[persona]).forEach(function(suc, si){
+        const cajasArr=porP[persona][suc];
+        const nf=cajasArr.reduce(function(a,c){return a+((c.fotos||[]).length);},0);
+        const domId='cjsuc-'+ei+'-'+pi+'-'+si;
+        h+='<div onclick="cajasToggleSuc(\''+domId+'\')" style="cursor:pointer;display:flex;align-items:center;gap:6px;background:#f8fafc;border:1px solid #eee;border-radius:8px;padding:7px 10px;margin:4px 0 4px 6px">';
+        h+='<span id="chev-'+domId+'" style="color:#a855f7;font-size:11px">▸</span>';
+        h+='<span style="font-weight:600;font-size:12.5px;color:#334155;flex:1">'+esc(suc)+'</span>';
+        h+='<span style="font-size:11px;color:#94a3b8">'+cajasArr.length+' cajas · '+nf+' fotos</span></div>';
+        h+='<div id="'+domId+'" style="display:none;margin-left:12px">';
+        cajasArr.forEach(function(c,ci){
+          h+='<div style="margin:3px 0 6px"><div style="font-size:11.5px;color:#6b21a8;margin-bottom:3px">Caja '+(ci+1)+'</div><div style="display:flex;gap:6px;flex-wrap:wrap">';
+          (c.fotos||[]).forEach(function(ft){ h+='<div class="cj-foto" onclick="cajasVerId(\''+ft.id+'\')">📷</div>'; });
           h+='</div></div>';
         });
+        h+='</div>';
       });
     });
     h+='</div>';
   });
   cont.innerHTML=h;
+};
+window.cajasToggleSuc = function(id){
+  var el=document.getElementById(id); var ch=document.getElementById('chev-'+id);
+  if(!el) return;
+  var open = el.style.display!=='none';
+  el.style.display = open ? 'none' : 'block';
+  if(ch) ch.textContent = open ? '▸' : '▾';
 };
 window.cajasVerId = function(id){ abrirFotoGuardada(id); };
 
@@ -311,6 +330,3 @@ function initUI(intentos){
 }
 if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',()=>initUI());
 else initUI();
-
-
-// deploy v4
