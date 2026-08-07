@@ -1183,7 +1183,7 @@ function _hace7dias(fechaISO){
   const f = new Date(fechaISO);
   const ahora = new Date();
   const diff = (ahora - f) / (1000*60*60*24);
-  return diff > 7;
+  return diff > 3;
 }
 
 onSnapshot(collection(db, 'ordenesCompra'), (snap) => {
