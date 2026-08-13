@@ -214,6 +214,15 @@ input:focus,select:focus{outline:none;border-color:var(--text)}
     <button class="btn btn-sm btn-s" onclick="recibirTodo()">Marcar todo recibido</button>
   </div>
   <div id="rec-lista"></div>
+  <div class="card" style="margin-bottom:1rem;background:#fff7ed;border:1px solid #fed7aa">
+    <label class="lbl" style="font-size:12px">¿Llegó algo que NO está en la lista? Agrégalo aquí:</label>
+    <div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin-top:6px">
+      <input id="rec-extra-cod" placeholder="Código" style="flex:1;min-width:90px;padding:8px;border:1px solid #ccc;border-radius:8px;font-size:13px">
+      <input id="rec-extra-desc" placeholder="Descripción (opcional)" style="flex:2;min-width:120px;padding:8px;border:1px solid #ccc;border-radius:8px;font-size:13px">
+      <input id="rec-extra-cant" type="number" min="1" placeholder="Cant" style="width:64px;padding:8px;border:1px solid #ccc;border-radius:8px;font-size:13px">
+      <button class="btn btn-sm" onclick="recepAgregarItem()" style="background:#ea580c;color:#fff;border:none;white-space:nowrap">➕ Agregar</button>
+    </div>
+  </div>
   <button class="btn btn-p" onclick="confirmarRecepcion()" style="margin-top:1rem" id="btn-confirmar">Confirmar recepción</button>
 </div>
 
@@ -696,9 +705,29 @@ window.actualizarFila = function(i, esperado){
 window.recibirTodo = function(){
   const t = traspasos.find(x=>x.id===recibiendoId);
   if(!t) return;
-  t.items.forEach((_,i)=>{ const inp=document.getElementById('rec-'+i); if(inp){ inp.value=t.items[i].cant; actualizarFila(i,t.items[i].cant); } });
+  t.items.forEach((_,i)=>{ if(t.items[i]._extra) return; const inp=document.getElementById('rec-'+i); if(inp){ inp.value=t.items[i].cant; actualizarFila(i,t.items[i].cant); } });
 };
 
+window.recepAgregarItem = function(){
+  var t = traspasos.find(function(x){return x.id===recibiendoId;}); if(!t) return;
+  function _e(s){ return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+  var cod=(document.getElementById('rec-extra-cod').value||'').trim();
+  var desc=(document.getElementById('rec-extra-desc').value||'').trim();
+  var cant=parseInt(document.getElementById('rec-extra-cant').value)||0;
+  if(!cod){ alert('Escribe el código del artículo.'); return; }
+  if(cant<=0){ alert('Escribe cuántas piezas llegaron.'); return; }
+  var item={ numart:cod, desc: desc||'(agregado en recepción)', cant:0, _extra:true };
+  t.items.push(item);
+  var i=t.items.length-1;
+  var lista=document.getElementById('rec-lista');
+  var div=document.createElement('div'); div.className='card'; div.style.marginBottom='8px'; div.style.borderLeft='3px solid #ea580c';
+  div.innerHTML='<div class="tr-row"><div class="tr-info"><p class="tr-clave">'+_e(cod)+' <span style="font-size:10px;color:#ea580c">(agregado)</span></p><p class="tr-desc">'+_e(desc||'(agregado en recepci\u00f3n)')+'</p></div><div style="display:flex;align-items:center;gap:10px"><div style="text-align:center"><p style="font-size:10px;color:var(--muted);margin-bottom:2px">Esperado</p><p style="font-size:20px;font-weight:600;color:var(--muted);line-height:1">0</p></div><div style="text-align:center"><p style="font-size:10px;color:var(--muted);margin-bottom:2px">Recibido</p><input type="number" class="tr-input" id="rec-'+i+'" min="0" value="'+cant+'" oninput="actualizarFila('+i+',0)" onchange="actualizarFila('+i+',0)"></div><div id="fs-'+i+'" style="min-width:30px;text-align:center;font-size:13px"></div></div></div>';
+  lista.appendChild(div);
+  actualizarFila(i,0);
+  document.getElementById('rec-extra-cod').value=''; document.getElementById('rec-extra-desc').value=''; document.getElementById('rec-extra-cant').value='';
+  var rc=document.getElementById('rec-count'); if(rc) rc.textContent='('+t.items.length+')';
+  document.getElementById('rec-extra-cod').focus();
+};
 window.confirmarRecepcion = async function(){
   const t = traspasos.find(x=>x.id===recibiendoId);
   if(!t) return;
@@ -2852,5 +2881,6 @@ window.eliminarAjuste = async function(){
 <script type="module" src="./precios.js"></script>
 <script type="module" src="./inventario.js"></script>
 <script type="module" src="./cajas.js?v=5"></script>
+  <script type="module" src="./garantias.js?v=1"></script>
 </body>
 </html>
