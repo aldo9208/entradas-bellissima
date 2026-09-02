@@ -79,7 +79,13 @@ window.invtParseFile=async function(files){
       rows=XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]],{header:1,defval:''});
     }
     if(!rows.length){ st.style.color='#dc2626'; st.textContent='Archivo vacío.'; return; }
-    const head=rows[0].map(h=>String(h).toLowerCase().trim());
+    // detectar la fila de encabezados real (SAIT mete título y filas vacías arriba)
+    let hr=0;
+    for(let i=0;i<Math.min(25,rows.length);i++){
+      const low=(rows[i]||[]).map(c=>String(c).toLowerCase().trim());
+      if(low.some(c=>c==='clave'||c==='codigo'||c==='código'||c==='numart'||c.indexOf('clave')>=0)){ hr=i; break; }
+    }
+    const head=rows[hr].map(h=>String(h).toLowerCase().trim());
     const findCol=(cands)=>{ for(let i=0;i<head.length;i++){ if(cands.some(c=>head[i]===c||head[i].includes(c))) return i; } return -1; };
     const ci=findCol(['clave','codigo','código','numart','articulo','artículo']);
     const di=findCol(['desc','descripcion','descripción','nombre','producto']);
@@ -87,10 +93,11 @@ window.invtParseFile=async function(files){
     const xi=findCol(['existencia','exist','cantidad','stock']);
     const cci = ci<0?0:ci;
     const articulos={}; const sucSet=new Set();
+    const DR = hr+1; // primera fila de datos
 
     if(si>=0 && xi>=0 && si!==cci){
       // FORMATO LARGO: clave, sucursal, existencia (una fila por clave-sucursal)
-      for(let r=1;r<rows.length;r++){ const row=rows[r]; if(!row) continue;
+      for(let r=DR;r<rows.length;r++){ const row=rows[r]; if(!row) continue;
         const clave=String(row[cci]==null?'':row[cci]).trim(); if(!clave) continue;
         const num=sucNum(row[si]); if(!num) continue; sucSet.add(num);
         let ex=parseFloat(String(row[xi]).replace(/[^0-9.\-]/g,'')); if(isNaN(ex)) ex=0;
@@ -99,9 +106,9 @@ window.invtParseFile=async function(files){
         articulos[k].sistema[num]=ex;
       }
     } else {
-      // FORMATO ANCHO: clave, desc, y una columna por sucursal (encabezado con número)
-      const sucCols=[]; head.forEach((h,idx)=>{ if(idx===cci||idx===di) return; const num=sucNum(h); if(num){ sucCols.push({idx,num}); sucSet.add(num);} });
-      for(let r=1;r<rows.length;r++){ const row=rows[r]; if(!row) continue;
+      // FORMATO ANCHO: clave, desc, y una columna por sucursal (SUC1, SUC2…). Ignora TOTAL.
+      const sucCols=[]; head.forEach((h,idx)=>{ if(idx===cci||idx===di) return; if(h.indexOf('total')>=0) return; const num=sucNum(h); if(num){ sucCols.push({idx,num}); sucSet.add(num);} });
+      for(let r=DR;r<rows.length;r++){ const row=rows[r]; if(!row) continue;
         const clave=String(row[cci]==null?'':row[cci]).trim(); if(!clave) continue;
         const k=nk(clave); const sistema={};
         sucCols.forEach(sc=>{ let ex=parseFloat(String(row[sc.idx]).replace(/[^0-9.\-]/g,'')); sistema[sc.num]=isNaN(ex)?0:ex; });
@@ -124,6 +131,7 @@ window.invtCrear=async function(){
   const permiteLibre=document.getElementById('invt-libre').checked;
   const st=document.getElementById('invt-nueva-status');
   if(!PREVIEW||!PREVIEW.articulos.length){ alert('Sube un archivo con la lista de artículos.'); return; }
+  if(PREVIEW.articulos.length>1500){ if(!confirm2('La lista tiene '+PREVIEW.articulos.length+' artículos. Para que funcione bien, conviene filtrar en SAIT y subir menos. ¿Crear de todos modos?')) return; }
   st.style.color='#16a34a'; st.textContent='Creando…';
   try{
     const toma={ titulo, fecha:new Date().toLocaleDateString('es-MX'), ts:Date.now(), estado:'abierta', permiteLibre,
@@ -217,10 +225,16 @@ function pintarContar(){
     }
     return s+'</div>';
   };
+  const BIG = arts.length>250;
+  let mostrados=0, ocultos=0;
   arts.forEach(it=>{
-    if(filtroTxt && !((it.clave||'').toLowerCase().includes(filtroTxt) || (it.desc||'').toLowerCase().includes(filtroTxt))) return;
-    h+=fila(it.clave, it.claveKey, it.desc, CONTEO.items[it.claveKey], false);
+    if(filtroTxt){ if(!((it.clave||'').toLowerCase().includes(filtroTxt) || (it.desc||'').toLowerCase().includes(filtroTxt))) return; }
+    else if(BIG){ const rec=CONTEO.items[it.claveKey]; if(!(rec && rec.fisico!=null)){ ocultos++; return; } } // en listas grandes, sin buscar solo muestra los ya contados
+    if(mostrados>=300){ ocultos++; return; }
+    h+=fila(it.clave, it.claveKey, it.desc, CONTEO.items[it.claveKey], false); mostrados++;
   });
+  if(BIG && !filtroTxt) h+='<div style="background:#fffbeb;border:1px solid #fde68a;border-radius:8px;padding:9px 11px;font-size:12px;color:#92400e;margin-bottom:8px">Esta lista tiene '+arts.length+' artículos. Usa el 🔎 buscador de arriba para encontrar el que vas a contar. Aquí abajo se muestran los que ya contaste.</div>';
+  else if(ocultos>0) h+='<div style="font-size:11.5px;color:#999;text-align:center;margin:6px 0">…y '+ocultos+' más. Afina la búsqueda.</div>';
   CONTEO.extras.forEach((ex,i)=>{ h+=fila(ex.clave, 'X'+i, ex.desc, ex, true); });
   if(!cerrada) h+='<button class="btn btn-primary" onclick="invtGuardarConteo()" style="width:100%;margin-top:8px;background:#0369a1">💾 Guardar conteo</button>';
   h+='<div id="invt-conteo-status" style="text-align:center;font-size:12.5px;margin-top:8px;min-height:16px;color:#16a34a"></div>';
