@@ -121,7 +121,7 @@ function ensureModal(){
 function folioToOrden(folio){ return (window.__ordenesCompra||[]).find(x=>x.folio===folio); }
 
 function scanAndInject(){
-  if(!window.__adminOK || !cacheListo) return;
+  if(!cacheListo) return;
   const botones=[...document.querySelectorAll('button')].filter(b=>{ const t=(b.textContent||'').trim().toLowerCase(); return t==='editar'; });
   botones.forEach(btn=>{
     let cont=btn.parentElement, folio=null, hops=0;
