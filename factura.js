@@ -1,5 +1,5 @@
-/* ===== Factura por orden — módulo autónomo (v3) =====
-   <script type="module" src="./factura.js?v=3"></script>
+/* ===== Factura por orden — módulo autónomo (v4) =====
+   <script type="module" src="./factura.js?v=4"></script>
    Botón "🧾 Factura" en cada orden para adjuntar el/los PDF(s) de la factura del
    proveedor y ver de un vistazo cuáles órdenes ya la tienen (verde ✓) y cuáles no.
    Todo se guarda POR FOLIO (S####). El botón siempre se muestra; al tocarlo pide la
@@ -139,7 +139,14 @@ function scanAndInject(){
       cont=cont.parentElement; hops++;
     }
     if(!card || !folio) return;
-    if(btn.parentElement.querySelector('[data-fact-btn]')) return;
+    // si el botón ya existe, solo actualizar su estado (palomita/verde) según el cache
+    const existente=btn.parentElement.querySelector('[data-fact-btn]');
+    if(existente){
+      const tieneE=CACHE[folio]>0;
+      existente.textContent = tieneE ? '🧾 Factura ✓' : '🧾 Factura';
+      existente.style.cssText = tieneE ? 'background:#16a34a;color:#fff;border-color:#16a34a' : '';
+      return;
+    }
     // proveedor: texto entre el estado (TRÁNSITO/SURTIDO/…) y "Pedido:" o el importe
     let prov='';
     try{ const t=(card.textContent||'').replace(/\s+/g,' ');
