@@ -1,9 +1,9 @@
-/* ===== Factura por orden — módulo autónomo =====
-   <script type="module" src="./factura.js?v=1"></script>
-   Agrega un botón "🧾 Factura" en cada orden (solo CEDIS/admin) para adjuntar
-   el/los PDF(s) de la factura del proveedor y ver de un vistazo cuáles órdenes ya
-   la tienen (botón verde ✓) y cuáles no. Guarda en la colección facturasOrden +
-   adjuntos (chunked). El botón solo aparece con el modo admin activo (window.__adminOK). */
+/* ===== Factura por orden — módulo autónomo (v3) =====
+   <script type="module" src="./factura.js?v=3"></script>
+   Botón "🧾 Factura" en cada orden para adjuntar el/los PDF(s) de la factura del
+   proveedor y ver de un vistazo cuáles órdenes ya la tienen (verde ✓) y cuáles no.
+   Todo se guarda POR FOLIO (S####). El botón siempre se muestra; al tocarlo pide la
+   clave de admin (solo CEDIS adjunta/ve). Colección facturasOrden + adjuntos (chunked). */
 import { getApps, initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
 import { getFirestore, collection, getDocs, getDoc, doc, setDoc, addDoc, deleteDoc } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
 
@@ -14,8 +14,8 @@ const db = getFirestore(_app);
 const CH = 700000;
 const esc = s => String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 
-let CACHE = {};        // ordenId -> nº de facturas adjuntas
-let ACT = null;        // {ordenId, folio, proveedor, archivos:[...]}
+let CACHE = {};        // folio -> nº de facturas
+let ACT = null;        // {folio, proveedor, archivos:[...]}
 let cacheListo = false;
 
 async function cargarCache(){
@@ -25,7 +25,7 @@ async function cargarCache(){
   scanAndInject();
 }
 
-/* ---------- almacenamiento de archivos (chunked, cualquier tipo) ---------- */
+/* ---------- almacenamiento de archivos (chunked) ---------- */
 function fileToB64(file){ return new Promise((res,rej)=>{ const r=new FileReader(); r.onload=()=>{ const s=String(r.result); res(s.slice(s.indexOf(',')+1)); }; r.onerror=()=>rej(new Error('read')); r.readAsDataURL(file); }); }
 async function guardarArchivo(file){
   const b64=await fileToB64(file); const n=Math.ceil(b64.length/CH);
@@ -44,13 +44,13 @@ async function abrirArchivo(id){
 window.factVerArchivo=function(id){ if(id) abrirArchivo(id); };
 
 /* ---------- modal ---------- */
-window.factAbrir=async function(ordenId, folio, proveedor){
+window.factAbrir=async function(folio, proveedor){
   const run=async ()=>{
     ensureModal();
-    ACT={ordenId, folio, proveedor, archivos:[]};
+    ACT={folio, proveedor, archivos:[]};
     document.getElementById('m-fact').style.display='flex';
     document.getElementById('fact-body').innerHTML='<p style="color:#777">Cargando…</p>';
-    try{ const s=await getDoc(doc(db,'facturasOrden',ordenId)); if(s.exists()) ACT.archivos=(s.data().archivos||[]); }catch(e){}
+    try{ const s=await getDoc(doc(db,'facturasOrden',folio)); if(s.exists()) ACT.archivos=(s.data().archivos||[]); }catch(e){}
     pintarModal();
   };
   if(window.__adminOK) run(); else (window.__gate?window.__gate:(f)=>f())(run);
@@ -87,8 +87,8 @@ window.factSubir=async function(files){
       if(st){ st.style.color='#555'; st.textContent='Subiendo '+(i+1)+' de '+pdfs.length+'…'; }
       const a=await guardarArchivo(pdfs[i]); ACT.archivos.push(a);
     }
-    await setDoc(doc(db,'facturasOrden',ACT.ordenId), { ordenId:ACT.ordenId, folio:ACT.folio||'', proveedor:ACT.proveedor||'', archivos:ACT.archivos, ts:Date.now() });
-    CACHE[ACT.ordenId]=ACT.archivos.length;
+    await setDoc(doc(db,'facturasOrden',ACT.folio), { folio:ACT.folio, proveedor:ACT.proveedor||'', archivos:ACT.archivos, ts:Date.now() });
+    CACHE[ACT.folio]=ACT.archivos.length;
     if(st){ st.style.color='#16a34a'; st.textContent='✓ Factura(s) guardada(s).'; }
     pintarModal(); scanAndInject();
   }catch(e){ if(st){ st.style.color='#dc2626'; st.textContent='Error: '+e.message; } }
@@ -97,9 +97,9 @@ window.factBorrar=async function(i){
   if(!ACT||!ACT.archivos[i]) return;
   ACT.archivos.splice(i,1);
   try{
-    if(ACT.archivos.length) await setDoc(doc(db,'facturasOrden',ACT.ordenId), { ordenId:ACT.ordenId, folio:ACT.folio||'', proveedor:ACT.proveedor||'', archivos:ACT.archivos, ts:Date.now() });
-    else await deleteDoc(doc(db,'facturasOrden',ACT.ordenId));
-    CACHE[ACT.ordenId]=ACT.archivos.length;
+    if(ACT.archivos.length) await setDoc(doc(db,'facturasOrden',ACT.folio), { folio:ACT.folio, proveedor:ACT.proveedor||'', archivos:ACT.archivos, ts:Date.now() });
+    else await deleteDoc(doc(db,'facturasOrden',ACT.folio));
+    CACHE[ACT.folio]=ACT.archivos.length;
   }catch(e){}
   pintarModal(); scanAndInject();
 };
@@ -117,25 +117,42 @@ function ensureModal(){
   document.body.appendChild(d);
 }
 
-/* ---------- inyección del botón en cada orden ---------- */
-function folioToOrden(folio){ return (window.__ordenesCompra||[]).find(x=>x.folio===folio); }
+/* ---------- inyección del botón: folio tomado del elemento exacto S#### ---------- */
+function proveedorDeCard(card, folio){
+  // el proveedor suele estar en un nodo de texto cercano; intento tomar una línea razonable
+  try{
+    const txt=(card.textContent||'').replace(/\s+/g,' ');
+    const m=txt.match(new RegExp(folio+'\\s*[A-ZÁÉÍÓÚ ]*?\\s*([A-ZÁÉÍÓÚ][A-Za-zÁÉÍÓÚáéíóú.,& ]{4,60}?(?:S\\.A\\.|S\\. DE R\\.L\\.|SA DE CV|C\\.V\\.|S\\.A|,)?)'));
+  }catch(e){}
+  return '';
+}
 
 function scanAndInject(){
   if(!cacheListo) return;
-  const botones=[...document.querySelectorAll('button')].filter(b=>{ const t=(b.textContent||'').trim().toLowerCase(); return t==='editar'; });
-  botones.forEach(btn=>{
-    let cont=btn.parentElement, folio=null, hops=0;
-    while(cont && hops<6){ const m=(cont.textContent||'').match(/\bS\d{3,6}\b/); if(m){ folio=m[0]; break; } cont=cont.parentElement; hops++; }
-    if(!cont || !folio) return;
-    if(cont.querySelector('[data-fact-btn]')) return;
-    const o=folioToOrden(folio); if(!o) return;
-    const tiene=CACHE[o.id]>0;
+  const editars=[...document.querySelectorAll('button')].filter(b=>(b.textContent||'').trim().toLowerCase()==='editar');
+  editars.forEach(btn=>{
+    // subir a la card: primer ancestro que contenga un elemento hoja cuyo texto sea exactamente S####
+    let cont=btn.parentElement, hops=0, card=null, folio=null;
+    while(cont && hops<8){
+      const cand=[...cont.querySelectorAll('*')].find(e=>/^S\d{3,6}$/.test((e.textContent||'').trim()) && e.children.length===0);
+      if(cand){ card=cont; folio=(cand.textContent||'').trim(); break; }
+      cont=cont.parentElement; hops++;
+    }
+    if(!card || !folio) return;
+    if(btn.parentElement.querySelector('[data-fact-btn]')) return;
+    // proveedor: texto entre el estado (TRÁNSITO/SURTIDO/…) y "Pedido:" o el importe
+    let prov='';
+    try{ const t=(card.textContent||'').replace(/\s+/g,' ');
+      const m=t.match(/(?:TR[ÁA]NSITO|SURTIDO|LLEG[ÓO]|LLEGADA|REVISADO)\s*(.+?)\s*(?:Pedido|Estimada|\$)/i);
+      if(m && m[1]) prov=m[1].trim().slice(0,60);
+    }catch(e){}
+    const tiene=CACHE[folio]>0;
     const b=document.createElement('button');
     b.setAttribute('data-fact-btn','1');
     b.className=btn.className||'';
     b.textContent = tiene ? '🧾 Factura ✓' : '🧾 Factura';
     if(tiene) b.style.cssText='background:#16a34a;color:#fff;border-color:#16a34a';
-    b.addEventListener('click', function(ev){ ev.stopPropagation(); ev.preventDefault(); window.factAbrir(o.id, o.folio, o.proveedor); });
+    b.addEventListener('click', function(ev){ ev.stopPropagation(); ev.preventDefault(); window.factAbrir(folio, prov); });
     btn.parentElement.insertBefore(b, btn);
   });
 }
@@ -143,13 +160,13 @@ window.factRefresh=scanAndInject;
 
 let deb=null;
 function armarObserver(){
-  try{ const obs=new MutationObserver(()=>{ clearTimeout(deb); deb=setTimeout(scanAndInject,250); }); obs.observe(document.body,{childList:true,subtree:true}); }catch(e){}
+  try{ const obs=new MutationObserver(()=>{ clearTimeout(deb); deb=setTimeout(scanAndInject,300); }); obs.observe(document.body,{childList:true,subtree:true}); }catch(e){}
 }
 
 function start(){
   if(!document.body){ setTimeout(start,300); return; }
   cargarCache();
   armarObserver();
-  let n=0; const iv=setInterval(()=>{ scanAndInject(); if(++n>20) clearInterval(iv); }, 1000);
+  let n=0; const iv=setInterval(()=>{ scanAndInject(); if(++n>30) clearInterval(iv); }, 1000);
 }
 if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',start); else start();
