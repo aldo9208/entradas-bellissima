@@ -767,6 +767,7 @@ function renderFaltantes(){
       var falta=Math.max(0,(i.esperado||0)-(i.recibido||0));
       var sobra=Math.max(0,(i.recibido||0)-(i.esperado||0));
       if(falta===0 && sobra===0) return;
+      if(i.resuelto && (!i.resueltoTs || (Date.now()-i.resueltoTs) > 86400000)) return;
       var base={sucOrig:r.sucOrig||'—',sucDest:r.sucDest,folio:r.folio,fecha:r.fecha,numart:i.numart,desc:i.desc,esperado:i.esperado,recibido:i.recibido,_docId:r._docId,_idx:idx,resuelto:!!i.resuelto};
       if(falta>0) todos.push(Object.assign({},base,{tipo:'falta',cant:falta}));
       if(sobra>0) sobras.push(Object.assign({},base,{tipo:'sobra',cant:sobra}));
@@ -826,7 +827,7 @@ window.toggleResuelto = async function(docId, idx){
   try{
     var r = recepciones.find(function(x){ return x._docId===docId; });
     if(!r || !r.items || !r.items[idx]) return;
-    r.items[idx].resuelto = !r.items[idx].resuelto;
+    r.items[idx].resuelto = !r.items[idx].resuelto; if(r.items[idx].resuelto){ r.items[idx].resueltoTs = Date.now(); } else { delete r.items[idx].resueltoTs; };
     renderFaltantes();
     await updateDoc(doc(db,'recepciones',docId), { items: r.items });
   }catch(e){ alert('Error al guardar: '+e.message); renderFaltantes(); }
