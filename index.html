@@ -123,9 +123,9 @@ input:focus,select:focus{outline:none;border-color:var(--text)}
   <p style="font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:10px;margin-top:18px">Cargar surtido multi-sucursal (XLSX)</p>
   <div class="card">
     <label style="display:block;border:2px dashed #cbd5e1;border-radius:12px;padding:28px;text-align:center;cursor:pointer;background:#f8fafc">
-      <input type="file" id="file-xlsx-surtido" accept=".xlsx" style="display:none" />
+      <input type="file" id="file-xlsx-surtido" accept=".xlsx" multiple style="display:none" />
       <div style="font-weight:600">Seleccionar XLSX de surtido multi-sucursal</div>
-      <p style="font-size:12px;color:var(--muted);margin-top:4px">Surtido_MultiSucursal_YYYY-MM-DD.xlsx</p>
+      <p style="font-size:12px;color:var(--muted);margin-top:4px">Un archivo por sucursal (ej. SUC_2_Morelos.xlsx) — puedes seleccionar varios</p>
     </label>
     <div id="preview-xlsx-surtido" style="margin-top:10px"></div>
     <button id="btn-cargar-surtido" class="btn btn-primary" style="margin-top:10px;width:100%;display:none">Cargar todos los traspasos</button>
@@ -1047,81 +1047,54 @@ let __surtidoTraspasos = null;
 let __surtidoFechaArchivo = null;
 
 document.getElementById('file-xlsx-surtido').addEventListener('change', async (ev)=>{
-  const file = ev.target.files[0];
+  const files = Array.from(ev.target.files||[]);
   const prev = document.getElementById('preview-xlsx-surtido');
   const btn = document.getElementById('btn-cargar-surtido');
-  __surtidoTraspasos = null;
-  btn.style.display = 'none';
-  if(!file){ prev.innerHTML=''; return; }
-  const fm = file.name.match(/(\d{4})-(\d{2})-(\d{2})/);
-  if(!fm){
-    prev.innerHTML = '<div class="alert alert-err">El nombre del archivo debe contener la fecha YYYY-MM-DD</div>';
-    return;
-  }
-  __surtidoFechaArchivo = fm[1]+'-'+fm[2]+'-'+fm[3];
-  const folioFecha = fm[1]+fm[2]+fm[3];
-  prev.innerHTML = '<div style="color:var(--muted)">Leyendo archivo...</div>';
+  __surtidoTraspasos = null; btn.style.display='none';
+  if(!files.length){ prev.innerHTML=''; return; }
+  prev.innerHTML = '<div style="color:var(--muted)">Leyendo archivo(s)...</div>';
   try{
     const XLSX = await import('https://cdn.sheetjs.com/xlsx-0.20.3/package/xlsx.mjs');
-    const buf = await file.arrayBuffer();
-    const wb = XLSX.read(buf, {type:'array'});
-    if(!wb.SheetNames.includes('POR SUCURSAL')){
-      prev.innerHTML = '<div class="alert alert-err">El XLSX no contiene la hoja "POR SUCURSAL"</div>';
-      return;
-    }
-    const ws = wb.Sheets['POR SUCURSAL'];
-    const rows = XLSX.utils.sheet_to_json(ws, {header:1, defval:null});
-    const pares = {};
-    let currentDest = null;
-    let inData = false;
-    for(const row of rows){
-      const a = row[0];
-      if(typeof a === 'string' && a.startsWith('SUC ')){
-        const m = a.split('—');
-        if(m.length > 1){
-          const nombre = m[1].split('|')[0].trim();
-          currentDest = SUC_MAP_SURTIDO[nombre] || null;
+    const pares = {}; const avisos = [];
+    for(const file of files){
+      const buf = await file.arrayBuffer();
+      const wb = XLSX.read(buf, {type:'array'});
+      const esNuevo = wb.SheetNames.includes('SURTIR');
+      const esViejo = wb.SheetNames.includes('POR SUCURSAL');
+      if(!esNuevo && !esViejo){ avisos.push(file.name+': sin hoja SURTIR ni POR SUCURSAL'); continue; }
+      const ws = wb.Sheets[esNuevo?'SURTIR':'POR SUCURSAL'];
+      const rows = XLSX.utils.sheet_to_json(ws, {header:1, defval:null});
+      let fm = file.name.match(/(\d{4})-(\d{2})-(\d{2})/);
+      if(!fm){ for(const r of rows){ for(const c of (r||[])){ if(typeof c==='string'){ const mm=c.match(/(\d{4})-(\d{2})-(\d{2})/); if(mm){ fm=mm; break; } } } if(fm) break; } }
+      let folioFecha; if(fm){ folioFecha=fm[1]+fm[2]+fm[3]; } else { const d=new Date(); folioFecha=d.getFullYear()+String(d.getMonth()+1).padStart(2,'0')+String(d.getDate()).padStart(2,'0'); }
+      if(esNuevo){
+        let origen=null;
+        for(const r of rows){ const a=r&&r[0]; if(typeof a==='string' && a.indexOf('SUC ')>=0 && a.indexOf('\u2014')>=0 && a.indexOf('ENVIAR')<0){ const nombre=a.split('\u2014')[1].split('(')[0].split('|')[0].trim(); origen=SUC_MAP_SURTIDO[nombre]||null; break; } }
+        if(!origen){ avisos.push(file.name+': no identifiqué la sucursal de origen'); continue; }
+        let currentDest=null, inData=false;
+        for(const row of rows){ const a=row&&row[0];
+          if(typeof a==='string' && a.indexOf('ENVIAR A')>=0){ const parte=a.split('\u2014')[1]; currentDest=parte?(SUC_MAP_SURTIDO[parte.split('(')[0].split('|')[0].trim()]||null):null; inData=false; continue; }
+          if(a==='Motivo'){ inData=true; continue; }
+          if(inData && currentDest){ const clave=row[1], desc=row[2], cant=parseInt(row[4])||0; if(!clave || cant<=0) continue; const key=currentDest+'||'+origen; if(!pares[key]) pares[key]={dest:currentDest,orig:origen,items:[],ff:folioFecha}; pares[key].items.push({numart:String(clave),desc:String(desc||''),cant:cant}); }
         }
-        inData = false;
-        continue;
-      }
-      if(a === 'Motivo'){ inData = true; continue; }
-      if(inData && currentDest){
-        const clave = row[1];
-        const desc = row[2];
-        const cant = parseInt(row[6]) || 0;
-        const origenNombre = row[7];
-        if(!clave || !origenNombre || cant <= 0) continue;
-        const origen = SUC_MAP_SURTIDO[origenNombre];
-        if(!origen) continue;
-        const key = currentDest + '||' + origen;
-        if(!pares[key]) pares[key] = {dest: currentDest, orig: origen, items: []};
-        pares[key].items.push({numart: String(clave), desc: String(desc||''), cant: cant});
+      } else {
+        let currentDest=null, inData=false;
+        for(const row of rows){ const a=row&&row[0];
+          if(typeof a==='string' && a.startsWith('SUC ')){ const m=a.split('\u2014'); if(m.length>1){ const nombre=m[1].split('|')[0].trim(); currentDest=SUC_MAP_SURTIDO[nombre]||null; } inData=false; continue; }
+          if(a==='Motivo'){ inData=true; continue; }
+          if(inData && currentDest){ const clave=row[1], desc=row[2], cant=parseInt(row[6])||0, origenNombre=row[7]; if(!clave || !origenNombre || cant<=0) continue; const origen=SUC_MAP_SURTIDO[origenNombre]; if(!origen) continue; const key=currentDest+'||'+origen; if(!pares[key]) pares[key]={dest:currentDest,orig:origen,items:[],ff:folioFecha}; pares[key].items.push({numart:String(clave),desc:String(desc||''),cant:cant}); }
+        }
       }
     }
-    const tArr = Object.values(pares).map(p => ({
-      folio: 'S' + folioFecha + '-' + _shortSucSurtido(p.dest) + '-' + _shortSucSurtido(p.orig),
-      sucOrig: p.orig,
-      sucDest: p.dest,
-      items: p.items
-    }));
-    if(tArr.length === 0){
-      prev.innerHTML = '<div class="alert alert-err">No se detectaron movimientos en el archivo</div>';
-      return;
-    }
+    const tArr = Object.values(pares).map(p => ({ folio:'S'+p.ff+'-'+_shortSucSurtido(p.dest)+'-'+_shortSucSurtido(p.orig), sucOrig:p.orig, sucDest:p.dest, items:p.items }));
+    if(tArr.length===0){ prev.innerHTML='<div class="alert alert-err">No se detectaron movimientos'+(avisos.length?': '+avisos.join('; '):'')+'</div>'; return; }
     __surtidoTraspasos = tArr;
     const totalItems = tArr.reduce((s,t)=>s+t.items.length,0);
     const totalPzas = tArr.reduce((s,t)=>s+t.items.reduce((a,i)=>a+i.cant,0),0);
     const sucsDest = [...new Set(tArr.map(t=>t.sucDest))];
-    prev.innerHTML = '<div class="alert alert-ok">' +
-      '<strong>Surtido del ' + __surtidoFechaArchivo + '</strong><br>' +
-      tArr.length + ' traspasos · ' + sucsDest.length + ' sucursales destino · ' +
-      totalItems + ' renglones · ' + totalPzas + ' piezas' +
-      '</div>';
+    prev.innerHTML = '<div class="alert alert-ok"><strong>Surtido detectado:</strong> '+tArr.length+' traspasos · '+totalItems+' renglones · '+totalPzas+' piezas<br>Destinos: '+sucsDest.length+(avisos.length?'<br><span style="color:#b45309">Avisos: '+avisos.join('; ')+'</span>':'')+'</div>';
     btn.style.display = 'block';
-  }catch(e){
-    prev.innerHTML = '<div class="alert alert-err">Error: ' + (e.message||e) + '</div>';
-  }
+  }catch(e){ prev.innerHTML='<div class="alert alert-err">Error al leer: '+e.message+'</div>'; }
 });
 
 document.getElementById('btn-cargar-surtido').addEventListener('click', async ()=>{
