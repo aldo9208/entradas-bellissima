@@ -225,16 +225,13 @@ function pintarContar(){
     }
     return s+'</div>';
   };
-  const BIG = arts.length>250;
-  let mostrados=0, ocultos=0;
+  // Siempre muestra la lista completa; el buscador solo filtra
+  let mostrados=0;
   arts.forEach(it=>{
     if(filtroTxt){ if(!((it.clave||'').toLowerCase().includes(filtroTxt) || (it.desc||'').toLowerCase().includes(filtroTxt))) return; }
-    else if(BIG){ const rec=CONTEO.items[it.claveKey]; if(!(rec && rec.fisico!=null)){ ocultos++; return; } } // en listas grandes, sin buscar solo muestra los ya contados
-    if(mostrados>=300){ ocultos++; return; }
     h+=fila(it.clave, it.claveKey, it.desc, CONTEO.items[it.claveKey], false); mostrados++;
   });
-  if(BIG && !filtroTxt) h+='<div style="background:#fffbeb;border:1px solid #fde68a;border-radius:8px;padding:9px 11px;font-size:12px;color:#92400e;margin-bottom:8px">Esta lista tiene '+arts.length+' artículos. Usa el 🔎 buscador de arriba para encontrar el que vas a contar. Aquí abajo se muestran los que ya contaste.</div>';
-  else if(ocultos>0) h+='<div style="font-size:11.5px;color:#999;text-align:center;margin:6px 0">…y '+ocultos+' más. Afina la búsqueda.</div>';
+  if(filtroTxt && mostrados===0) h+='<div style="font-size:11.5px;color:#999;text-align:center;margin:6px 0">Sin resultados para la búsqueda.</div>';
   CONTEO.extras.forEach((ex,i)=>{ h+=fila(ex.clave, 'X'+i, ex.desc, ex, true); });
   if(!cerrada) h+='<button class="btn btn-primary" onclick="invtGuardarConteo()" style="width:100%;margin-top:8px;background:#0369a1">💾 Guardar conteo</button>';
   h+='<div id="invt-conteo-status" style="text-align:center;font-size:12.5px;margin-top:8px;min-height:16px;color:#16a34a"></div>';
